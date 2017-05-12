@@ -1,0 +1,30 @@
+# params config
+
+iter:
+    batch_size: 24
+    epoch:  50
+    model_dir:  '../docs/model/checkpoints/'
+    model_name: 'adios_best.h5'
+X:
+    embedding_dim: 128
+Conv2D:
+    filters:    64
+    filter_size:  [3,4,5]
+H:
+    dropout:    0.5
+    batch_norm: {beta_initializer: zeros}
+H0:
+    dim:        96
+    dropout:    0.5
+    batch_norm: {beta_initializer: zeros}
+H1:
+    dim:        64
+    dropout:    0.5
+    batch_norm: {beta_initializer: zeros}
+Y0:
+    W_regularizer: 0.0001
+    activity_reg: {l1: 0.0001}
+    batch_norm: {beta_initializer: zeros}
+Y1:
+    W_regularizer: 0.0001
+    activity_reg: {l1: 0.0001}
