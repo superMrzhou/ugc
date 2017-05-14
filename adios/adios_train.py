@@ -1,36 +1,21 @@
 # -*- coding:utf-8 -*-
-import os
-
-import sys
+import os, re, os
 reload(sys)
 sys.setdefaultencoding('utf8')
-import re
 
-from copy import deepcopy
-import numpy as np
 import yaml
+import numpy as np
+from copy import deepcopy
+
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adagrad
 
 from adios.utils.callbacks import HammingLoss
 from adios.utils.metrics import f1_measure, hamming_loss, precision_at_k
 from adios.utils.assemble import assemble
-from adios.utils.CNN_helper import *
+from adios.utils.data_helper import *
 
-def train(X_train,Y_train,X_test,Y_test,params):
-
-    # Specify datasets in the format of dictionaries
-    ratio = 0.2
-    valid_N = int(ratio * X_test.shape[0])
-    train_dataset = {'X': X_train,
-                     'Y0': Y_train[:,:nb_labels_Y0],
-                     'Y1': Y_train[:,nb_labels_Y0:]}
-    valid_dataset = {'X': X_test[:valid_N],
-                     'Y0': Y_test[:valid_N,:nb_labels_Y0],
-                     'Y1': Y_test[:valid_N,nb_labels_Y0:]}
-    test_dataset = {'X': X_test[valid_N:],
-                    'Y0': Y_test[valid_N:,:nb_labels_Y0],
-                    'Y1': Y_test[valid_N:,nb_labels_Y0:]}
+def train(train_dataset,valid_dataset,test_dataset,params):
 
 
     # Assemble and compile the model
@@ -39,6 +24,8 @@ def train(X_train,Y_train,X_test,Y_test,params):
                         'Y1': 'binary_crossentropy'},
                   optimizer=Adagrad(1e-1))
 
+    embedding_layer = model.get_layer('embedding')
+    embedding_layer.set_weights()
     # Make sure checkpoints folder exists
     model_dir = params['iter']['model_dir']
     model_name = params['iter']['model_name']
@@ -60,6 +47,7 @@ def train(X_train,Y_train,X_test,Y_test,params):
     batch_size = params['iter']['batch_size']
     nb_epoch = params['iter']['epoch']
 
+    # start to train
     model.fit(x=train_dataset["X"],
               y=[train_dataset['Y0'], train_dataset['Y1']],
               validation_data=(valid_dataset["X"],[valid_dataset["Y0"],valid_dataset["Y1"]]),
@@ -192,7 +180,6 @@ def x2vec(X_train,X_test):
 
 
 if __name__ == '__main__':
-    from keras.preprocessing import sequence
 
     # Load the datasets
     X_train,Y_train,X_test,Y_test,Y0,Y1 = loadData()
@@ -227,6 +214,18 @@ if __name__ == '__main__':
     params['Y0']['dim'] = nb_labels_Y0
     params['Y1']['dim'] = nb_labels_Y1
     print(params)
+    # Specify datasets in the format of dictionaries
+    ratio = 0.2
+    valid_N = int(ratio * X_test.shape[0])
+    train_dataset = {'X': X_train,
+                     'Y0': Y_train[:,:nb_labels_Y0],
+                     'Y1': Y_train[:,nb_labels_Y0:]}
+    valid_dataset = {'X': X_test[:valid_N],
+                     'Y0': Y_test[:valid_N,:nb_labels_Y0],
+                     'Y1': Y_test[:valid_N,nb_labels_Y0:]}
+    test_dataset = {'X': X_test[valid_N:],
+                    'Y0': Y_test[valid_N:,:nb_labels_Y0],
+                    'Y1': Y_test[valid_N:,nb_labels_Y0:]}
 
     # start train
-    train(X_train,Y_train,X_test,Y_test,params)
+    train(train_dataset,valid_dataset,test_dataset,params)
