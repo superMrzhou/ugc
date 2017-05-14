@@ -8,7 +8,7 @@ from keras.layers import ActivityRegularization,concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 
-from adios.utils.models import MLC
+from utils.models import MLC
 
 def assemble(name, params):
     if name == 'MLP':
@@ -102,8 +102,8 @@ def assemble_adios(params):
     """
     # X
 
-    input_shape = (params['X']['sequence_length'], embedding_dim) if params['iter']['model_type'] == "CNN-static" else (params['X']['sequence_length'],)
-    X = Input(shape=(,), dtype='float32', name='X')
+    input_shape = (params['X']['sequence_length'], params['X']['embedding_dim']) if params['iter']['model_type'] == "CNN-static" else (params['X']['sequence_length'],)
+    X = Input(shape=input_shape, dtype='float32', name='X')
 
     # embedding
     # Static model do not have embedding layer
@@ -131,12 +131,12 @@ def assemble_adios(params):
                       activation='relu',
                       strides=1
                       )(embedding)
-        pooling = MaxPool1D(pool_size=params['Conv1D']['pooling_size']))(conv)
+        pooling = MaxPool1D(pool_size=params['Conv1D']['pooling_size'])(conv)
         flatten = Flatten()(pooling)
         pooled_output.append(flatten)
 
     # combine all the pooled feature as the hidden layer between X and Y0
-    H = concatenate()(pooled_output) if len(pooled_output) > 1 else pooled_output[0]
+    H = concatenate(pooled_output) if len(pooled_output) > 1 else pooled_output[0]
 
     # batch_norm
     if 'batch_norm' in params['H'] and params['H']['batch_norm'] != None:

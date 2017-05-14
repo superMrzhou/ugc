@@ -13,14 +13,14 @@
 
 import re
 import os
+import itertools
 import numpy as np
-from itertools import *
 from collections import Counter
 from gensim.models import word2vec
 from os.path import join, exists, split
 
 def train_word2vec(sentence_matrix, vocabulary_inv,
-                   num_features=300, min_word_count=1, context=10):
+                   num_features=100, min_word_count=1, context=10):
     """
     Trains, saves, loads Word2Vec model
     Returns initial weights for embedding layer.
@@ -71,19 +71,8 @@ def clean_str(string):
     Tokenization/string cleaning for all datasets except for SST.
     Original taken from https://github.com/yoonkim/CNN_sentence/blob/master/process_data.py
     """
-    string = re.sub(r"[^A-Za-z0-9(),!?\'\`]", " ", string)
-    string = re.sub(r"\'s", " \'s", string)
-    string = re.sub(r"\'ve", " \'ve", string)
-    string = re.sub(r"n\'t", " n\'t", string)
-    string = re.sub(r"\'re", " \'re", string)
-    string = re.sub(r"\'d", " \'d", string)
-    string = re.sub(r"\'ll", " \'ll", string)
-    string = re.sub(r",", " , ", string)
-    string = re.sub(r"!", " ! ", string)
-    string = re.sub(r"\(", " \( ", string)
-    string = re.sub(r"\)", " \) ", string)
-    string = re.sub(r"\?", " \? ", string)
-    string = re.sub(r"\s{2,}", " ", string)
+    string = re.sub(r"[^A-Za-z0-9(),!?！？，。；’‘“”’\'\`]", " ", string)
+
     return string.strip().lower()
 
 
@@ -96,16 +85,15 @@ def load_data_and_labels(file_path,split_tag='\t',lbl_text_index=[0,1]):
     # Load data from files
     raw_data = list(open(file_path,'r').readlines())
     # parse label
-    labels = [data.split(split_tag)[lbl_text_index[0]].strip() for data in raw_data]
+    labels = [data.strip('\n').split(split_tag)[lbl_text_index[0]] for data in raw_data]
     # parse text
-    texts = [data.split(split_tag)[lbl_text_index[1]].strip() for data in raw_data]
+    texts = [data.strip('\n').split(split_tag)[lbl_text_index[1]] for data in raw_data]
 
     # Split by words
-    texts = [clean_str(sent) for sent in texts]
+    # texts = [clean_str(sent) for sent in texts]
     texts = [s.split(" ") for s in texts]
     # support multi-label
     labels = [s.split(" ") for s in labels]
-
     return texts, labels
 
 def load_trn_tst_data_labels(trn_file,tst_file=None,ratio=0.2,split_tag='\t',lbl_text_index=[0,1]):
@@ -130,7 +118,7 @@ def load_trn_tst_data_labels(trn_file,tst_file=None,ratio=0.2,split_tag='\t',lbl
         tst_data,tst_labels = trn_data[index[:split_n]],trn_labels[index[:split_n]]
         trn_data,trn_labels = trn_data[index[split_n:]],trn_labels[index[split_n:]]
 
-    return list(trn_data), list(trn_labels), list(tst_data), list(tst_labels）
+    return list(trn_data), list(trn_labels), list(tst_data), list(tst_labels)
 
 
 
@@ -167,7 +155,7 @@ def build_input_data(sentences, labels, vocabulary):
     """
     Maps sentencs and labels to vectors based on a vocabulary.
     """
-    x = np.array([[vocabulary[word] for word in sentence] for sentence in sentences])
+    x = np.array([[vocabulary[word] if word in vocabulary else 0 for word in sentence] for sentence in sentences])
     y = np.array(labels)
     return [x, y]
 
@@ -191,6 +179,7 @@ def load_data(trn_file,
         sentences, labels = trn_text + tst_text, trn_labels + tst_labels
     else:
         sentences, labels = trn_text, trn_labels
+
     sentences_padded = pad_sentences(sentences)
 
     if vocabulary == None or vocabulary_inv == None:
@@ -198,14 +187,14 @@ def load_data(trn_file,
 
     x, y = build_input_data(sentences_padded, labels, vocabulary)
 
-    if tst_file == None or not use_tst:
+    if tst_file == None and not use_tst:
         return [x, y, vocabulary, vocabulary_inv]
     elif tst_file:
         split_n = len(trn_text)
     elif use_tst:
         split_n = int(ratio * len(trn_text))
 
-    return x[:split_n],y_[:split_n],x[split_n:],x[split_n:],vocabulary,vocabulary_inv
+    return x[split_n:],y[split_n:],x[:split_n],y[:split_n],vocabulary,vocabulary_inv
 
 
 
