@@ -5,11 +5,13 @@ iter:
     epoch:  50
     model_dir:  '../docs/model/checkpoints/'
     model_name: 'adios_best.h5'
+    model_type: 'CNN-static' # only CNN-static, CNN-non-static, CNN-rand valiable
 X:
     embedding_dim: 128
-Conv2D:
+Conv1D:
     filters:    64
     filter_size:  [3,4,5]
+    pooling_size: 2 # default 2
 H:
     dropout:    0.5
     batch_norm: {beta_initializer: zeros}
