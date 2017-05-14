@@ -2,7 +2,7 @@
 Utility functions for constructing MLC models.
 """
 import keras.backend as K
-from keras.layers import Conv2D, MaxPool2D,Embedding,Flatten
+from keras.layers import Conv1D, MaxPool1D,Embedding,Flatten
 from keras.layers import Dense, Dropout,Input,Lambda,Reshape
 from keras.layers import ActivityRegularization,concatenate
 from keras.layers.normalization import BatchNormalization
@@ -39,12 +39,12 @@ def assemble_mlp(params):
     filters = params['Conv2D']['filters']
     pooled_output = []
     for size in params['Conv2D']['filter_size']:
-        conv = Conv2D(filters,
+        conv = Conv1D(filters,
                       (size,size),
                       padding='valid',
                       activation='relu'
                       )(X)
-        pooling = MaxPool2D((params['X']['dim'] - size,1))(conv)
+        pooling = MaxPool1D((params['X']['dim'] - size,1))(conv)
         flatten = Flatten()(pooling)
         pooled_output.append(flatten)
 
@@ -101,35 +101,42 @@ def assemble_adios(params):
     specified in the params dictionary.
     """
     # X
-    X = Input(shape=(params['X']['dim'],), dtype='float32', name='X')
+
+    input_shape = (params['X']['sequence_length'], embedding_dim) if params['iter']['model_type'] == "CNN-static" else (params['X']['sequence_length'],)
+    X = Input(shape=(,), dtype='float32', name='X')
 
     # embedding
-    if 'embedding_dim' in params['X'] and params['X']['embedding_dim'] != None:
+    # Static model do not have embedding layer
+    if params['iter']['model_type'] == "CNN-static":
+        embedding = X
+    elif 'embedding_dim' in params['X'] and params['X']['embedding_dim'] != None:
         embedding = Embedding(output_dim=params['X']['embedding_dim'],
                       input_dim=params['X']['vocab_size'],
-                      input_length=params['X']['dim'],
+                      input_length=params['X']['sequence_length'],
+                      name="embedding",
                       mask_zero=False
                       )(X)
+    else: exit('embedding_dim param is not given!')
+
     # expanding dimension
-    embed_reshape = Reshape((params['X']['dim'], params['X']['embedding_dim'], 1))(embedding)
+    #embed_reshape = Reshape((params['X']['sequence_length'], params['X']['embedding_dim'], 1))(embedding)
 
     # Conv and max-pooling
-    filters = params['Conv2D']['filters']
+    filters = params['Conv1D']['filters']
     pooled_output = []
-    for size in params['Conv2D']['filter_size']:
-        conv = Conv2D(filters=filters,
-                      kernel_size=(size, size),
+    for size in params['Conv1D']['filter_size']:
+        conv = Conv1D(filters=filters,
+                      kernel_size=size,
                       padding='valid',
                       activation='relu',
-                      data_format='channels_last'
-                      )(embed_reshape)
-        pooling = MaxPool2D((params['X']['dim'] - size,1))(conv)
+                      strides=1
+                      )(embedding)
+        pooling = MaxPool1D(pool_size=params['Conv1D']['pooling_size']))(conv)
         flatten = Flatten()(pooling)
         pooled_output.append(flatten)
 
-    # combine all the pooled feature
-    # as the hidden layer between X and Y0
-    H = concatenate(pooled_output)
+    # combine all the pooled feature as the hidden layer between X and Y0
+    H = concatenate()(pooled_output) if len(pooled_output) > 1 else pooled_output[0]
 
     # batch_norm
     if 'batch_norm' in params['H'] and params['H']['batch_norm'] != None:
@@ -196,6 +203,8 @@ def assemble_adios(params):
         if 'dropout' in params['H1']:
             H1 = Dropout(params['H1']['dropout'],
                          name='H1_dropout')(H1)
+    else:
+        H1 = Y0_H0
 
     # Y1
     kwargs = params['Y1']['kwargs'] if 'kwargs' in params['Y1'] else {}
