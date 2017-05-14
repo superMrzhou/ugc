@@ -1,4 +1,17 @@
 # -*- coding:utf-8 -*-
+
+"""
+@version: 1.0
+@author: kevin
+@license: Apache Licence
+@contact: liujiezhang@bupt.edu.cn
+@site:
+@software: PyCharm Community Edition
+@file: adios_train.py
+@time: 17/05/03 17:39
+"""
+
+
 import os, re, sys
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -25,8 +38,10 @@ def train(train_dataset,valid_dataset,test_dataset,params):
     model_type = params['iter']['model_type']
     print("Model type is", model_type)
     if model_type == "CNN-non-static" or model_type == "CNN-static":
-        embedding_weights = train_word2vec(np.vstack((train_dataset['X'], valid_dataset['X'],test_dataset['X'])), vocabulary_inv, num_features=embedding_dim,
-                                       min_word_count=min_word_count, context=context)
+        embedding_weights = train_word2vec(np.vstack((train_dataset['X'], valid_dataset['X'],test_dataset['X'])), vocabulary_inv,
+                                            num_features=params['X']['embedding_dim'],
+                                            min_word_count=1,
+                                            context=5)
 
         train_dataset['X'] = embedding_weights[0][train_dataset['X']]
         test_dataset['X'] = embedding_weights[0][test_dataset['X']]
@@ -58,8 +73,8 @@ def train(train_dataset,valid_dataset,test_dataset,params):
                         monitor='val_hl',
                         verbose=0,
                         save_best_only=True,
-                        mode='min')
-        # EarlyStopping(monitor='val_loss', patience=15, verbose=0, mode='auto'),
+                        mode='min'),
+        EarlyStopping(monitor='val_loss', patience=15, verbose=1, mode='auto'),
     ] # TODO 早停止参数需要进一步确定 (zhangliujie)
 
     # Fit the model to the data

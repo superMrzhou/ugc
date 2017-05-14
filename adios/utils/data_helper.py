@@ -7,8 +7,8 @@
 @contact: liujiezhang@bupt.edu.cn
 @site:
 @software: PyCharm Community Edition
-@file: CNN_helper.py
-@time: 17/4/21 17:39
+@file: data_helper.py
+@time: 17/05/03 12:01
 """
 
 import re
@@ -32,7 +32,7 @@ def train_word2vec(sentence_matrix, vocabulary_inv,
     min_word_count  # Minimum word count
     context         # Context window size
     """
-    model_dir = '../../docs/models'
+    model_dir = '/home/kevin/Documents/Project/adios/docs/model/w2v_matrix'
     model_name = "{:d}features_{:d}minwords_{:d}context".format(num_features, min_word_count, context)
     model_name = join(model_dir, model_name)
     if exists(model_name):
