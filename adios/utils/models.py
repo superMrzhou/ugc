@@ -92,6 +92,7 @@ class MLC(Model):
                                                        top_k=top_k)
                     score_best, alpha_best = -np.Inf, None
                     for a in alpha:
+
                         model = lm.Ridge(alpha=a).fit(inputs, T)
                         score = model.score(val_inputs.astype(float), val_T)
                         if score > score_best:
