@@ -19,6 +19,7 @@ from collections import Counter
 from gensim.models import word2vec
 from os.path import join, exists, split
 
+
 def train_word2vec(sentence_matrix, vocabulary_inv,
                    num_features=100, min_word_count=1, context=10):
     """
@@ -33,7 +34,8 @@ def train_word2vec(sentence_matrix, vocabulary_inv,
     context         # Context window size
     """
     model_dir = '/home/kevin/Documents/Project/adios/docs/model/w2v_matrix'
-    model_name = "{:d}features_{:d}minwords_{:d}context".format(num_features, min_word_count, context)
+    model_name = "{:d}features_{:d}minwords_{:d}context".format(
+        num_features, min_word_count, context)
     model_name = join(model_dir, model_name)
     if exists(model_name):
         embedding_model = word2vec.Word2Vec.load(model_name)
@@ -54,7 +56,8 @@ def train_word2vec(sentence_matrix, vocabulary_inv,
         # init_sims will make the model much more memory-efficient.
         embedding_model.init_sims(replace=True)
 
-        # Saving the model for later use. You can load it later using Word2Vec.load()
+        # Saving the model for later use. You can load it later using
+        # Word2Vec.load()
         if not exists(model_dir):
             os.mkdir(model_dir)
         print('Saving Word2Vec model \'%s\'' % split(model_name)[-1])
@@ -66,6 +69,7 @@ def train_word2vec(sentence_matrix, vocabulary_inv,
                                    for w in vocabulary_inv])]
     return embedding_weights
 
+
 def clean_str(string):
     """
     Tokenization/string cleaning for all datasets except for SST.
@@ -76,18 +80,20 @@ def clean_str(string):
     return string.strip().lower()
 
 
-def load_data_and_labels(file_path,split_tag='\t',lbl_text_index=[0,1]):
+def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1]):
     """
     Loads MR polarity data from files, splits the data into words and generates labels.
     Returns split sentences and labels.
     """
 
     # Load data from files
-    raw_data = list(open(file_path,'r').readlines())
+    raw_data = list(open(file_path, 'r').readlines())
     # parse label
-    labels = [data.strip('\n').split(split_tag)[lbl_text_index[0]] for data in raw_data]
+    labels = [data.strip('\n').split(split_tag)[lbl_text_index[0]]
+              for data in raw_data]
     # parse text
-    texts = [data.strip('\n').split(split_tag)[lbl_text_index[1]] for data in raw_data]
+    texts = [data.strip('\n').split(split_tag)[lbl_text_index[1]]
+             for data in raw_data]
 
     # Split by words
     # texts = [clean_str(sent) for sent in texts]
@@ -96,17 +102,20 @@ def load_data_and_labels(file_path,split_tag='\t',lbl_text_index=[0,1]):
     labels = [s.split(" ") for s in labels]
     return texts, labels
 
-def load_trn_tst_data_labels(trn_file,tst_file=None,ratio=0.2,split_tag='\t',lbl_text_index=[0,1]):
+
+def load_trn_tst_data_labels(trn_file, tst_file=None, ratio=0.2, split_tag='\t', lbl_text_index=[0, 1]):
     """
     Loads train data and test data,return segment words and labels
     if tst_file is None , split train data by ratio
     """
     # train data
-    trn_data,trn_labels = load_data_and_labels(trn_file,split_tag,lbl_text_index)
+    trn_data, trn_labels = load_data_and_labels(
+        trn_file, split_tag, lbl_text_index)
 
     # test data
     if tst_file:
-        tst_data,tst_labels = load_data_and_labels(tst_file,split_tag,lbl_text_index)
+        tst_data, tst_labels = load_data_and_labels(
+            tst_file, split_tag, lbl_text_index)
     else:
         index = np.arange(len(trn_labels))
         np.random.shuffle(index)
@@ -115,11 +124,12 @@ def load_trn_tst_data_labels(trn_file,tst_file=None,ratio=0.2,split_tag='\t',lbl
         trn_data = np.array(trn_data)
         trn_labels = np.array(trn_labels)
 
-        tst_data,tst_labels = trn_data[index[:split_n]],trn_labels[index[:split_n]]
-        trn_data,trn_labels = trn_data[index[split_n:]],trn_labels[index[split_n:]]
+        tst_data, tst_labels = trn_data[index[:split_n]
+                                        ], trn_labels[index[:split_n]]
+        trn_data, trn_labels = trn_data[index[split_n:]
+                                        ], trn_labels[index[split_n:]]
 
     return list(trn_data), list(trn_labels), list(tst_data), list(tst_labels)
-
 
 
 def pad_sentences(sentences, padding_word="<PAD/>"):
@@ -155,7 +165,8 @@ def build_input_data(sentences, labels, vocabulary):
     """
     Maps sentencs and labels to vectors based on a vocabulary.
     """
-    x = np.array([[vocabulary[word] if word in vocabulary else 0 for word in sentence] for sentence in sentences])
+    x = np.array([[vocabulary[word] if word in vocabulary else 0 for word in sentence]
+                  for sentence in sentences])
     y = np.array(labels)
     return [x, y]
 
@@ -164,7 +175,7 @@ def load_data(trn_file,
               tst_file=None,
               ratio=0.2,
               split_tag='\t',
-              lbl_text_index=[0,1],
+              lbl_text_index=[0, 1],
               vocabulary=None,
               vocabulary_inv=None,
               use_tst=False):
@@ -173,9 +184,11 @@ def load_data(trn_file,
     Returns input vectors, labels, vocabulary, and inverse vocabulary.
     """
     # Load and preprocess data
-    trn_text, trn_labels = load_data_and_labels(trn_file, split_tag,lbl_text_index)
+    trn_text, trn_labels = load_data_and_labels(
+        trn_file, split_tag, lbl_text_index)
     if tst_file:
-        tst_text, tst_labels = load_data_and_labels(tst_file, split_tag,lbl_text_index)
+        tst_text, tst_labels = load_data_and_labels(
+            tst_file, split_tag, lbl_text_index)
         sentences, labels = trn_text + tst_text, trn_labels + tst_labels
     else:
         sentences, labels = trn_text, trn_labels
@@ -194,8 +207,7 @@ def load_data(trn_file,
     elif use_tst:
         split_n = int(ratio * len(trn_text))
 
-    return x[split_n:],y[split_n:],x[:split_n],y[:split_n],vocabulary,vocabulary_inv
-
+    return x[split_n:], y[split_n:], x[:split_n], y[:split_n], vocabulary, vocabulary_inv
 
 
 def batch_iter(data, batch_size, num_epochs):
@@ -214,26 +226,28 @@ def batch_iter(data, batch_size, num_epochs):
             end_index = min((batch_num + 1) * batch_size, data_size)
             yield shuffled_data[start_index:end_index]
 
+
 def sample(N):
     '''
     伪造数据
     :param N:样本量
     :return:X,Y dtype:np.ndarray
     '''
-    x_data,y_data = [],[]
+    x_data, y_data = [], []
     w = np.random.normal(size=100)
     for i in range(N):
         y = np.zeros(4)
         x = np.random.random(100)
-        if np.abs(np.dot(w,x)) <= 3.2:
+        if np.abs(np.dot(w, x)) <= 3.2:
             y[1:3] = 1
         else:
-            y[0],y[-1] = 1,1
-        x = ['%.3f'%xx for xx in np.random.random(100)]
+            y[0], y[-1] = 1, 1
+        x = ['%.3f' % xx for xx in np.random.random(100)]
         x_data.append(x)
         y_data.append(y)
 
-    return np.array(x_data),np.array(y_data)
+    return np.array(x_data), np.array(y_data)
+
 
 def parseLable(file='../docs/CNN/dic_label'):
     '''
@@ -242,16 +256,17 @@ def parseLable(file='../docs/CNN/dic_label'):
     :return:
     '''
     id_cate = {}
-    G1,G2 = [],[]
-    with open(file,'r') as fr:
+    G1, G2 = [], []
+    with open(file, 'r') as fr:
         for line in fr:
             cont = line.decode('utf-8').split("\t")
             id_cate[int(cont[1])] = cont[0]
-            if set(cont[0]) & set(['-','_']):
+            if set(cont[0]) & set(['-', '_']):
                 G1.append(int(cont[1]))
             else:
                 G2.append(int(cont[1]))
-    return id_cate,G1,G2
+    return id_cate, G1, G2
+
 
 def loadDataSet(file):
     '''
@@ -259,16 +274,17 @@ def loadDataSet(file):
     :param file:
     :return:
     '''
-    X,Y,raw_data = [],[],[]
-    with open(file,'r') as fr:
+    X, Y, raw_data = [], [], []
+    with open(file, 'r') as fr:
         for line in fr:
             cont = line.decode('utf-8').split('\t')
             X.append([int(x.split(":")[0]) for x in cont[1].split()])
             Y.append([int(x) for x in cont[0].split()])
             raw_data.append(cont[2])
-    return X,Y,raw_data
+    return X, Y, raw_data
 
-def transY2Vec(Y,G1,G2):
+
+def transY2Vec(Y, G1, G2):
     '''
     Y转化为向量
     :param Y:
@@ -277,9 +293,9 @@ def transY2Vec(Y,G1,G2):
     :return:
     '''
     G1.extend(G2)
-    Y_vec = np.zeros([len(Y),len(G1)])
+    Y_vec = np.zeros([len(Y), len(G1)])
     for i, y in enumerate(Y):
-        Y_vec[i,y]=1
+        Y_vec[i, y] = 1
 
     return Y_vec
 
@@ -292,8 +308,8 @@ if __name__ == "__main__":
     w = train_word2vec(x, vocabulary_inv)
 
     exit()
-    id_cate,G1,G2 = parseLable()
-    print(len(G1),len(G2))
+    id_cate, G1, G2 = parseLable()
+    print(len(G1), len(G2))
     exit()
-    X,Y,raw_data = loadDataSet(file='../docs/CNN/test')
-    Y_vec = transY2Vec(Y,G1,G2)
+    X, Y, raw_data = loadDataSet(file='../docs/CNN/test')
+    Y_vec = transY2Vec(Y, G1, G2)
