@@ -33,7 +33,7 @@ def train_word2vec(sentence_matrix, vocabulary_inv,
     min_word_count  # Minimum word count
     context         # Context window size
     """
-    model_dir = '/home/kevin/Documents/Project/adios/docs/model/w2v_matrix'
+    model_dir = '/Users/Kevin/Documents/Project/sohu/adios/docs/model/w2v_matrix'
     model_name = "{:d}features_{:d}minwords_{:d}context".format(
         num_features, min_word_count, context)
     model_name = join(model_dir, model_name)
@@ -132,17 +132,23 @@ def load_trn_tst_data_labels(trn_file, tst_file=None, ratio=0.2, split_tag='\t',
     return list(trn_data), list(trn_labels), list(tst_data), list(tst_labels)
 
 
-def pad_sentences(sentences, padding_word="<PAD/>"):
+def pad_sentences(sentences, padding_word="<PAD/>", mode='max'):
     """
     Pads all sentences to the same length. The length is defined by the longest sentence.
     Returns padded sentences.
     """
-    sequence_length = max(len(x) for x in sentences)
+    if mode == 'max':
+        sequence_length = max(len(x) for x in sentences)
+    else:
+        sequence_length = sum(len(x) for x in sentences) / len(sentences)
     padded_sentences = []
     for i in range(len(sentences)):
         sentence = sentences[i]
-        num_padding = sequence_length - len(sentence)
-        new_sentence = sentence + [padding_word] * num_padding
+        if len(sentence) < sequence_length:
+            num_padding = sequence_length - len(sentence)
+            new_sentence = sentence + [padding_word] * num_padding
+        else:
+            new_sentence = sentence[:sequence_length]
         padded_sentences.append(new_sentence)
     return padded_sentences
 
@@ -178,6 +184,7 @@ def load_data(trn_file,
               lbl_text_index=[0, 1],
               vocabulary=None,
               vocabulary_inv=None,
+              padding_mod='max',
               use_tst=False):
     """
     Loads and preprocessed data for the MR dataset.
@@ -193,7 +200,7 @@ def load_data(trn_file,
     else:
         sentences, labels = trn_text, trn_labels
 
-    sentences_padded = pad_sentences(sentences)
+    sentences_padded = pad_sentences(sentences, mode=padding_mod)
 
     if vocabulary == None or vocabulary_inv == None:
         vocabulary, vocabulary_inv = build_vocab(sentences_padded)

@@ -11,6 +11,7 @@ from sklearn import linear_model as lm
 
 from keras.models import Model
 
+
 class MLC(Model):
     """
     Multi-label classifier.
@@ -18,6 +19,7 @@ class MLC(Model):
     Extends keras.models.Graph. Provides additional functionality and metrics
     specific to multi-label classification.
     """
+
     def _construct_thresholds(self, probs, targets, top_k=None):
         assert probs.shape == targets.shape, \
             "The shape of predictions should match the shape of targets."
@@ -25,7 +27,7 @@ class MLC(Model):
         top_k = top_k or nb_labels
 
         # Sort predicted probabilities in descending order
-        idx = np.argsort(probs, axis=1)[:,:-(top_k + 1):-1]
+        idx = np.argsort(probs, axis=1)[:, :-(top_k + 1):-1]
         p_sorted = np.vstack([probs[i, idx[i]] for i in range(len(idx))])
         t_sorted = np.vstack([targets[i, idx[i]] for i in range(len(idx))])
 
@@ -35,9 +37,9 @@ class MLC(Model):
         FN = t_sorted.sum(axis=1)
         FP = np.zeros(nb_samples)
         for i in range(top_k):
-            TP += t_sorted[:,i]
-            FN -= t_sorted[:,i]
-            FP += 1 - t_sorted[:,i]
+            TP += t_sorted[:, i]
+            FN -= t_sorted[:, i]
+            FP += 1 - t_sorted[:, i]
             F1.append(2 * TP / (2 * TP + FN + FP))
         F1 = np.vstack(F1).T
 
@@ -49,13 +51,15 @@ class MLC(Model):
 
         return T
 
-    def fit_thresholds(self, data, alpha, batch_size=128, y_name=['Y0','Y1'],verbose=0,
+    def fit_thresholds(self, data, alpha, batch_size=128, y_name=['Y0', 'Y1'], verbose=0,
                        validation_data=None, cv=None, top_k=None):
 
         inputs = np.hstack([data[k] for k in self.input_names])
+        t_inputs = np.average(inputs, axis=1) if len(
+            inputs.shape) == 3 else inputs
         probs = self.predict(data, batch_size=batch_size)
-        probs = dict(zip(y_name,probs))
 
+        probs = dict(zip(y_name, probs))
         targets = {k: data[k] for k in self.output_names}
 
         if isinstance(alpha, list):
@@ -68,8 +72,10 @@ class MLC(Model):
             elif validation_data is not None:
                 val_inputs = np.hstack([validation_data[k]
                                         for k in self.input_names])
-                val_probs = self.predict(validation_data)
-                val_probs = dict(zip(y_name,val_probs))
+                val_t_inputs = np.average(val_inputs, axis=1) if len(
+                    val_inputs.shape) == 3 else val_inputs
+                val_probs = self.predict(val_inputs)
+                val_probs = dict(zip(y_name, val_probs))
                 val_targets = {k: validation_data[k]
                                for k in self.output_names}
 
@@ -93,17 +99,17 @@ class MLC(Model):
                     score_best, alpha_best = -np.Inf, None
                     for a in alpha:
 
-                        model = lm.Ridge(alpha=a).fit(inputs, T)
-                        score = model.score(val_inputs.astype(float), val_T)
+                        model = lm.Ridge(alpha=a).fit(t_inputs, T)
+                        score = model.score(val_t_inputs.astype(float), val_T)
                         if score > score_best:
                             score_best, alpha_best = score, a
                     alpha = alpha_best
                 else:
-                    model = lm.RidgeCV(alphas=alpha, cv=cv).fit(inputs, T)
+                    model = lm.RidgeCV(alphas=alpha, cv=cv).fit(t_inputs, T)
                     alpha = model.alpha_
 
             self.t_models[k] = lm.Ridge(alpha=alpha)
-            self.t_models[k].fit(inputs, T)
+            self.t_models[k].fit(t_inputs, T)
 
         if verbose:
             sys.stdout.write("Done.\n")
@@ -111,12 +117,15 @@ class MLC(Model):
 
     def threshold(self, data, verbose=0):
         inputs = np.hstack([data[k] for k in self.input_names])
+        t_inputs = np.average(inputs, axis=1) if len(
+            inputs.shape) == 3 else inputs
 
         if verbose:
             sys.stdout.write("Thresholding...\n")
             sys.stdout.flush()
 
-        T = {k: self.t_models[k].predict(inputs.astype(float)) for k in self.output_names}
+        T = {k: self.t_models[k].predict(
+            t_inputs.astype(float)) for k in self.output_names}
 
         if verbose:
             sys.stdout.write("Done.\n")
@@ -124,11 +133,12 @@ class MLC(Model):
 
         return T
 
-    def predict_threshold(self, data, batch_size=128, y_name=['Y0','Y1'], verbose=0):
-        probs = self.predict(data, batch_size=batch_size, verbose=verbose)
+    def predict_threshold(self, data, batch_size=128, y_name=['Y0', 'Y1'], verbose=0):
+        inputs = np.hstack([data[k] for k in self.input_names])
+        probs = self.predict(inputs.astype(
+            float), batch_size=batch_size, verbose=verbose)
 
-        probs = dict(zip(y_name,probs))
+        probs = dict(zip(y_name, probs))
         T = self.threshold(data, verbose=verbose)
-
         preds = {k: probs[k] >= T[k] for k in self.output_names}
         return probs, preds

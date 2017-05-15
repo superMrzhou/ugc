@@ -35,7 +35,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     # Assemble and compile the model
     model = assemble('ADIOS', params)
-
+    raw_test_dataset = deepcopy(test_dataset)
     # Prepare embedding layer weights and convert inputs for static model
     model_type = params['iter']['model_type']
     print("Model type is", model_type)
@@ -44,12 +44,12 @@ def train(train_dataset, valid_dataset, test_dataset, params):
                                            num_features=params['X']['embedding_dim'],
                                            min_word_count=1,
                                            context=5)
+        if model_type == "CNN-static":
+            train_dataset['X'] = embedding_weights[0][train_dataset['X']]
+            test_dataset['X'] = embedding_weights[0][test_dataset['X']]
+            valid_dataset['X'] = embedding_weights[0][valid_dataset['X']]
 
-        train_dataset['X'] = embedding_weights[0][train_dataset['X']]
-        test_dataset['X'] = embedding_weights[0][test_dataset['X']]
-        valid_dataset['X'] = embedding_weights[0][valid_dataset['X']]
-
-        if params['iter']['model_type'] == "CNN-non-static":
+        elif params['iter']['model_type'] == "CNN-non-static":
             embedding_layer = model.get_layer('embedding')
             embedding_layer.set_weights(embedding_weights)
     elif model_type == "CNN-rand":
@@ -75,8 +75,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
                         monitor='val_hl',
                         verbose=0,
                         save_best_only=True,
-                        mode='min'),
-        EarlyStopping(monitor='val_loss', patience=15, verbose=1, mode='auto'),
+                        mode='min')
+        #EarlyStopping(monitor='val_loss', patience=15, verbose=1, mode='min'),
     ]  # TODO 早停止参数需要进一步确定 (zhangliujie)
 
     # Fit the model to the data
@@ -102,8 +102,22 @@ def train(train_dataset, valid_dataset, test_dataset, params):
                          alpha=np.logspace(-3, 3, num=10).tolist(), verbose=1)
 
     # Test the model
-    probs, preds = model.predict_threshold(test_dataset)
+    probs, preds = model.predict_threshold(test_dataset, verbose=1)
 
+    targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
+    preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
+    for i in range(30):
+        print(' '.join([vocabulary_inv[ii]
+                        for ii in raw_test_dataset['X'][i]]))
+        print(' '.join([id_cate[Y0Y1[ii]]
+                        for ii in np.where(np.concatenate([test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i] == 1)[0]]))
+        print(np.where(targets_all[i] == True))
+        print(' '.join([id_cate[Y0Y1[ii]]
+                        for ii in np.where(targets_all[i] == True)[0]]))
+        print(np.where(preds_all[i] == True))
+        print(' '.join([id_cate[Y0Y1[ii]]
+                        for ii in np.where(preds_all[i] == True)[0]]))
+    # exit()
     hl = hamming_loss(test_dataset, preds)
     f1_macro = f1_measure(test_dataset, preds, average='macro')
     f1_micro = f1_measure(test_dataset, preds, average='micro')
@@ -160,11 +174,11 @@ def filter_data(x, y):
 
 if __name__ == '__main__':
 
-    vocabulary_inv, _ = load_data_and_labels(
-        '../docs/CNN/dic_v5', lbl_text_index=[1, 0])
-    vocabulary_inv = [x[0] for x in vocabulary_inv]
-    vocabulary_inv.insert(0, '<PAD/>')
-    vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
+    # vocabulary_inv, _ = load_data_and_labels(
+    #     '../docs/CNN/dic_v5', lbl_text_index=[1, 0])
+    # vocabulary_inv = [x[0] for x in vocabulary_inv]
+    # vocabulary_inv.insert(0, '<PAD/>')
+    # vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
 
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/split_ab',
@@ -172,16 +186,19 @@ if __name__ == '__main__':
                                                                                        lbl_text_index=[
                                                                                            1, 3],
                                                                                        split_tag='@@@',
-                                                                                       ratio=0.2,
-                                                                                       vocabulary=vocabulary,
-                                                                                       vocabulary_inv=vocabulary_inv)
+                                                                                       padding_mod='average',
+                                                                                       ratio=0.2)
+    # vocabulary=vocabulary,
+    # vocabulary_inv=vocabulary_inv)
 
     Y1, Y0 = get_Y0_and_Y1('../docs/CNN/cate_id')
+    Y0Y1 = Y0 + Y1
     print('Y0 size : %d , Y1 size : %d' % (len(Y0), len(Y1)))
     cates, ids = load_data_and_labels(
         '../docs/CNN/cate_id', lbl_text_index=[1, 0])
 
     cate_id = dict(zip([cate[0] for cate in cates], [_id[0] for _id in ids]))
+    id_cate = dict(zip([_id[0] for _id in ids], [cate[0] for cate in cates]))
 
     # add first cate
     trn_labels = y2list(trn_labels)
@@ -215,6 +232,10 @@ if __name__ == '__main__':
     params['Y1']['dim'] = nb_labels_Y1
     print(params)
     # Specify datasets in the format of dictionaries
+    trn_labels = trn_labels[:50000]
+    trn_text = trn_text[:50000]
+    tst_labels = tst_labels[:5000]
+    tst_text = tst_text[:5000]
     ratio = 0.2
     valid_N = int(ratio * tst_text.shape[0])
     train_dataset = {'X': trn_text,

@@ -2,13 +2,14 @@
 Utility functions for constructing MLC models.
 """
 import keras.backend as K
-from keras.layers import Conv1D, MaxPool1D,Embedding,Flatten
-from keras.layers import Dense, Dropout,Input,Lambda,Reshape
-from keras.layers import ActivityRegularization,concatenate
+from keras.layers import Conv1D, MaxPool1D, Embedding, Flatten
+from keras.layers import Dense, Dropout, Input, Lambda, Reshape
+from keras.layers import ActivityRegularization, concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 
 from utils.models import MLC
+
 
 def assemble(name, params):
     if name == 'MLP':
@@ -17,6 +18,7 @@ def assemble(name, params):
         return assemble_adios(params)
     else:
         raise ValueError("Unknown name of the model: %s." % name)
+
 
 def assemble_mlp(params):
     """
@@ -40,11 +42,11 @@ def assemble_mlp(params):
     pooled_output = []
     for size in params['Conv2D']['filter_size']:
         conv = Conv1D(filters,
-                      (size,size),
+                      (size, size),
                       padding='valid',
                       activation='relu'
                       )(X)
-        pooling = MaxPool1D((params['X']['dim'] - size,1))(conv)
+        pooling = MaxPool1D((params['X']['dim'] - size, 1))(conv)
         flatten = Flatten()(pooling)
         pooled_output.append(flatten)
 
@@ -53,12 +55,12 @@ def assemble_mlp(params):
 
     # batch_norm
     if 'batch_norm' in params['H'] and params['H']['batch_norm'] != None:
-        H0 = BatchNormalization(name='H0_batchNorm', **params['H']['batch_norm'])(H0)
+        H0 = BatchNormalization(name='H0_batchNorm', **
+                                params['H']['batch_norm'])(H0)
 
     # dropout
     if 'dropout' in params['H']:
         H0 = Dropout(params['H']['dropout'], name='H0_dropout')(H0)
-
 
     # H1
     if 'H1' in params:
@@ -70,16 +72,17 @@ def assemble_mlp(params):
 
         # batch_norm
         if 'batch_norm' in params['H1'] and params['H1']['batch_norm'] != None:
-            H1 = BatchNormalization(name='H1_batchNorm',**params['H1']['batch_norm'])(H1)
+            H1 = BatchNormalization(
+                name='H1_batchNorm', **params['H1']['batch_norm'])(H1)
 
         # dropout
         if 'dropout' in params['H1']:
-            H1 = Dropout(params['H1']['dropout'],name='H1_dropout')(H1)
+            H1 = Dropout(params['H1']['dropout'], name='H1_dropout')(H1)
 
     # Y
     kwargs = params['Y']['kwargs'] if 'kwargs' in params['Y'] else {}
     if 'W_regularizer' in kwargs:
-      kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
+        kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
     # sigmoid
     Y = Dense(params['Y']['dim'],
               activation='sigmoid',
@@ -90,8 +93,8 @@ def assemble_mlp(params):
                                    **params['Y']['activity_reg']
                                    )(Y)
 
-
     return MLC(inputs=X, outputs=Y)
+
 
 def assemble_adios(params):
     """
@@ -102,7 +105,8 @@ def assemble_adios(params):
     """
     # X
 
-    input_shape = (params['X']['sequence_length'], params['X']['embedding_dim']) if params['iter']['model_type'] == "CNN-static" else (params['X']['sequence_length'],)
+    input_shape = (params['X']['sequence_length'], params['X']['embedding_dim']
+                   ) if params['iter']['model_type'] == "CNN-static" else (params['X']['sequence_length'],)
     X = Input(shape=input_shape, dtype='float32', name='X')
 
     # embedding
@@ -111,12 +115,13 @@ def assemble_adios(params):
         embedding = X
     elif 'embedding_dim' in params['X'] and params['X']['embedding_dim'] != None:
         embedding = Embedding(output_dim=params['X']['embedding_dim'],
-                      input_dim=params['X']['vocab_size'],
-                      input_length=params['X']['sequence_length'],
-                      name="embedding",
-                      mask_zero=False
-                      )(X)
-    else: exit('embedding_dim param is not given!')
+                              input_dim=params['X']['vocab_size'],
+                              input_length=params['X']['sequence_length'],
+                              name="embedding",
+                              mask_zero=False
+                              )(X)
+    else:
+        exit('embedding_dim param is not given!')
 
     # expanding dimension
     #embed_reshape = Reshape((params['X']['sequence_length'], params['X']['embedding_dim'], 1))(embedding)
@@ -136,7 +141,8 @@ def assemble_adios(params):
         pooled_output.append(flatten)
 
     # combine all the pooled feature as the hidden layer between X and Y0
-    H = concatenate(pooled_output) if len(pooled_output) > 1 else pooled_output[0]
+    H = concatenate(pooled_output) if len(
+        pooled_output) > 1 else pooled_output[0]
 
     # batch_norm
     if 'batch_norm' in params['H'] and params['H']['batch_norm'] != None:
@@ -145,7 +151,7 @@ def assemble_adios(params):
 
     # dropout
     if 'dropout' in params['H']:
-        H = Dropout(params['H']['dropout'],name="H_dropout")(H)
+        H = Dropout(params['H']['dropout'], name="H_dropout")(H)
 
     # Y0 output
     kwargs = params['Y0']['kwargs'] if 'kwargs' in params['Y0'] else {}
@@ -183,7 +189,7 @@ def assemble_adios(params):
             H0 = Dropout(params['H0']['dropout'],
                          name='H0_dropout')(H0)
 
-        Y0_H0 = concatenate([Y0,H0])
+        Y0_H0 = concatenate([Y0, H0])
     else:
         Y0_H0 = Y0
 
@@ -209,11 +215,11 @@ def assemble_adios(params):
     # Y1
     kwargs = params['Y1']['kwargs'] if 'kwargs' in params['Y1'] else {}
     if 'W_regularizer' in kwargs:
-      kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
+        kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
     Y1 = Dense(params['Y1']['dim'],
-                 activation='sigmoid',
-                 name='Y1_activation',
-                 **kwargs)(H1)
+               activation='sigmoid',
+               name='Y1_activation',
+               **kwargs)(H1)
 
     if 'activity_reg' in params['Y0']:
         Y1 = ActivityRegularization(name='Y1',

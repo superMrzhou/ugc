@@ -1,3 +1,4 @@
+gensim==2.1.0
 numpy==1.12.1
 Keras==2.0.4
 scikit_learn==0.18.1
