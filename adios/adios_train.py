@@ -35,7 +35,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     # Assemble and compile the model
     model = assemble('ADIOS', params)
-    raw_test_dataset = deepcopy(test_dataset)
+    raw_train_dataset = deepcopy(train_dataset)
     # Prepare embedding layer weights and convert inputs for static model
     model_type = params['iter']['model_type']
     print("Model type is", model_type)
@@ -102,15 +102,15 @@ def train(train_dataset, valid_dataset, test_dataset, params):
                          alpha=np.logspace(-3, 3, num=10).tolist(), verbose=1)
 
     # Test the model
-    probs, preds = model.predict_threshold(test_dataset, verbose=1)
+    probs, preds = model.predict_threshold(train_dataset, verbose=1)
 
-    targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
+    targets_all = np.hstack([train_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     for i in range(30):
         print(' '.join([vocabulary_inv[ii]
-                        for ii in raw_test_dataset['X'][i]]))
+                        for ii in raw_train_dataset['X'][i]]))
         print(' '.join([id_cate[Y0Y1[ii]]
-                        for ii in np.where(np.concatenate([test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i] == 1)[0]]))
+                        for ii in np.where(np.concatenate([train_dataset['Y0'], train_dataset['Y1']], axis=-1)[i] == 1)[0]]))
         print(np.where(targets_all[i] == True))
         print(' '.join([id_cate[Y0Y1[ii]]
                         for ii in np.where(targets_all[i] == True)[0]]))
@@ -118,13 +118,14 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print(' '.join([id_cate[Y0Y1[ii]]
                         for ii in np.where(preds_all[i] == True)[0]]))
     # exit()
+    test_dataset = train_dataset
     hl = hamming_loss(test_dataset, preds)
     f1_macro = f1_measure(test_dataset, preds, average='macro')
     f1_micro = f1_measure(test_dataset, preds, average='micro')
     f1_samples = f1_measure(test_dataset, preds, average='samples')
     p_at_1 = precision_at_k(test_dataset, probs, K=1)
-    # p_at_5 = precision_at_k(test_dataset, probs, K=5)
-    # p_at_10 = precision_at_k(test_dataset, probs, K=10)
+    p_at_5 = precision_at_k(test_dataset, probs, K=5)
+    p_at_10 = precision_at_k(test_dataset, probs, K=10)
 
     for k in ['Y0', 'Y1', 'all']:
         print
@@ -133,8 +134,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print("F1 micro (%s): %.4f" % (k, f1_micro[k]))
         print("F1 sample (%s): %.4f" % (k, f1_samples[k]))
         print("P@1 (%s): %.4f" % (k, p_at_1[k]))
-        # print("P@5 (%s): %.4f" % (k, p_at_5[k]))
-        # print("P@10 (%s): %.4f" % (k, p_at_10[k]))
+        print("P@5 (%s): %.4f" % (k, p_at_5[k]))
+        print("P@10 (%s): %.4f" % (k, p_at_10[k]))
 
 
 def y2vec(y, cate_id, cateIds_list):
@@ -192,7 +193,10 @@ if __name__ == '__main__':
     # vocabulary_inv=vocabulary_inv)
 
     Y1, Y0 = get_Y0_and_Y1('../docs/CNN/cate_id')
+
     Y0Y1 = Y0 + Y1
+    # Y1 = Y0Y1[:int(0.5 * len(Y0Y1))]
+    # Y0 = Y0Y1[int(0.5 * len(Y0Y1)):]
     print('Y0 size : %d , Y1 size : %d' % (len(Y0), len(Y1)))
     cates, ids = load_data_and_labels(
         '../docs/CNN/cate_id', lbl_text_index=[1, 0])

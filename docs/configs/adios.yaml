@@ -11,7 +11,7 @@ X:
 Conv1D:
     filters:    64
     filter_size:  [3,4,5]
-    pooling_size: 2 # default 2
+    pooling_size: 3 # default 2
 H:
     dropout:    0.3
     batch_norm: {beta_initializer: zeros}
