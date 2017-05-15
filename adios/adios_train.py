@@ -102,7 +102,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
                          alpha=np.logspace(-3, 3, num=10).tolist(), verbose=1)
 
     # Test the model
-    probs, preds = model.predict_threshold(train_dataset, verbose=1)
+    probs, preds = model.predict_threshold(train_dataset[:5000], verbose=1)
 
     targets_all = np.hstack([train_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
@@ -118,7 +118,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print(' '.join([id_cate[Y0Y1[ii]]
                         for ii in np.where(preds_all[i] == True)[0]]))
     # exit()
-    test_dataset = train_dataset
+    test_dataset = train_dataset[:5000]
     hl = hamming_loss(test_dataset, preds)
     f1_macro = f1_measure(test_dataset, preds, average='macro')
     f1_micro = f1_measure(test_dataset, preds, average='micro')
@@ -182,7 +182,7 @@ if __name__ == '__main__':
     # vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
 
     # Load the datasets
-    trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/split_ab',
+    trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/toutiao_category_video_v5',
                                                                                        use_tst=True,
                                                                                        lbl_text_index=[
                                                                                            1, 3],
@@ -236,10 +236,10 @@ if __name__ == '__main__':
     params['Y1']['dim'] = nb_labels_Y1
     print(params)
     # Specify datasets in the format of dictionaries
-    trn_labels = trn_labels[:50000]
-    trn_text = trn_text[:50000]
-    tst_labels = tst_labels[:5000]
-    tst_text = tst_text[:5000]
+    # trn_labels = trn_labels[:50000]
+    # trn_text = trn_text[:50000]
+    # tst_labels = tst_labels[:5000]
+    # tst_text = tst_text[:5000]
     ratio = 0.2
     valid_N = int(ratio * tst_text.shape[0])
     train_dataset = {'X': trn_text,
