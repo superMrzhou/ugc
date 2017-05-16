@@ -14,19 +14,19 @@ Conv1D:
     pooling_size: 3 # default 2
 H:
     dropout:    0.5
-    batch_norm: {beta_initializer: zeros}
+    batch_norm: {beta_initializer: ones}
 H0:
     dim:        200
     dropout:    0.5
-    batch_norm: {beta_initializer: zeros}
-H1:
-    dim:        256
-    dropout:    0.3
-    batch_norm: {beta_initializer: zeros}
+    batch_norm: {beta_initializer: ones}
+# H1:
+#     dim:        256
+#     dropout:    0.3
+#     batch_norm: {beta_initializer: zeros}
 Y0:
     W_regularizer: 0.001
     activity_reg: {l1: 0.001}
-    batch_norm: {beta_initializer: zeros}
+    batch_norm: {beta_initializer: ones}
 Y1:
     W_regularizer: 0.001
     activity_reg: {l1: 0.001}
