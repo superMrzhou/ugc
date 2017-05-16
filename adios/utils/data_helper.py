@@ -14,6 +14,7 @@
 import re
 import os
 import itertools
+import xlrd
 import numpy as np
 from collections import Counter
 from gensim.models import word2vec
@@ -232,6 +233,24 @@ def batch_iter(data, batch_size, num_epochs):
             start_index = batch_num * batch_size
             end_index = min((batch_num + 1) * batch_size, data_size)
             yield shuffled_data[start_index:end_index]
+
+
+def readExcelByCol(file_name, col):
+    '''
+    按列读取excel数据
+    :param file_name: excel路径
+    :param col: 列数,可以多列,或者单列
+    :return: 迭代器 可调用next(gener)来返回数据
+    '''
+    wb = xlrd.open_workbook(file_name)
+    sheet = wb.sheet_by_index(0)
+
+    if isinstance(col, list):
+        for i in col:
+            yield sheet.col_values(i)
+    elif isinstance(col, int):
+        data = sheet.col_values(col)
+        yield data
 
 
 def sample(N):

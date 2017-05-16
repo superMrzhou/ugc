@@ -2,7 +2,7 @@
 Utility functions for constructing MLC models.
 """
 import keras.backend as K
-from keras.layers import Conv1D, MaxPool1D, Embedding, Flatten
+from keras.layers import Conv1D, MaxPool1D, Embedding, Flatten, AvgPool1D
 from keras.layers import Dense, Dropout, Input, Lambda, Reshape
 from keras.layers import ActivityRegularization, concatenate
 from keras.layers.normalization import BatchNormalization
@@ -18,82 +18,6 @@ def assemble(name, params):
         return assemble_adios(params)
     else:
         raise ValueError("Unknown name of the model: %s." % name)
-
-
-def assemble_mlp(params):
-    """
-    Construct an MLP model of the form:
-                                X-H-H1-Y
-    where all the H-layers are optional and depend on whether they are
-    specified in the params dictionary.
-    """
-
-    # X
-    X = Input(shape=(params['X']['dim'],), dtype='float32', name='X')
-
-    # embedding
-    if 'embedding_size' in params['X'] and params['X']['embedding_size'] != None:
-        X = Embedding(output_dim=params['X']['embedding_size'],
-                      input_dim=params['X']['vocab_size'],
-                      input_length=params['X']['dim'])(X)
-
-    # Conv and max-pooling
-    filters = params['Conv2D']['filters']
-    pooled_output = []
-    for size in params['Conv2D']['filter_size']:
-        conv = Conv1D(filters,
-                      (size, size),
-                      padding='valid',
-                      activation='relu'
-                      )(X)
-        pooling = MaxPool1D((params['X']['dim'] - size, 1))(conv)
-        flatten = Flatten()(pooling)
-        pooled_output.append(flatten)
-
-    # combine all the pooled feature
-    H0 = concatenate(pooled_output)
-
-    # batch_norm
-    if 'batch_norm' in params['H'] and params['H']['batch_norm'] != None:
-        H0 = BatchNormalization(name='H0_batchNorm', **
-                                params['H']['batch_norm'])(H0)
-
-    # dropout
-    if 'dropout' in params['H']:
-        H0 = Dropout(params['H']['dropout'], name='H0_dropout')(H0)
-
-    # H1
-    if 'H1' in params:
-        kwargs = params['H1']['kwargs'] if 'kwargs' in params['H1'] else {}
-        # Relu
-        H1 = Dense(params['H1']['dim'],
-                   activation='relu',
-                   **kwargs)(H0)
-
-        # batch_norm
-        if 'batch_norm' in params['H1'] and params['H1']['batch_norm'] != None:
-            H1 = BatchNormalization(
-                name='H1_batchNorm', **params['H1']['batch_norm'])(H1)
-
-        # dropout
-        if 'dropout' in params['H1']:
-            H1 = Dropout(params['H1']['dropout'], name='H1_dropout')(H1)
-
-    # Y
-    kwargs = params['Y']['kwargs'] if 'kwargs' in params['Y'] else {}
-    if 'W_regularizer' in kwargs:
-        kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
-    # sigmoid
-    Y = Dense(params['Y']['dim'],
-              activation='sigmoid',
-              **kwargs)(H1)
-
-    if 'activity_reg' in params['Y']:
-        Y = ActivityRegularization(name='main_output',
-                                   **params['Y']['activity_reg']
-                                   )(Y)
-
-    return MLC(inputs=X, outputs=Y)
 
 
 def assemble_adios(params):
@@ -136,7 +60,7 @@ def assemble_adios(params):
                       activation='relu',
                       strides=1
                       )(embedding)
-        pooling = MaxPool1D(pool_size=params['Conv1D']['pooling_size'])(conv)
+        pooling = AvgPool1D(pool_size=params['Conv1D']['pooling_size'])(conv)
         flatten = Flatten()(pooling)
         pooled_output.append(flatten)
 
