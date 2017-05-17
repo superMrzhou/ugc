@@ -124,8 +124,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     f1_micro = f1_measure(test_dataset, preds, average='micro')
     f1_samples = f1_measure(test_dataset, preds, average='samples')
     p_at_1 = precision_at_k(test_dataset, probs, K=1)
+    p_at_3 = precision_at_k(test_dataset, probs, K=3)
     p_at_5 = precision_at_k(test_dataset, probs, K=5)
-    p_at_10 = precision_at_k(test_dataset, probs, K=10)
 
     for k in ['Y0', 'Y1', 'all']:
         print
@@ -134,8 +134,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print("F1 micro (%s): %.4f" % (k, f1_micro[k]))
         print("F1 sample (%s): %.4f" % (k, f1_samples[k]))
         print("P@1 (%s): %.4f" % (k, p_at_1[k]))
+        print("P@3 (%s): %.4f" % (k, p_at_3[k]))
         print("P@5 (%s): %.4f" % (k, p_at_5[k]))
-        print("P@10 (%s): %.4f" % (k, p_at_10[k]))
 
 
 def y2vec(y, cate_id, cateIds_list):
@@ -182,6 +182,7 @@ if __name__ == '__main__':
                                                                                            0, 1],
                                                                                        split_tag='@@@',
                                                                                        padding_mod='average',
+                                                                                       is_shuffle=True,
                                                                                        ratio=0.2)
 
     Y0 = [y.strip('\n') for y in open('../docs/CNN/Y0').readlines()]
