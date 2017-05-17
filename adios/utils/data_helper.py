@@ -81,7 +81,7 @@ def clean_str(string):
     return string.strip().lower()
 
 
-def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1]):
+def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1], is_shuffle=False):
     """
     Loads MR polarity data from files, splits the data into words and generates labels.
     Returns split sentences and labels.
@@ -101,22 +101,28 @@ def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1]):
     texts = [s.split(" ") for s in texts]
     # support multi-label
     labels = [s.split(" ") for s in labels]
+    if is_shuffle:
+        ind = np.arange(len(texts))
+        np.random.shuffle(ind)
+        texts = list(np.array(texts)[ind])
+        labels = list(np.array(labels)[ind])
+
     return texts, labels
 
 
-def load_trn_tst_data_labels(trn_file, tst_file=None, ratio=0.2, split_tag='\t', lbl_text_index=[0, 1]):
+def load_trn_tst_data_labels(trn_file, tst_file=None, ratio=0.2, split_tag='\t', lbl_text_index=[0, 1], is_shuffle=False):
     """
     Loads train data and test data,return segment words and labels
     if tst_file is None , split train data by ratio
     """
     # train data
     trn_data, trn_labels = load_data_and_labels(
-        trn_file, split_tag, lbl_text_index)
+        trn_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
 
     # test data
     if tst_file:
         tst_data, tst_labels = load_data_and_labels(
-            tst_file, split_tag, lbl_text_index)
+            tst_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
     else:
         index = np.arange(len(trn_labels))
         np.random.shuffle(index)
@@ -186,6 +192,7 @@ def load_data(trn_file,
               vocabulary=None,
               vocabulary_inv=None,
               padding_mod='max',
+              is_shuffle=False,
               use_tst=False):
     """
     Loads and preprocessed data for the MR dataset.
@@ -193,10 +200,10 @@ def load_data(trn_file,
     """
     # Load and preprocess data
     trn_text, trn_labels = load_data_and_labels(
-        trn_file, split_tag, lbl_text_index)
+        trn_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
     if tst_file:
         tst_text, tst_labels = load_data_and_labels(
-            tst_file, split_tag, lbl_text_index)
+            tst_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
         sentences, labels = trn_text + tst_text, trn_labels + tst_labels
     else:
         sentences, labels = trn_text, trn_labels

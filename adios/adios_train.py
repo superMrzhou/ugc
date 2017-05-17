@@ -106,18 +106,20 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
+    ind = np.arange(len(raw_test_dataset['X']))
+    np.random.shuffle(ind)
     for i in range(30):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
-                        for ii in raw_test_dataset['X'][i]]))
+                        for ii in raw_test_dataset['X'][ind[i]]]))
         print(' '.join([Y0Y1[ii]
-                        for ii in np.where(np.concatenate([test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i] == 1)[0]]))
-        print(np.where(targets_all[i] == True))
+                        for ii in np.where(np.concatenate([test_dataset['Y0'], test_dataset['Y1']], axis=-1)[ind[i]] == 1)[0]]))
+        print(np.where(targets_all[ind[i]] == True))
         print(' '.join([Y0Y1[ii]
-                        for ii in np.where(targets_all[i] == True)[0]]))
-        print(np.where(preds_all[i] == True))
+                        for ii in np.where(targets_all[ind[i]] == True)[0]]))
+        print(np.where(preds_all[ind[i]] == True))
         print(' '.join([Y0Y1[ii]
-                        for ii in np.where(preds_all[i] == True)[0]]))
+                        for ii in np.where(preds_all[ind[i]] == True)[0]]))
     # exit()
     hl = hamming_loss(test_dataset, preds)
     f1_macro = f1_measure(test_dataset, preds, average='macro')
