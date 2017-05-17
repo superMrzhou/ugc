@@ -58,8 +58,11 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         raise ValueError("Unknown model type")
 
     # complie model
-    model.compile(loss={'Y0': 'binary_crossentropy',
-                        'Y1': 'binary_crossentropy'},
+    model.compile(loss={'Y0': 'categorical_crossentropy',
+                        'Y1': 'categorical_crossentropy'},
+                  loss_weights={'Y0': 0.3,
+                                'Y1': 0.7},
+                  metrics=['accuracy'],
                   optimizer=Adagrad(1e-1))
 
     # Make sure checkpoints folder exists
@@ -99,27 +102,25 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     # Fit thresholds
     model.fit_thresholds(train_dataset, validation_data=valid_dataset,
-                         alpha=np.logspace(-3, 3, num=10).tolist(), verbose=1)
+                         alpha=np.logspace(-3, 3, num=20).tolist(), verbose=1)
 
     # Test the model
     probs, preds = model.predict_threshold(test_dataset, verbose=1)
 
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
-    ind = np.arange(len(raw_test_dataset['X']))
-    np.random.shuffle(ind)
     for i in range(30):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
-                        for ii in raw_test_dataset['X'][ind[i]]]))
+                        for ii in raw_test_dataset['X'][i]]))
         print(' '.join([Y0Y1[ii]
-                        for ii in np.where(np.concatenate([test_dataset['Y0'], test_dataset['Y1']], axis=-1)[ind[i]] == 1)[0]]))
-        print(np.where(targets_all[ind[i]] == True))
+                        for ii in np.where(np.concatenate([test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i] == 1)[0]]))
+        print(np.where(targets_all[i] == True))
         print(' '.join([Y0Y1[ii]
-                        for ii in np.where(targets_all[ind[i]] == True)[0]]))
-        print(np.where(preds_all[ind[i]] == True))
+                        for ii in np.where(targets_all[i] == True)[0]]))
+        print(np.where(preds_all[i] == True))
         print(' '.join([Y0Y1[ii]
-                        for ii in np.where(preds_all[ind[i]] == True)[0]]))
+                        for ii in np.where(preds_all[i] == True)[0]]))
     # exit()
     hl = hamming_loss(test_dataset, preds)
     f1_macro = f1_measure(test_dataset, preds, average='macro')
@@ -181,7 +182,7 @@ if __name__ == '__main__':
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/mytest',
                                                                                        use_tst=True,
                                                                                        lbl_text_index=[
-                                                                                           0, 1],
+                                                                                            0, 1],
                                                                                        split_tag='@@@',
                                                                                        padding_mod='average',
                                                                                        is_shuffle=True,
