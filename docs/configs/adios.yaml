@@ -24,9 +24,10 @@ H0:
 #     dropout:    0.3
     # batch_norm: {beta_initializer: zeros}
 Y0:
-    W_regularizer: 0.01
-    activity_reg: {l1: 0.01}
+    W_regularizer: 0.1
+    activity_reg: {l1: 0.1}
     batch_norm: {beta_initializer: ones}
 Y1:
-    W_regularizer: 0.01
-    activity_reg: {l1: 0.01}
+    W_regularizer: 0.1
+    activity_reg: {l1: 0.1}
+    batch_norm: {beta_initializer: ones}

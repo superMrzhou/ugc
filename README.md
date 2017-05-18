@@ -22,17 +22,17 @@ You can run example scripts are given in `adios_train.py`.
 ### How to use
 
 - **install virtualenv**
-```
-pip install virtualenv
+```bash
+$ pip install virtualenv
 
 # cd project
-cd /your/path/to/project/adios
+$ cd /your/path/to/project/adios
 
 # make env using python 2.7(system version)
-virtualenv env --python=python
+$ virtualenv env --python=python
 
 # you will see a new dir named “env”; the env by followed cmd:
-source env/bin/activate
+$ source env/bin/activate
 ```
 
 - **The requirements can be installed via `pip` as follows:**
