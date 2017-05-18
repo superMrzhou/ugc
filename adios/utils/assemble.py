@@ -82,7 +82,7 @@ def assemble_adios(params):
     if 'W_regularizer' in kwargs:
         kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
     Y0 = Dense(params['Y0']['dim'],
-               activation='softmax',
+               activation='sigmoid',
                name='Y0_active',
                **kwargs)(H)
     if 'activity_reg' in params['Y0']:
