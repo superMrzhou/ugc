@@ -31,7 +31,7 @@ $ cd /your/path/to/project/adios
 # make env using python 2.7(system version)
 $ virtualenv env --python=python
 
-# you will see a new dir named “env”; the env by followed cmd:
+# you will see a new dir named “env”; activate the env by followed cmd:
 $ source env/bin/activate
 ```
 
