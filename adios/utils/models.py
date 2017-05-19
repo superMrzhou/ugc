@@ -56,6 +56,8 @@ class MLC(Model):
                        validation_data=None, cv=None, top_k=None):
 
         inputs = np.hstack([data[k] for k in self.input_names])
+        # now only support matrix average and one-hot vecotor representation
+        # TODO sparse word index should be transformed to one-hot vecotor 
         t_inputs = np.average(inputs, axis=1) if len(
             inputs.shape) == 3 else inputs
         probs = self.predict(data, batch_size=batch_size)
