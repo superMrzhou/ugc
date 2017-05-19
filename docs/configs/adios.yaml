@@ -1,8 +1,8 @@
 # params config
 
 iter:
-    batch_size: 500
-    epoch:  20
+    batch_size: 200
+    epoch:  10
     model_dir:  '../docs/model/checkpoints/'
     model_name: 'adios_best.h5'
     model_type: 'CNN-non-static' # only CNN-static, CNN-non-static, CNN-rand valiable
@@ -16,7 +16,7 @@ H:
     dropout:    0.3
     batch_norm: {beta_initializer: ones}
 H0:
-    dim:        200
+    dim:        256
     dropout:    0.3
     batch_norm: {beta_initializer: ones}
 # H1:
@@ -30,4 +30,3 @@ Y0:
 Y1:
     W_regularizer: 0.1
     activity_reg: {l1: 0.1}
-    batch_norm: {beta_initializer: ones}

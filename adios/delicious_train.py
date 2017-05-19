@@ -24,12 +24,12 @@ from copy import deepcopy
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adagrad
-from keras.metrics import categorical_accuracy,top_k_categorical_accuracy
 
 from utils.callbacks import HammingLoss
 from utils.metrics import f1_measure, hamming_loss, precision_at_k
 from utils.assemble import assemble
 from utils.data_helper import *
+from utils.delicious import Delicious as Dataset
 
 
 def train(train_dataset, valid_dataset, test_dataset, params):
@@ -61,9 +61,9 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     # complie model
     model.compile(loss={'Y0': 'binary_crossentropy',
                         'Y1': 'categorical_crossentropy'},
-                  loss_weights={'Y0': 2,
-                                'Y1': 1},
-                  metrics=[categorical_accuracy,top_k_categorical_accuracy],
+                  loss_weights={'Y0': 0.4,
+                                'Y1': 0.6},
+                  metrics=['accuracy'],
                   optimizer=Adagrad(1e-1))
 
     # Make sure checkpoints folder exists
@@ -102,9 +102,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         model.load_weights(model_dir + model_name)
 
     # Fit thresholds
-    input_sparse = True if params['iter']['model_type'] == 'CNN-rand' else None
-    model.fit_thresholds(train_dataset, validation_data=valid_dataset,top_k=None,
-                         alpha=np.logspace(-3, 3, num=20).tolist(), verbose=1, input_sparse=input_sparse, vocab_size=params['X']['vocab_size'])
+    model.fit_thresholds(train_dataset, validation_data=valid_dataset,
+                         alpha=np.logspace(-3, 3, num=20).tolist(), verbose=1)
 
     # Test the model
     probs, preds = model.predict_threshold(test_dataset, verbose=1)
@@ -115,13 +114,13 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
                         for ii in raw_test_dataset['X'][i]]))
-        print(' '.join([Y0Y1[ii]
+        print(' '.join([id_cate[Y0Y1[ii]]
                         for ii in np.where(np.concatenate([test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i] == 1)[0]]))
         print(np.where(targets_all[i] == True))
-        print(' '.join([Y0Y1[ii]
+        print(' '.join([id_cate[Y0Y1[ii]]
                         for ii in np.where(targets_all[i] == True)[0]]))
         print(np.where(preds_all[i] == True))
-        print(' '.join([Y0Y1[ii]
+        print(' '.join([id_cate[Y0Y1[ii]]
                         for ii in np.where(preds_all[i] == True)[0]]))
     # exit()
     hl = hamming_loss(test_dataset, preds)
@@ -181,105 +180,32 @@ def filter_data(x, y):
 if __name__ == '__main__':
 
     # Load the datasets
-    trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/mytest',
-                                                                                       use_tst=True,
-                                                                                       lbl_text_index=[
-                                                                                           0, 1],
-                                                                                       split_tag='@@@',
-                                                                                       padding_mod='average',
-                                                                                       is_shuffle=True,
-                                                                                       ratio=0.2)
+    labels_order = 'random'
+    train = Dataset(which_set='train', stop=80.0,
+                    labels_order=labels_order)
+    valid = Dataset(which_set='train', start=80.0,
+                    labels_order=labels_order)
+    test  = Dataset(which_set='test',
+                    labels_order=labels_order)
 
-    Y0 = [y.strip('\n') for y in open('../docs/CNN/Y0').readlines()]
-    Y1 = [y.strip('\n') for y in open('../docs/CNN/Y1').readlines()]
-
-    Y0Y1 = Y0 + Y1
-    # vectorize
-    trn_text = np.array(trn_text)
-    tst_text = np.array(tst_text)
-
-    res = np.zeros((len(trn_labels), len(Y0Y1)))
-    for i, yy in enumerate(trn_labels):
-        res[i][[Y0Y1.index(lbl) for lbl in yy]] = 1
-    trn_labels = deepcopy(res)
-
-    res = np.zeros((len(tst_labels), len(Y0Y1)))
-    for i, yy in enumerate(tst_labels):
-        res[i][[Y0Y1.index(lbl) for lbl in yy]] = 1
-    tst_labels = deepcopy(res)
-
-    # params
-    nb_features = len(vocabulary_inv)
-    nb_labels = len(Y0Y1)
-    nb_labels_Y0 = len(Y0)
-    nb_labels_Y1 = len(Y1)
-
-    print('train data size : %d , test data size : %d' %
-          (len(trn_labels), len(tst_labels)))
-    print('X sequence_length is : %d , Y dim : %d' %
-          (trn_text.shape[1], trn_labels.shape[1]))
-    # load params config
-    params = yaml.load(open('../docs/configs/adios.yaml'))
-    params['X']['sequence_length'] = trn_text.shape[1]
-    params['X']['vocab_size'] = nb_features
-    params['Y0']['dim'] = nb_labels_Y0
-    params['Y1']['dim'] = nb_labels_Y1
-    print(params)
-    # Specify datasets in the format of dictionaries
-    # trn_labels = trn_labels[:50000]
-    # trn_text = trn_text[:50000]
-    # tst_labels = tst_labels[:5000]
-    # tst_text = tst_text[:5000]
-    ratio = 0.2
-    valid_N = int(ratio * tst_text.shape[0])
-    train_dataset = {'X': trn_text,
-                     'Y0': trn_labels[:, :nb_labels_Y0],
-                     'Y1': trn_labels[:, nb_labels_Y0:]}
-    valid_dataset = {'X': tst_text[:valid_N],
-                     'Y0': tst_labels[:valid_N, :nb_labels_Y0],
-                     'Y1': tst_labels[:valid_N, nb_labels_Y0:]}
-    test_dataset = {'X': tst_text[valid_N:],
-                    'Y0': tst_labels[valid_N:, :nb_labels_Y0],
-                    'Y1': tst_labels[valid_N:, nb_labels_Y0:]}
-
-    # start train
-    train(train_dataset, valid_dataset, test_dataset, params)
+    print(test[:10])
     exit()
+    nb_label_splits = 100
+    nb_features = train.X.shape[1]
+    nb_labels = train.y.shape[1]
+    nb_labels_Y0 = 65 #(nb_labels // nb_label_splits) * 18
+    nb_labels_Y1 = nb_labels - nb_labels_Y0
 
-    # Load the datasets
-    trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/split_ab',
-                                                                                       use_tst=True,
-                                                                                       lbl_text_index=[
-                                                                                           1, 3],
-                                                                                       split_tag='@@@',
-                                                                                       padding_mod='average',
-                                                                                       ratio=0.2)
-    # vocabulary=vocabulary,
-    # vocabulary_inv=vocabulary_inv)
-
-    Y1, Y0 = get_Y0_and_Y1('../docs/CNN/cate_id')
-
-    Y0Y1 = Y0 + Y1
-    # Y1 = Y0Y1[:int(0.5 * len(Y0Y1))]
-    # Y0 = Y0Y1[int(0.5 * len(Y0Y1)):]
-    print('Y0 size : %d , Y1 size : %d' % (len(Y0), len(Y1)))
-    cates, ids = load_data_and_labels(
-        '../docs/CNN/cate_id', lbl_text_index=[1, 0])
-
-    cate_id = dict(zip([cate[0] for cate in cates], [_id[0] for _id in ids]))
-    id_cate = dict(zip([_id[0] for _id in ids], [cate[0] for cate in cates]))
-
-    # add first cate
-    trn_labels = y2list(trn_labels)
-    tst_labels = y2list(tst_labels)
-
-    # filter 其他 and 新闻
-    trn_text, trn_labels = filter_data(trn_text, trn_labels)
-    tst_text, tst_labels = filter_data(tst_text, tst_labels)
-
-    # vectorize
-    trn_labels = y2vec(trn_labels, cate_id, Y0 + Y1)
-    tst_labels = y2vec(tst_labels, cate_id, Y0 + Y1)
+    # Specify datasets in the format of dictionaries
+    train_dataset = {'X': train.X,
+                     'Y0': train.y[:,:nb_labels_Y0],
+                     'Y1': train.y[:,nb_labels_Y0:]}
+    valid_dataset = {'X': valid.X,
+                     'Y0': valid.y[:,:nb_labels_Y0],
+                     'Y1': valid.y[:,nb_labels_Y0:]}
+    test_dataset = {'X': test.X,
+                    'Y0': test.y[:,:nb_labels_Y0],
+                    'Y1': test.y[:,nb_labels_Y0:]}
 
     # params
     nb_features = len(vocabulary_inv)

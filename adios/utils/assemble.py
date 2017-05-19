@@ -58,7 +58,8 @@ def assemble_adios(params):
                       kernel_size=size,
                       padding='valid',
                       activation='relu',
-                      strides=1
+                      strides=1,
+                      bias_regularizer=l2(0.01),
                       )(embedding)
         pooling = AvgPool1D(pool_size=params['Conv1D']['pooling_size'])(conv)
         flatten = Flatten()(pooling)
@@ -84,6 +85,7 @@ def assemble_adios(params):
     Y0 = Dense(params['Y0']['dim'],
                activation='sigmoid',
                name='Y0_active',
+               bias_regularizer=l2(0.01),
                **kwargs)(H)
     if 'activity_reg' in params['Y0']:
         Y0 = ActivityRegularization(name='Y0_output',
@@ -102,6 +104,7 @@ def assemble_adios(params):
         # ReLu
         H0 = Dense(params['H0']['dim'],
                    activation='relu',
+                   bias_regularizer=l2(0.01),
                    **kwargs)(H)
         # batch_norm
         if 'batch_norm' in params['H0'] and params['H0']['batch_norm'] != None:
@@ -123,6 +126,7 @@ def assemble_adios(params):
 
         H1 = Dense(params['H1']['dim'],
                    activation='relu',
+                   bias_regularizer=l2(0.01),
                    **kwargs)(Y0_H0)
         # batch_norm
         if 'batch_norm' in params['H1'] and params['H1']['batch_norm'] != None:
@@ -143,6 +147,7 @@ def assemble_adios(params):
     Y1 = Dense(params['Y1']['dim'],
                activation='softmax',
                name='Y1_activation',
+               bias_regularizer=l2(0.01),
                **kwargs)(H1)
 
     if 'activity_reg' in params['Y0']:
