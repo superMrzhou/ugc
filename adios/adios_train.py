@@ -24,7 +24,7 @@ from copy import deepcopy
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adagrad
-from keras.metrics import categorical_accuracy,top_k_categorical_accuracy
+from keras.metrics import categorical_accuracy, top_k_categorical_accuracy
 
 from utils.callbacks import HammingLoss
 from utils.metrics import f1_measure, hamming_loss, precision_at_k
@@ -63,7 +63,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
                         'Y1': 'categorical_crossentropy'},
                   loss_weights={'Y0': 2,
                                 'Y1': 1},
-                  metrics=[categorical_accuracy,top_k_categorical_accuracy],
+                  metrics=[categorical_accuracy, top_k_categorical_accuracy],
                   optimizer=Adagrad(1e-1))
 
     # Make sure checkpoints folder exists
@@ -103,7 +103,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     # Fit thresholds
     input_sparse = True if params['iter']['model_type'] == 'CNN-rand' else None
-    model.fit_thresholds(train_dataset, validation_data=valid_dataset,top_k=None,
+    model.fit_thresholds(train_dataset, validation_data=valid_dataset, top_k=None,
                          alpha=np.logspace(-3, 3, num=20).tolist(), verbose=1, input_sparse=input_sparse, vocab_size=params['X']['vocab_size'])
 
     # Test the model

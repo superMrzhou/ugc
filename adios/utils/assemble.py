@@ -1,9 +1,8 @@
 """
 Utility functions for constructing MLC models.
 """
-import keras.backend as K
-from keras.layers import Conv1D, MaxPool1D, Embedding, Flatten, AvgPool1D
-from keras.layers import Dense, Dropout, Input, Lambda, Reshape
+from keras.layers import Conv1D, Embedding, Flatten, AvgPool1D
+from keras.layers import Dense, Dropout, Input
 from keras.layers import ActivityRegularization, concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
@@ -12,9 +11,7 @@ from utils.models import MLC
 
 
 def assemble(name, params):
-    if name == 'MLP':
-        return assemble_mlp(params)
-    elif name == 'ADIOS':
+    if name == 'ADIOS':
         return assemble_adios(params)
     else:
         raise ValueError("Unknown name of the model: %s." % name)
@@ -37,7 +34,7 @@ def assemble_adios(params):
     # Static model do not have embedding layer
     if params['iter']['model_type'] == "CNN-static":
         embedding = X
-    elif 'embedding_dim' in params['X'] and params['X']['embedding_dim'] != None:
+    elif 'embedding_dim' in params['X'] and params['X']['embedding_dim']:
         embedding = Embedding(output_dim=params['X']['embedding_dim'],
                               input_dim=params['X']['vocab_size'],
                               input_length=params['X']['sequence_length'],
@@ -48,7 +45,7 @@ def assemble_adios(params):
         exit('embedding_dim param is not given!')
 
     # expanding dimension
-    #embed_reshape = Reshape((params['X']['sequence_length'], params['X']['embedding_dim'], 1))(embedding)
+    # embed_reshape = Reshape((params['X']['sequence_length'], params['X']['embedding_dim'], 1))(embedding)
 
     # Conv and max-pooling
     filters = params['Conv1D']['filters']
@@ -70,7 +67,7 @@ def assemble_adios(params):
         pooled_output) > 1 else pooled_output[0]
 
     # batch_norm
-    if 'batch_norm' in params['H'] and params['H']['batch_norm'] != None:
+    if 'batch_norm' in params['H'] and params['H']['batch_norm']:
         H = BatchNormalization(name='H_batchNorm',
                                **params['H']['batch_norm'])(H)
 
@@ -83,7 +80,7 @@ def assemble_adios(params):
     if 'W_regularizer' in kwargs:
         kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
     Y0 = Dense(params['Y0']['dim'],
-               activation='sigmoid',
+               activation='softmax',
                name='Y0_active',
                bias_regularizer=l2(0.01),
                **kwargs)(H)
@@ -92,7 +89,7 @@ def assemble_adios(params):
                                     **params['Y0']['activity_reg']
                                     )(Y0)
     # batch_norm
-    if 'batch_norm' in params['Y0'] and params['Y0']['batch_norm'] != None:
+    if 'batch_norm' in params['Y0'] and params['Y0']['batch_norm']:
         Y0 = BatchNormalization(name='Y0',
                                 **params['Y0']['batch_norm']
                                 )(Y0)
@@ -107,7 +104,7 @@ def assemble_adios(params):
                    bias_regularizer=l2(0.01),
                    **kwargs)(H)
         # batch_norm
-        if 'batch_norm' in params['H0'] and params['H0']['batch_norm'] != None:
+        if 'batch_norm' in params['H0'] and params['H0']['batch_norm']:
             H0 = BatchNormalization(name='H0_batchNorm',
                                     **params['H0']['batch_norm']
                                     )(H0)
@@ -129,7 +126,7 @@ def assemble_adios(params):
                    bias_regularizer=l2(0.01),
                    **kwargs)(Y0_H0)
         # batch_norm
-        if 'batch_norm' in params['H1'] and params['H1']['batch_norm'] != None:
+        if 'batch_norm' in params['H1'] and params['H1']['batch_norm']:
             H1 = BatchNormalization(name='H1_batch_norm',
                                     **params['H1']['batch_norm']
                                     )(H1)
