@@ -6,6 +6,7 @@ https://en.wikipedia.org/wiki/Multi-label_classification
 import sys
 import warnings
 import numpy as np
+from scipy import sparse
 
 from sklearn import linear_model as lm
 
@@ -42,7 +43,6 @@ class MLC(Model):
             FP += 1 - t_sorted[:, i]
             F1.append(2 * TP / (2 * TP + FN + FP))
         F1 = np.vstack(F1).T
-
         # Find the thresholds
         row = np.arange(nb_samples)
         col = F1.argmax(axis=1)
@@ -53,13 +53,18 @@ class MLC(Model):
         return T
 
     def fit_thresholds(self, data, alpha, batch_size=128, y_name=['Y0', 'Y1'], verbose=0,
-                       validation_data=None, cv=None, top_k=None):
+                       validation_data=None, cv=None, top_k=None, input_sparse=False, vocab_size=None):
 
         inputs = np.hstack([data[k] for k in self.input_names])
         # now only support matrix average and one-hot vecotor representation
-        # TODO sparse word index should be transformed to one-hot vecotor 
-        t_inputs = np.average(inputs, axis=1) if len(
-            inputs.shape) == 3 else inputs
+        # TODO sparse word index should be transformed to one-hot vecotor
+        if input_sparse and isinstance(vocab_size, int):
+            t_inputs = np.zeros((inputs.shape[0], vocab_size))
+            for i in range(inputs.shape[0]):
+                t_inputs[i][inputs[i]] = 1
+        else:
+            t_inputs = np.average(inputs, axis=1) if len(
+                inputs.shape) == 3 else inputs
         probs = self.predict(data, batch_size=batch_size)
 
         probs = dict(zip(y_name, probs))
@@ -75,8 +80,13 @@ class MLC(Model):
             elif validation_data is not None:
                 val_inputs = np.hstack([validation_data[k]
                                         for k in self.input_names])
-                val_t_inputs = np.average(val_inputs, axis=1) if len(
-                    val_inputs.shape) == 3 else val_inputs
+                if input_sparse and isinstance(vocab_size, int):
+                    val_t_inputs = np.zeros((val_inputs.shape[0], vocab_size))
+                    for i in range(val_inputs.shape[0]):
+                        val_t_inputs[i][val_inputs[i]] = 1
+                else:
+                    val_t_inputs = np.average(val_inputs, axis=1) if len(
+                        val_inputs.shape) == 3 else val_inputs
                 val_probs = self.predict(val_inputs)
                 val_probs = dict(zip(y_name, val_probs))
                 val_targets = {k: validation_data[k]
@@ -93,7 +103,8 @@ class MLC(Model):
                 sys.stdout.flush()
 
             T = self._construct_thresholds(probs[k], targets[k])
-
+            # init alpha
+            alpha_best = 0
             if isinstance(alpha, list):
                 if validation_data is not None:
                     val_T = self._construct_thresholds(val_probs[k],
@@ -102,16 +113,15 @@ class MLC(Model):
                     score_best, alpha_best = -np.Inf, None
                     for a in alpha:
 
-                        model = lm.Ridge(alpha=a).fit(t_inputs, T)
+                        model = lm.Ridge(alpha=a,solver='svd').fit(t_inputs, T)
                         score = model.score(val_t_inputs.astype(float), val_T)
                         if score > score_best:
                             score_best, alpha_best = score, a
-                    alpha = alpha_best
                 else:
                     model = lm.RidgeCV(alphas=alpha, cv=cv).fit(t_inputs, T)
-                    alpha = model.alpha_
+                    alpha_best = model.alpha_
 
-            self.t_models[k] = lm.Ridge(alpha=alpha)
+            self.t_models[k] = lm.Ridge(alpha=alpha_best)
             self.t_models[k].fit(t_inputs, T)
 
         if verbose:
