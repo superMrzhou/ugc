@@ -143,8 +143,13 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print("P@3 (%s): %.4f" % (k, p_at_3[k]))
         print("P@5 (%s): %.4f" % (k, p_at_5[k]))
 
-    print('total precision : %.4f'%precision(targets_all,preds_all))
-    print('G2 precision : %.4f'%precision(test_dataset['Y1'],preds['Y1']))
+    t_recall, t_precision = recall_precision(targets_all,preds_all)
+    print('total precision : %.4f'%t_recall)
+    print('total precision : %.4f'%t_precision)
+
+    g_recall, g_precision = recall_precision(test_dataset['Y1'],preds['Y1'])
+    print('G2 precision : %.4f'%g_recall)
+    print('G2 precision : %.4f'%g_precision)
 
 
 def y2vec(y, cate_id, cateIds_list):
@@ -155,15 +160,16 @@ def y2vec(y, cate_id, cateIds_list):
     return res
 
 
-def precision(y_true, y_pre):
+def recall_precision(y_true, y_pre):
 
-    gt_lbls_n, tp_lbls_n = 0., 0.
+    gt_lbls_n, tp_lbls_n,pr_lbls_n = 0., 0., 0.
     for i in range(len(y_true)):
         gt_ind = np.where(y_true[i] == 1)[0]
         pred_ind = np.where(y_pre[i] == 1)[0]
         gt_lbls_n += len(gt_ind)
+        pr_lbls_n += len(pred_ind)
         tp_lbls_n += len(set(gt_ind) & set(pred_ind))
-    return tp_lbls_n / gt_lbls_n
+    return tp_lbls_n / gt_lbls_n, tp_lbls_n / pr_lbls_n
 
 
 def y2list(y):
