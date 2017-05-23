@@ -16,6 +16,7 @@ import os
 import itertools
 import xlrd
 import numpy as np
+from collections import defaultdict
 from collections import Counter
 from gensim.models import word2vec
 from os.path import join, exists, split
@@ -331,6 +332,40 @@ def transY2Vec(Y, G1, G2):
         Y_vec[i, y] = 1
 
     return Y_vec
+
+def ml_confuse(y_true,y_pre):
+    '''
+    calculate multi-label confuse matrix
+    '''
+    # init dict
+    lbl_set = set(sum(y_true,[]) + sum(y_pre,[]))
+    confuse = {}
+    for lbl in lbl_set:
+        confuse[lbl] = defaultdict(int)
+
+    for i in range(len(y_true)):
+        gt = set(y_true[i])
+        pre = set(y_pre[i])
+        if not pre: continue
+        # prediced wrong labels
+        wrg = pre - gt
+        if not wrg:continue
+        # predicted right labels
+        pre_T = gt & pre
+        if pre_T: # hit !!
+            for t_lbl in pre_T:
+                for w_lbl in wrg:
+                    confuse[t_lbl]['+%s'%w_lbl] += 1
+        # label with no predict result
+        pre_w = gt - pre_T
+        if pre_w:
+            for t_lbl in pre_T:
+                for w_lbl in pre_w:
+                    confuse[t_lbl]['-%s'%w_lbl] += 1
+
+    return confuse
+
+
 
 
 if __name__ == "__main__":

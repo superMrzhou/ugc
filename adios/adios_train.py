@@ -125,6 +125,10 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print(' '.join([id_cate[Y0Y1[ii]]
                         for ii in np.where(preds_all[i] == True)[0]]))
 
+    print('start calculate confuse matix....')
+    get_confuse(test_dataset,preds,'Y0')
+    get_confuse(test_dataset,preds,'Y1')
+
     hl = hamming_loss(test_dataset, preds)
     f1_macro = f1_measure(test_dataset, preds, average='macro')
     f1_micro = f1_measure(test_dataset, preds, average='micro')
@@ -151,6 +155,23 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print('G2 recall : %.4f'%g_recall)
     print('G2 precision : %.4f'%g_precision)
 
+
+
+def get_confuse(data,pred,kw):
+    y_true,y_pre = [],[]
+    for i in range(len(data[kw])):
+        y_true.append([id_cate[Y0Y1[ii]]
+                        for ii in np.where(data[kw][i] == 1)[0]])
+        y_pre.append([id_cate[Y0Y1[ii]]
+                        for ii in np.where(pred[kw][i] == True)[0]])
+    print(y_true[:2])
+    print(y_pre[:2])
+    confuse_dict = ml_confuse(y_true,y_pre)
+    with open('../docs/CNN/%s_confuse'%kw,'w') as f:
+        for lbl,c_dict in confuse_dict.items():
+            c_sort = sorted(c_dict.items(), key=lambda d: d[1],reverse=True)
+            cont = ' '.join(map(lambda x:'%s:%s'%x,c_sort)) + '\n'
+            f.write('%s\t%s'%(lbl,cont))
 
 def y2vec(y, cate_id, cateIds_list):
 
@@ -305,7 +326,7 @@ if __name__ == '__main__':
     # params
     nb_features = len(vocabulary_inv)
     nb_labels = len(Y0 + Y1)
-    nb_labels_Y0 = 2
+    nb_labels_Y0 = len(Y0)
     nb_labels_Y1 = len(Y1)
 
     trn_text = np.array(trn_text)
@@ -330,13 +351,13 @@ if __name__ == '__main__':
     valid_N = int(ratio * tst_text.shape[0])
     train_dataset = {'X': trn_text,
                      'Y0': trn_labels[:, :nb_labels_Y0],
-                     'Y1': trn_labels[:, -nb_labels_Y1:]}
+                     'Y1': trn_labels[:, nb_labels_Y0:]}
     valid_dataset = {'X': tst_text[:valid_N],
                      'Y0': tst_labels[:valid_N, :nb_labels_Y0],
-                     'Y1': tst_labels[:valid_N, -nb_labels_Y1:]}
+                     'Y1': tst_labels[:valid_N, nb_labels_Y0:]}
     test_dataset = {'X': tst_text[valid_N:],
                     'Y0': tst_labels[valid_N:, :nb_labels_Y0],
-                    'Y1': tst_labels[valid_N:, -nb_labels_Y1:]}
+                    'Y1': tst_labels[valid_N:, nb_labels_Y0:]}
 
     # start train
     train(train_dataset, valid_dataset, test_dataset, params)
