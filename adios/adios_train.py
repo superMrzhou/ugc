@@ -134,8 +134,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     f1_micro = f1_measure(test_dataset, preds, average='micro')
     f1_samples = f1_measure(test_dataset, preds, average='samples')
     p_at_1 = precision_at_k(test_dataset, probs, K=1)
-    # p_at_3 = precision_at_k(test_dataset, probs, K=3)
-    # p_at_5 = precision_at_k(test_dataset, probs, K=5)
+    p_at_3 = precision_at_k(test_dataset, probs, K=3)
+    p_at_5 = precision_at_k(test_dataset, probs, K=5)
 
     for k in ['Y0', 'Y1', 'all']:
         print
@@ -144,8 +144,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print("F1 micro (%s): %.4f" % (k, f1_micro[k]))
         print("F1 sample (%s): %.4f" % (k, f1_samples[k]))
         print("P@1 (%s): %.4f" % (k, p_at_1[k]))
-        # print("P@3 (%s): %.4f" % (k, p_at_3[k]))
-        # print("P@5 (%s): %.4f" % (k, p_at_5[k]))
+        print("P@3 (%s): %.4f" % (k, p_at_3[k]))
+        print("P@5 (%s): %.4f" % (k, p_at_5[k]))
 
     t_recall, t_precision = recall_precision(targets_all,preds_all)
     print('total recall : %.4f'%t_recall)
