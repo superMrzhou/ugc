@@ -8,6 +8,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 
 from utils.models import MLC
+from copy import deepcopy
 
 
 def assemble(name, params):
@@ -93,7 +94,7 @@ def assemble_adios(params):
         Y0 = BatchNormalization(name='Y0',
                                 **params['Y0']['batch_norm']
                                 )(Y0)
-
+    Y0_copy = Y0
     # H0
     if 'H0' in params:  # we have a composite layer (Y0|H0)
         kwargs = params['H0']['kwargs'] if 'kwargs' in params['H0'] else {}
@@ -113,9 +114,9 @@ def assemble_adios(params):
             H0 = Dropout(params['H0']['dropout'],
                          name='H0_dropout')(H0)
 
-        Y0_H0 = concatenate([Y0, H0])
+        Y0_H0 = concatenate([Y0_copy, H0])
     else:
-        Y0_H0 = Y0
+        Y0_H0 = Y0_copy
 
     # H1
     if 'H1' in params:  # there is a hidden layer between Y0 and Y1
