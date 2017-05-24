@@ -31,6 +31,9 @@ $ cd /your/path/to/project/adios
 # make env using python 2.7(system version)
 $ virtualenv env --python=python
 
+# attention: if you want to use gpu,env's name must be 'tensorflow',maybe like this:
+$ virtualenv tensorflow --python=python
+
 # you will see a new dir named “env”; activate the env by followed cmd:
 $ source env/bin/activate
 ```
