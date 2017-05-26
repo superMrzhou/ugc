@@ -347,11 +347,10 @@ def ml_confuse(y_true,y_pre):
         gt = set(y_true[i])
         pre = set(y_pre[i])
         if not pre: continue
-        # prediced wrong labels
-        wrg = pre - gt
-        if not wrg:continue
         # predicted right labels
         pre_T = gt & pre
+        # prediced wrong labels
+        wrg = pre - pre_T
         if pre_T: # hit !!
             for t_lbl in pre_T:
                 confuse[t_lbl][t_lbl] += 1 # right cnt
@@ -360,7 +359,7 @@ def ml_confuse(y_true,y_pre):
         # label with no predict result
         pre_w = gt - pre_T
         if pre_w:
-            for t_lbl in pre_T:
+            for t_lbl in gt - pre_T:
                 for w_lbl in pre_w:
                     confuse[t_lbl]['-%s'%w_lbl] += 1
 
