@@ -1,8 +1,8 @@
 # params config
 
 iter:
-    batch_size:    200
-    epoch:         1
+    batch_size:    2000
+    epoch:         30
     model_dir:     '../docs/model/checkpoints/'
     model_name:    'adios_best.h5'
     model_type:    'CNN-non-static' # only CNN-static, CNN-non-static, CNN-rand valiable
