@@ -200,18 +200,22 @@ def load_data(trn_file,
     Returns input vectors, labels, vocabulary, and inverse vocabulary.
     """
     # Load and preprocess data
+    #
+    print("loading train data and label.....")
     trn_text, trn_labels = load_data_and_labels(
         trn_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
     if tst_file:
+        print("loading train data and label.....")
         tst_text, tst_labels = load_data_and_labels(
             tst_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
         sentences, labels = trn_text + tst_text, trn_labels + tst_labels
     else:
         sentences, labels = trn_text, trn_labels
-
+    print("padding sentences.....")
     sentences_padded = pad_sentences(sentences, mode=padding_mod)
 
     if vocabulary == None or vocabulary_inv == None:
+        print("building vocab.....")
         vocabulary, vocabulary_inv = build_vocab(sentences_padded)
 
     x, y = build_input_data(sentences_padded, labels, vocabulary)
