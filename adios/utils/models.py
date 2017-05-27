@@ -10,6 +10,7 @@ from scipy import sparse
 
 from sklearn import linear_model as lm
 
+from keras import backend as K
 from keras.models import Model
 
 
@@ -56,15 +57,20 @@ class MLC(Model):
                        validation_data=None, cv=None, top_k=None, input_sparse=False, vocab_size=None):
 
         inputs = np.hstack([data[k] for k in self.input_names])
+        # get outputs of conv layer
+        vec_model = K.function([self.get_layer('X').input],[self.get_layer('H').output])
+
+        t_inputs = vec_model([inputs])[0]
+
         # now only support matrix average and one-hot vecotor representation
         # TODO sparse word index should be transformed to one-hot vecotor
-        if input_sparse and isinstance(vocab_size, int):
-            t_inputs = np.zeros((inputs.shape[0], vocab_size))
-            for i in range(inputs.shape[0]):
-                t_inputs[i][inputs[i]] = 1
-        else:
-            t_inputs = np.average(inputs, axis=1) if len(
-                inputs.shape) == 3 else inputs
+        # if input_sparse and isinstance(vocab_size, int):
+        #     t_inputs = np.zeros((inputs.shape[0], vocab_size))
+        #     for i in range(inputs.shape[0]):
+        #         t_inputs[i][inputs[i]] = 1
+        # else:
+        #     t_inputs = np.average(inputs, axis=1) if len(
+        #         inputs.shape) == 3 else inputs
         probs = self.predict(data, batch_size=batch_size)
 
         probs = dict(zip(y_name, probs))
@@ -80,13 +86,14 @@ class MLC(Model):
             elif validation_data is not None:
                 val_inputs = np.hstack([validation_data[k]
                                         for k in self.input_names])
-                if input_sparse and isinstance(vocab_size, int):
-                    val_t_inputs = np.zeros((val_inputs.shape[0], vocab_size))
-                    for i in range(val_inputs.shape[0]):
-                        val_t_inputs[i][val_inputs[i]] = 1
-                else:
-                    val_t_inputs = np.average(val_inputs, axis=1) if len(
-                        val_inputs.shape) == 3 else val_inputs
+                # if input_sparse and isinstance(vocab_size, int):
+                #     val_t_inputs = np.zeros((val_inputs.shape[0], vocab_size))
+                #     for i in range(val_inputs.shape[0]):
+                #         val_t_inputs[i][val_inputs[i]] = 1
+                # else:
+                #     val_t_inputs = np.average(val_inputs, axis=1) if len(
+                #         val_inputs.shape) == 3 else val_inputs
+                val_t_inputs = vec_model([val_inputs])[0]
                 val_probs = self.predict(val_inputs)
                 val_probs = dict(zip(y_name, val_probs))
                 val_targets = {k: validation_data[k]
@@ -130,8 +137,12 @@ class MLC(Model):
 
     def threshold(self, data, verbose=0):
         inputs = np.hstack([data[k] for k in self.input_names])
-        t_inputs = np.average(inputs, axis=1) if len(
-            inputs.shape) == 3 else inputs
+        # get outputs of conv layer
+        vec_model = K.function([self.get_layer('X').input],[self.get_layer('H').output])
+
+        t_inputs = vec_model([inputs])[0]
+        # t_inputs = np.average(inputs, axis=1) if len(
+        #     inputs.shape) == 3 else inputs
 
         if verbose:
             sys.stdout.write("Thresholding...\n")
