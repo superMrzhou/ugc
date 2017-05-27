@@ -113,8 +113,8 @@ def assemble_adios(params):
             H0 = Dropout(params['H0']['dropout'],
                          name='H0_dropout')(H0)
 
-        # Y0_H0 = concatenate([Y0, H0])
-        Y0_H0 = H0
+        Y0_H0 = concatenate([Y0, H0])
+        # Y0_H0 = H0
     else:
         Y0_H0 = Y0
 
