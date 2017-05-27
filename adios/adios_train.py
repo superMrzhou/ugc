@@ -287,13 +287,20 @@ if __name__ == '__main__':
     # train(train_dataset, valid_dataset, test_dataset, params)
     # exit()
 
+    # load vocabulary
+    vocabulary_inv = [wd[0] for wd in load_data_and_labels('../docs/CNN/dic_ml_v5',lbl_text_index=[1, 0])[0]]
+    # add <PAD/>
+    vocabulary_inv.insert(0,'<PAD/>')
+    vocabulary = {v:i for i,v in enumerate(vocabulary_inv)}
     # Load the datasets
-    trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/imageText_ml_v5',
+    trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/split_aa',
                                                                                        use_tst=True,
                                                                                        lbl_text_index=[
                                                                                            0, 1],
                                                                                        split_tag='@@@',
                                                                                        padding_mod='average',
+                                                                                       vocabulary=vocabulary,
+                                                                                       vocabulary_inv=vocabulary_inv,
                                                                                        ratio=0.2)
 
 

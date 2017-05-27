@@ -1,7 +1,7 @@
 # params config
 
 iter:
-    batch_size:    2000
+    batch_size:    200
     epoch:         30
     model_dir:     '../docs/model/checkpoints/'
     model_name:    'adios_best.h5'
@@ -14,11 +14,11 @@ Conv1D:
     pooling_size:  3 # default 2
 H:
     dropout:       0.3
-    # batch_norm: {beta_initializer: ones}
+    # batch_norm: {beta_initializer: zeros}
 H0:
     dim:           256
     dropout:       0.3
-    # batch_norm: {beta_initializer: ones}
+    # batch_norm: {beta_initializer: zeros}
 # H1:
 #     dim:         256
 #     dropout:     0.3
