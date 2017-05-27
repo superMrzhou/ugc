@@ -99,9 +99,9 @@ def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1], is_sh
 
     # Split by words
     # texts = [clean_str(sent) for sent in texts]
-    texts = [s.split(" ") for s in texts]
+    texts = [filter(lambda a:a !='',s.split(" ")) for s in texts]
     # support multi-label
-    labels = [s.split(" ") for s in labels]
+    labels = [filter(lambda a:a !='',s.split(" ")) for s in labels]
     if is_shuffle:
         ind = np.arange(len(texts))
         np.random.shuffle(ind)
