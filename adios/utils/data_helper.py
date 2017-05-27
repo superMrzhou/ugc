@@ -15,6 +15,7 @@ import re
 import os
 import itertools
 import xlrd
+import time
 import numpy as np
 from collections import defaultdict
 from collections import Counter
@@ -175,11 +176,11 @@ def build_vocab(sentences):
     return [vocabulary, vocabulary_inv]
 
 
-def build_input_data(sentences, labels, vocabulary):
+def build_input_data(sentences, labels, vocabulary,padding_word="<PAD/>"):
     """
     Maps sentencs and labels to vectors based on a vocabulary.
     """
-    x = np.array([[vocabulary[word] if word in vocabulary else 0 for word in sentence]
+    x = np.array([[vocabulary[word] if word in vocabulary else vocabulary[padding_word] for word in sentence]
                   for sentence in sentences])
     y = np.array(labels)
     return [x, y]
@@ -200,22 +201,21 @@ def load_data(trn_file,
     Returns input vectors, labels, vocabulary, and inverse vocabulary.
     """
     # Load and preprocess data
-    #
-    print("loading train data and label.....")
+    print("%s  loading train data and label....."%time.asctime( time.localtime(time.time()) ))
     trn_text, trn_labels = load_data_and_labels(
         trn_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
     if tst_file:
-        print("loading train data and label.....")
+        print("%s  loading train data and label....."%time.asctime( time.localtime(time.time()) ))
         tst_text, tst_labels = load_data_and_labels(
             tst_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
         sentences, labels = trn_text + tst_text, trn_labels + tst_labels
     else:
         sentences, labels = trn_text, trn_labels
-    print("padding sentences.....")
+    print("%s  padding sentences....."%time.asctime( time.localtime(time.time()) ))
     sentences_padded = pad_sentences(sentences, mode=padding_mod)
 
     if vocabulary == None or vocabulary_inv == None:
-        print("building vocab.....")
+        print("%s  building vocab....."%time.asctime( time.localtime(time.time()) ))
         vocabulary, vocabulary_inv = build_vocab(sentences_padded)
 
     x, y = build_input_data(sentences_padded, labels, vocabulary)
