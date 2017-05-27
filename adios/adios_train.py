@@ -159,10 +159,11 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
 def get_confuse(data,pred,kw):
     y_true,y_pre = [],[]
+    _cate = Y0 if kw=='Y0' else Y1
     for i in range(len(data[kw])):
-        y_true.append([Y0Y1[ii]
+        y_true.append([_cate[ii]
                         for ii in np.where(data[kw][i] == 1)[0]])
-        y_pre.append([Y0Y1[ii]
+        y_pre.append([_cate[ii]
                         for ii in np.where(pred[kw][i] == True)[0]])
     confuse_dict = ml_confuse(y_true,y_pre)
     with open('../docs/CNN/%s_confuse'%kw,'w') as f:
@@ -315,12 +316,11 @@ if __name__ == '__main__':
     cate = list(set(sum(trn_labels + tst_labels,[])))
 
     cate_id = {v:i for i,v in enumerate(cate)}
-    Y0 = filter(lambda x:re.search('-|_',x),cate)
-    Y1 = filter(lambda x: not re.search('-|_',x),cate)
+    Y1 = filter(lambda x:re.search('-|_',x),cate)
+    Y0 = filter(lambda x: not re.search('-|_',x),cate)
     Y0Y1 = Y0 + Y1
 
-    print('Y0 size : %d , Y1 size : %d' % (len(Y0), len(Y1)))
-
+    print('Y0 length: %s, Y1 length : %s'%(len(Y0),len(Y1)))
     # vectorize
     trn_labels = y2vec(trn_labels, cate_id, Y0Y1)
     tst_labels = y2vec(tst_labels, cate_id, Y0Y1)
