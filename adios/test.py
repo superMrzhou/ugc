@@ -20,10 +20,8 @@
 #
 #  fastXML data_helper
 
-from utils.data_helper import *
 import numpy as np
 import itertools
-from adios_train import y2list,filter_data
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 # load data
@@ -92,3 +90,56 @@ with open('../docs/CNN/xml_test_x_a','w') as ftx,\
          fty.write('%s\n'%lbl_temp[i])
          if i  % 2000 ==0:
              print i
+
+def y2list(y):
+
+    y = [yy[0].strip('\n').split('&') for yy in y]
+    return [list(set([re.split('-|_', lbl)[0] for lbl in yy])) + yy for yy in y]
+
+
+def get_Y0_and_Y1(file_path):
+    with open(file_path, 'r') as f_cate:
+        Y0, Y1 = [], []
+        for line in f_cate:
+            if re.search('-|_', line.split('\t')[0]):
+                Y0.append(line.strip('\n').split('\t')[1])
+            else:
+                Y1.append(line.strip('\n').split('\t')[1])
+    return Y0, Y1
+
+
+def filter_data(x, y):
+    res_x, res_y = [], []
+    for i, yy in enumerate(y):
+        temp_y = filter(lambda lbl: '其他' not in lbl and '新闻' not in lbl, yy)
+        if temp_y:
+            res_x.append(x[i])
+            res_y.append(temp_y)
+        if i % 2000==0:
+            print i
+    return res_x, res_y
+def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1], is_shuffle=False):
+    """
+    Loads MR polarity data from files, splits the data into words and generates labels.
+    Returns split sentences and labels.
+    """
+
+    # Load data from files
+    raw_data = list(open(file_path, 'r').readlines())
+    # parse label
+    labels = [data.strip('\n').split(split_tag)[lbl_text_index[0]]
+              for data in raw_data]
+    # parse text
+    texts = [data.strip('\n').split(split_tag)[lbl_text_index[1]]
+             for data in raw_data]
+
+    # Split by words
+    # texts = [clean_str(sent) for sent in texts]
+    texts = [filter(lambda a:a !='',s.split(" ")) for s in texts]
+    # support multi-label
+    labels = [filter(lambda a:a !='',s.split(" ")) for s in labels]
+    if is_shuffle:
+        ind = np.arange(len(texts))
+        np.random.shuffle(ind)
+        texts = list(np.array(texts)[ind])
+        labels = list(np.array(labels)[ind])
