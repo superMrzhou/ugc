@@ -91,4 +91,3 @@ ENV/
 docs/CNN/*
 .idea/*
 docs/model/
-test.py
