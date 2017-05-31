@@ -76,6 +76,7 @@ def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1], is_sh
         np.random.shuffle(ind)
         texts = list(np.array(texts)[ind])
         labels = list(np.array(labels)[ind])
+    return texts, labels
 if __name__ == '__main__':
     # load data
     print 'loading data.....'
