@@ -2,7 +2,7 @@
 Utility functions for constructing MLC models.
 """
 from keras.layers import Conv1D, Embedding, Flatten, AvgPool1D
-from keras.layers import Dense, Dropout, Input
+from keras.layers import Dense, Dropout, Input,Activation
 from keras.layers import ActivityRegularization, concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
@@ -48,33 +48,33 @@ def assemble_adios(params):
     # expanding dimension
     # embed_reshape = Reshape((params['X']['sequence_length'], params['X']['embedding_dim'], 1))(embedding)
 
-    # Conv and max-pooling
-    filters = params['Conv1D']['filters']
-    pooled_output = []
-    for size in params['Conv1D']['filter_size']:
-        conv = Conv1D(filters=filters,
-                      kernel_size=size,
-                      padding='valid',
-                      activation='relu',
-                      strides=1,
-                      bias_regularizer=l2(0.01),
-                      )(embedding)
-        pooling = AvgPool1D(pool_size=params['Conv1D']['pooling_size'])(conv)
-        flatten = Flatten()(pooling)
-        pooled_output.append(flatten)
+    # multi-layer Conv and max-pooling
+    conv_layer_num = len(params['Conv1D'])
+    for i in range(1,conv_layer_num+1):
+        H = embedding if i == 1 else H
+        filters = params['Conv1D']['layer%s'%i]['filters']
+        pooled_output = []
+        for size in params['Conv1D']['layer%s'%i]['filter_size']:
+            conv = Conv1D(filters=filters,
+                          kernel_size=size,
+                          padding='valid',
+                          activation='relu',
+                          strides=1,
+                          bias_regularizer=l2(0.01),
+                          )(embedding)
+            pooling = AvgPool1D(pool_size=params['Conv1D']['layer%s'%i]['pooling_size'])(conv)
+            flatten = Flatten()(pooling)
+            pooled_output.append(flatten)
 
-    # combine all the pooled feature as the hidden layer between X and Y0
-    H = concatenate(pooled_output) if len(
-        pooled_output) > 1 else pooled_output[0]
-
-    # batch_norm
-    if 'batch_norm' in params['H'] and params['H']['batch_norm']:
-        H = BatchNormalization(name='H_batchNorm',
-                               **params['H']['batch_norm'])(H)
-
-    # dropout
-    if 'dropout' in params['H']:
-        H = Dropout(params['H']['dropout'], name="H_dropout")(H)
+        # combine all the pooled feature as the hidden layer between X and Y0
+        H = concatenate(pooled_output) if len(
+            pooled_output) > 1 else pooled_output[0]
+        # batch_norm
+        if 'batch_norm' in params['H'] and params['H']['batch_norm']:
+            H = BatchNormalization(**params['H']['batch_norm'])(H)
+        # dropout
+        if 'dropout' in params['H']:
+            H = Dropout(params['H']['dropout'])(H)
 
     # Y0 output
     kwargs = params['Y0']['kwargs'] if 'kwargs' in params['Y0'] else {}
@@ -94,13 +94,14 @@ def assemble_adios(params):
         Y0 = BatchNormalization(name='Y0_',
                                 **params['Y0']['batch_norm']
                                 )(Y0)
+    # Y0 = Activation('softmax')(Y0)
     # H0
     if 'H0' in params:  # we have a composite layer (Y0|H0)
         kwargs = params['H0']['kwargs'] if 'kwargs' in params['H0'] else {}
 
         # ReLu
         H0 = Dense(params['H0']['dim'],
-                   activation='relu',
+                #    activation='relu',
                    bias_regularizer=l2(0.01),
                    **kwargs)(H)
         # batch_norm
@@ -112,7 +113,7 @@ def assemble_adios(params):
         if 'dropout' in params['H0']:
             H0 = Dropout(params['H0']['dropout'],
                          name='H0_dropout')(H0)
-
+        H0 = Activation('sigmoid')(H0)
         Y0_H0 = concatenate([Y0, H0])
         # Y0_H0 = H0
     else:
@@ -123,7 +124,7 @@ def assemble_adios(params):
         kwargs = params['H1']['kwargs'] if 'kwargs' in params['H1'] else {}
 
         H1 = Dense(params['H1']['dim'],
-                   activation='relu',
+                #    activation='relu',
                    bias_regularizer=l2(0.01),
                    **kwargs)(Y0_H0)
         # batch_norm
@@ -135,6 +136,7 @@ def assemble_adios(params):
         if 'dropout' in params['H1']:
             H1 = Dropout(params['H1']['dropout'],
                          name='H1_dropout')(H1)
+        H1 = Activation('sigmoid')(H1)
     else:
         H1 = Y0_H0
 

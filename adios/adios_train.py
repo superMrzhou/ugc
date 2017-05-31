@@ -216,6 +216,8 @@ def filter_data(x, y):
         if temp_y:
             res_x.append(x[i])
             res_y.append(temp_y)
+        if i % 2000==0:
+            print i
     return res_x, res_y
 
 
@@ -293,7 +295,7 @@ if __name__ == '__main__':
     vocabulary_inv.insert(0,'<PAD/>')
     vocabulary = {v:i for i,v in enumerate(vocabulary_inv)}
     # Load the datasets
-    trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/split_aa',
+    trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data('../docs/CNN/test_30000_aa',
                                                                                        use_tst=True,
                                                                                        lbl_text_index=[
                                                                                            0, 1],
