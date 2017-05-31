@@ -101,7 +101,7 @@ def assemble_adios(params):
 
         # ReLu
         H0 = Dense(params['H0']['dim'],
-                #    activation='relu',
+                   activation='relu',
                    bias_regularizer=l2(0.01),
                    **kwargs)(H)
         # batch_norm
@@ -113,7 +113,6 @@ def assemble_adios(params):
         if 'dropout' in params['H0']:
             H0 = Dropout(params['H0']['dropout'],
                          name='H0_dropout')(H0)
-        H0 = Activation('sigmoid')(H0)
         Y0_H0 = concatenate([Y0, H0])
         # Y0_H0 = H0
     else:
@@ -124,7 +123,7 @@ def assemble_adios(params):
         kwargs = params['H1']['kwargs'] if 'kwargs' in params['H1'] else {}
 
         H1 = Dense(params['H1']['dim'],
-                #    activation='relu',
+                   activation='relu',
                    bias_regularizer=l2(0.01),
                    **kwargs)(Y0_H0)
         # batch_norm
@@ -136,7 +135,6 @@ def assemble_adios(params):
         if 'dropout' in params['H1']:
             H1 = Dropout(params['H1']['dropout'],
                          name='H1_dropout')(H1)
-        H1 = Activation('sigmoid')(H1)
     else:
         H1 = Y0_H0
 

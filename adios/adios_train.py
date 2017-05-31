@@ -60,7 +60,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         raise ValueError("Unknown model type")
 
     # complie model
-    model.compile(loss={'Y0': 'binary_crossentropy',
+    model.compile(loss={'Y0': 'categorical_crossentropy',
                         'Y1': 'categorical_crossentropy'},
                   loss_weights={'Y0': 0.5,
                                 'Y1': 1},
