@@ -13,10 +13,10 @@ Conv1D:
         filters:       256
         filter_size:   [3,4,5]
         pooling_size:  3 # default 2
-    layer2:
-      filters:       128
-      filter_size:   [3,4,5]
-      pooling_size:  3 # default 2
+    # layer2:
+    #   filters:       128
+    #   filter_size:   [3,4,5]
+    #   pooling_size:  3 # default 2
 H:
     dropout:       0.3
     # batch_norm: {beta_initializer: zeros}
