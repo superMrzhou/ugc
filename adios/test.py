@@ -80,7 +80,7 @@ def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1], is_sh
 if __name__ == '__main__':
     # load data
     print 'loading data.....'
-    texts,labels = load_data_and_labels('../docs/CNN/imageText_ml_v5',split_tag='@@@',lbl_text_index=[0,1])
+    texts,labels = load_data_and_labels('../docs/CNN/split_aa',split_tag='@@@',lbl_text_index=[0,1])
 
     # calcu tf-idf weights
     vectorizer = TfidfVectorizer(min_df=1)
@@ -126,10 +126,9 @@ if __name__ == '__main__':
          ftx.write('%s %s\n'%(len(vecs) - tst_n,len(vectorizer.vocabulary_)))
          fty.write('%s %s\n'%(len(vecs) - tst_n,len(cate_id)))
 
-         lbl_temp = np.array(xml_lbls)[ind[tst_n:]]
-         for i,txt in enumerate(np.array(vecs)[ind[tst_n:]]):
-             ftx.write('%s\n'%txt)
-             fty.write('%s\n'%lbl_temp[i])
+         for i,ind in enumerate(ind[tst_n:]):
+             ftx.write('%s\n'%vecs[ind])
+             fty.write('%s\n'%xml_lbls[ind])
              if i%2000 == 0:
                  print i
 
@@ -138,9 +137,8 @@ if __name__ == '__main__':
          ftx.write('%s %s\n'%(tst_n,len(vectorizer.vocabulary_)))
          fty.write('%s %s\n'%(tst_n,len(cate_id)))
 
-         lbl_temp = np.array(xml_lbls)[ind[:tst_n]]
-         for i,txt in enumerate(np.array(vecs)[ind[:tst_n]]):
-             ftx.write('%s\n'%txt)
-             fty.write('%s\n'%lbl_temp[i])
+         for i,ind in enumerate(ind[:tst_n]):
+             ftx.write('%s\n'%vecs[ind])
+             fty.write('%s\n'%xml_lbls[ind])
              if i  % 2000 ==0:
                  print i
