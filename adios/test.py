@@ -143,9 +143,9 @@ if __name__ == '__main__':
         ftx.write('%s %s\n' % (len(vecs) - tst_n, len(vectorizer.vocabulary_)))
         fty.write('%s %s\n' % (len(vecs) - tst_n, len(cate_id)))
 
-        for i, ind in enumerate(ind[tst_n:]):
-            ftx.write('%s\n' % vecs[ind])
-            fty.write('%s\n' % xml_lbls[ind])
+        for i, d in enumerate(ind[tst_n:]):
+            ftx.write('%s\n' % vecs[d])
+            fty.write('%s\n' % xml_lbls[d])
             if i % 2000 == 0:
                 print i
 
@@ -154,8 +154,8 @@ if __name__ == '__main__':
         ftx.write('%s %s\n' % (tst_n, len(vectorizer.vocabulary_)))
         fty.write('%s %s\n' % (tst_n, len(cate_id)))
 
-        for i, ind in enumerate(ind[:tst_n]):
-            ftx.write('%s\n' % vecs[ind])
-            fty.write('%s\n' % xml_lbls[ind])
+        for i, d in enumerate(ind[:tst_n]):
+            ftx.write('%s\n' % vecs[d])
+            fty.write('%s\n' % xml_lbls[d])
             if i % 2000 == 0:
                 print i
