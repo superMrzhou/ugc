@@ -67,16 +67,14 @@ def assemble_adios(params):
         pooled_output.append(flatten)
 
     # combine all the pooled feature as the hidden layer between X and Y0
-    H_name = 'conv_layer%s'%i
-    H = concatenate(pooled_output,name=H_name) if len(
+    H = concatenate(pooled_output,name='H') if len(
         pooled_output) > 1 else pooled_output[0]
     # batch_norm
     if 'batch_norm' in params['H'] and params['H']['batch_norm']:
         H = BatchNormalization(**params['H']['batch_norm'])(H)
     # dropout
-    H_name = 'H'
     if 'dropout' in params['H']:
-        H = Dropout(params['H']['dropout'],name=H_name)(H)
+        H = Dropout(params['H']['dropout'])(H)
 
     # Y0 output
     kwargs = params['Y0']['kwargs'] if 'kwargs' in params['Y0'] else {}
