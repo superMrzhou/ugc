@@ -19,7 +19,7 @@
 #             fs.write('%s\n'%s.groups()[0])
 #
 #  fastXML data_helper
-
+import re
 import numpy as np
 import itertools
 from sklearn.feature_extraction.text import TfidfVectorizer
