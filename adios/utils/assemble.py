@@ -74,7 +74,7 @@ def assemble_adios(params):
         if 'batch_norm' in params['H'] and params['H']['batch_norm']:
             H = BatchNormalization(**params['H']['batch_norm'])(H)
         # dropout
-        H_name = 'conv_drop_layer%s'%i if i != conv_layer_num + 1 else 'H'
+        H_name = 'conv_drop_layer%s'%i if i != conv_layer_num else 'H'
         if 'dropout' in params['H']:
             H = Dropout(params['H']['dropout'],name=H_name)(H)
 
