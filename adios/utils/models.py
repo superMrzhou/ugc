@@ -120,7 +120,7 @@ class MLC(Model):
                     score_best, alpha_best = -np.Inf, None
                     for a in alpha:
 
-                        model = lm.Ridge(alpha=a,solver='svd').fit(t_inputs, T)
+                        model = lm.Ridge(alpha=a).fit(t_inputs, T)
                         score = model.score(val_t_inputs.astype(float), val_T)
                         if score > score_best:
                             score_best, alpha_best = score, a
