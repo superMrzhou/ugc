@@ -67,7 +67,8 @@ def assemble_adios(params):
             pooled_output.append(flatten)
 
         # combine all the pooled feature as the hidden layer between X and Y0
-        H = concatenate(pooled_output) if len(
+        H_name = 'conv_layer%s'%i if i != conv_layer_num + 1 else 'H'
+        H = concatenate(pooled_output,name=H_name) if len(
             pooled_output) > 1 else pooled_output[0]
         # batch_norm
         if 'batch_norm' in params['H'] and params['H']['batch_norm']:
