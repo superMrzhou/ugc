@@ -33,6 +33,7 @@ from utils.assemble import assemble
 from utils.data_helper import *
 
 
+
 def train(train_dataset, valid_dataset, test_dataset, params):
 
     # Assemble and compile the model
@@ -147,7 +148,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print("P@3 (%s): %.4f" % (k, p_at_3[k]))
         print("P@5 (%s): %.4f" % (k, p_at_5[k]))
 
-    t_recall, t_precision = recall_precision(targets_all,preds_all)
+    # t_recall, t_precision = recall_precision(targets_all,preds_all)
+    t_recall, t_precision = recall_precision(test_dataset['Y1'],preds['Y1'])
     print('total recall : %.4f'%t_recall)
     print('total precision : %.4f'%t_precision)
 
@@ -155,7 +157,22 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print('G2 recall : %.4f'%g_recall)
     print('G2 precision : %.4f'%g_precision)
 
+def all_recall_precison(Y1_true,preds):
+    '''
+    以二级标签构建一级标签，计算整体准确率
+    '''
+    gt_lbls_n, tp_lbls_n,pr_lbls_n = 0., 0., 0.
+    for i in range(len(Y1_true)):
+        gt_ind = np.where(y_true[i] == 1)[0]
+        gt_lbl = [re.split('_|-',Y1[ii]) for ii in gt_ind] + [Y1[ii] for ii in gt_ind]
 
+        pred_ind = np.where(y_pre[i] == 1)[0]
+        pre_lbl = [re.split('_|-',Y1[ii]) for ii in pred_ind] + [Y1[ii] for ii in pred_ind]
+
+        gt_lbls_n += len(set(gt_lbl))
+        pr_lbls_n += len(set(pred_lbl))
+        tp_lbls_n += len(set(gt_lbl) & set(pred_lbl))
+    return tp_lbls_n / gt_lbls_n, tp_lbls_n / pr_lbls_n
 
 def get_confuse(data,pred,kw):
     y_true,y_pre = [],[]
