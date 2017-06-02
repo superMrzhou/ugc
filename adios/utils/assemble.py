@@ -50,33 +50,33 @@ def assemble_adios(params):
 
     # multi-layer Conv and max-pooling
     conv_layer_num = len(params['Conv1D'])
-    for i in range(1,conv_layer_num+1):
-        H = embedding if i == 1 else H
-        filters = params['Conv1D']['layer%s'%i]['filters']
-        pooled_output = []
-        for size in params['Conv1D']['layer%s'%i]['filter_size']:
-            conv = Conv1D(filters=filters,
-                          kernel_size=size,
-                          padding='valid',
-                          activation='relu',
-                          strides=1,
-                          bias_regularizer=l2(0.01),
-                          )(embedding)
-            pooling = AvgPool1D(pool_size=params['Conv1D']['layer%s'%i]['pooling_size'])(conv)
-            flatten = Flatten()(pooling)
-            pooled_output.append(flatten)
+    # for i in range(1,conv_layer_num+1):
+    i = 1
+    filters = params['Conv1D']['layer%s'%i]['filters']
+    pooled_output = []
+    for size in params['Conv1D']['layer%s'%i]['filter_size']:
+        conv = Conv1D(filters=filters,
+                      kernel_size=size,
+                      padding='valid',
+                      activation='relu',
+                      strides=1,
+                      bias_regularizer=l2(0.01),
+                      )(embedding)
+        pooling = AvgPool1D(pool_size=params['Conv1D']['layer%s'%i]['pooling_size'])(conv)
+        flatten = Flatten()(pooling)
+        pooled_output.append(flatten)
 
-        # combine all the pooled feature as the hidden layer between X and Y0
-        H_name = 'conv_layer%s'%i
-        H = concatenate(pooled_output,name=H_name) if len(
-            pooled_output) > 1 else pooled_output[0]
-        # batch_norm
-        if 'batch_norm' in params['H'] and params['H']['batch_norm']:
-            H = BatchNormalization(**params['H']['batch_norm'])(H)
-        # dropout
-        H_name = 'conv_drop_layer%s'%i if i != conv_layer_num else 'H'
-        if 'dropout' in params['H']:
-            H = Dropout(params['H']['dropout'],name=H_name)(H)
+    # combine all the pooled feature as the hidden layer between X and Y0
+    H_name = 'conv_layer%s'%i
+    H = concatenate(pooled_output,name=H_name) if len(
+        pooled_output) > 1 else pooled_output[0]
+    # batch_norm
+    if 'batch_norm' in params['H'] and params['H']['batch_norm']:
+        H = BatchNormalization(**params['H']['batch_norm'])(H)
+    # dropout
+    H_name = 'H'
+    if 'dropout' in params['H']:
+        H = Dropout(params['H']['dropout'],name=H_name)(H)
 
     # Y0 output
     kwargs = params['Y0']['kwargs'] if 'kwargs' in params['Y0'] else {}
