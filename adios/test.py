@@ -22,6 +22,7 @@
 import re
 import numpy as np
 import itertools
+from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 def y2list(y):
