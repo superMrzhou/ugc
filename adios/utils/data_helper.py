@@ -1,5 +1,4 @@
 # -*- coding:utf-8 -*-
-
 """
 @version: 1.0
 @author: kevin
@@ -23,8 +22,11 @@ from gensim.models import word2vec
 from os.path import join, exists, split
 
 
-def train_word2vec(sentence_matrix, vocabulary_inv,
-                   num_features=100, min_word_count=1, context=10):
+def train_word2vec(sentence_matrix,
+                   vocabulary_inv,
+                   num_features=100,
+                   min_word_count=1,
+                   context=10):
     """
     Trains, saves, loads Word2Vec model
     Returns initial weights for embedding layer.
@@ -51,9 +53,13 @@ def train_word2vec(sentence_matrix, vocabulary_inv,
         # Initialize and train the model
         print('Training Word2Vec model...')
         sentences = [[vocabulary_inv[w] for w in s] for s in sentence_matrix]
-        embedding_model = word2vec.Word2Vec(sentences, workers=num_workers,
-                                            size=num_features, min_count=min_word_count,
-                                            window=context, sample=downsampling)
+        embedding_model = word2vec.Word2Vec(
+            sentences,
+            workers=num_workers,
+            size=num_features,
+            min_count=min_word_count,
+            window=context,
+            sample=downsampling)
 
         # If we don't plan to train the model any further, calling
         # init_sims will make the model much more memory-efficient.
@@ -67,9 +73,13 @@ def train_word2vec(sentence_matrix, vocabulary_inv,
         embedding_model.save(model_name)
 
     # add unknown words
-    embedding_weights = [np.array([embedding_model[w] if w in embedding_model
-                                   else np.random.uniform(-0.25, 0.25, embedding_model.vector_size)
-                                   for w in vocabulary_inv])]
+    embedding_weights = [
+        np.array([
+            embedding_model[w] if w in embedding_model else np.random.uniform(
+                -0.25, 0.25, embedding_model.vector_size)
+            for w in vocabulary_inv
+        ])
+    ]
     return embedding_weights
 
 
@@ -83,7 +93,10 @@ def clean_str(string):
     return string.strip().lower()
 
 
-def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1], is_shuffle=False):
+def load_data_and_labels(file_path,
+                         split_tag='\t',
+                         lbl_text_index=[0, 1],
+                         is_shuffle=False):
     """
     Loads MR polarity data from files, splits the data into words and generates labels.
     Returns split sentences and labels.
@@ -92,17 +105,21 @@ def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1], is_sh
     # Load data from files
     raw_data = list(open(file_path, 'r').readlines())
     # parse label
-    labels = [data.strip('\n').split(split_tag)[lbl_text_index[0]]
-              for data in raw_data]
+    labels = [
+        data.strip('\n').split(split_tag)[lbl_text_index[0]]
+        for data in raw_data
+    ]
     # parse text
-    texts = [data.strip('\n').split(split_tag)[lbl_text_index[1]]
-             for data in raw_data]
+    texts = [
+        data.strip('\n').split(split_tag)[lbl_text_index[1]]
+        for data in raw_data
+    ]
 
     # Split by words
     # texts = [clean_str(sent) for sent in texts]
-    texts = [filter(lambda a:a !='',s.split(" ")) for s in texts]
+    texts = [filter(lambda a: a != '', s.split(" ")) for s in texts]
     # support multi-label
-    labels = [filter(lambda a:a !='',s.split(" ")) for s in labels]
+    labels = [filter(lambda a: a != '', s.split(" ")) for s in labels]
     if is_shuffle:
         ind = np.arange(len(texts))
         np.random.shuffle(ind)
@@ -112,7 +129,12 @@ def load_data_and_labels(file_path, split_tag='\t', lbl_text_index=[0, 1], is_sh
     return texts, labels
 
 
-def load_trn_tst_data_labels(trn_file, tst_file=None, ratio=0.2, split_tag='\t', lbl_text_index=[0, 1], is_shuffle=False):
+def load_trn_tst_data_labels(trn_file,
+                             tst_file=None,
+                             ratio=0.2,
+                             split_tag='\t',
+                             lbl_text_index=[0, 1],
+                             is_shuffle=False):
     """
     Loads train data and test data,return segment words and labels
     if tst_file is None , split train data by ratio
@@ -133,10 +155,10 @@ def load_trn_tst_data_labels(trn_file, tst_file=None, ratio=0.2, split_tag='\t',
         trn_data = np.array(trn_data)
         trn_labels = np.array(trn_labels)
 
-        tst_data, tst_labels = trn_data[index[:split_n]
-                                        ], trn_labels[index[:split_n]]
-        trn_data, trn_labels = trn_data[index[split_n:]
-                                        ], trn_labels[index[split_n:]]
+        tst_data, tst_labels = trn_data[index[:split_n]], trn_labels[
+            index[:split_n]]
+        trn_data, trn_labels = trn_data[index[split_n:]], trn_labels[index[
+            split_n:]]
 
     return list(trn_data), list(trn_labels), list(tst_data), list(tst_labels)
 
@@ -176,12 +198,14 @@ def build_vocab(sentences):
     return [vocabulary, vocabulary_inv]
 
 
-def build_input_data(sentences, labels, vocabulary,padding_word="<PAD/>"):
+def build_input_data(sentences, labels, vocabulary, padding_word="<PAD/>"):
     """
     Maps sentencs and labels to vectors based on a vocabulary.
     """
-    x = np.array([[vocabulary[word] if word in vocabulary else vocabulary[padding_word] for word in sentence]
-                  for sentence in sentences])
+    x = np.array([[
+        vocabulary[word] if word in vocabulary else vocabulary[padding_word]
+        for word in sentence
+    ] for sentence in sentences])
     y = np.array(labels)
     return [x, y]
 
@@ -201,33 +225,38 @@ def load_data(trn_file,
     Returns input vectors, labels, vocabulary, and inverse vocabulary.
     """
     # Load and preprocess data
-    print("%s  loading train data and label....."%time.asctime( time.localtime(time.time()) ))
+    print("%s  loading train data and label....." %
+          time.asctime(time.localtime(time.time())))
     trn_text, trn_labels = load_data_and_labels(
         trn_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
     if tst_file:
-        print("%s  loading train data and label....."%time.asctime( time.localtime(time.time()) ))
+        print("%s  loading train data and label....." %
+              time.asctime(time.localtime(time.time())))
         tst_text, tst_labels = load_data_and_labels(
             tst_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
         sentences, labels = trn_text + tst_text, trn_labels + tst_labels
     else:
         sentences, labels = trn_text, trn_labels
-    print("%s  padding sentences....."%time.asctime( time.localtime(time.time()) ))
+    print("%s  padding sentences....." %
+          time.asctime(time.localtime(time.time())))
     sentences_padded = pad_sentences(sentences, mode=padding_mod)
 
-    if vocabulary == None or vocabulary_inv == None:
-        print("%s  building vocab....."%time.asctime( time.localtime(time.time()) ))
+    if vocabulary is None or vocabulary_inv is None:
+        print("%s  building vocab....." %
+              time.asctime(time.localtime(time.time())))
         vocabulary, vocabulary_inv = build_vocab(sentences_padded)
 
     x, y = build_input_data(sentences_padded, labels, vocabulary)
 
-    if tst_file == None and not use_tst:
+    if tst_file is None and not use_tst:
         return [x, y, vocabulary, vocabulary_inv]
     elif tst_file:
         split_n = len(trn_text)
     elif use_tst:
         split_n = int(ratio * len(trn_text))
 
-    return x[split_n:], y[split_n:], x[:split_n], y[:split_n], vocabulary, vocabulary_inv
+    return x[split_n:], y[
+        split_n:], x[:split_n], y[:split_n], vocabulary, vocabulary_inv
 
 
 def batch_iter(data, batch_size, num_epochs):
@@ -337,12 +366,13 @@ def transY2Vec(Y, G1, G2):
 
     return Y_vec
 
-def ml_confuse(y_true,y_pre):
+
+def ml_confuse(y_true, y_pre):
     '''
     calculate multi-label confuse matrix
     '''
     # init dict
-    lbl_set = set(sum(y_true,[]) + sum(y_pre,[]))
+    lbl_set = set(sum(y_true, []) + sum(y_pre, []))
     confuse = {}
     for lbl in lbl_set:
         confuse[lbl] = defaultdict(int)
@@ -350,26 +380,25 @@ def ml_confuse(y_true,y_pre):
     for i in range(len(y_true)):
         gt = set(y_true[i])
         pre = set(y_pre[i])
-        if not pre: continue
+        if not pre:
+            continue
         # predicted right labels
         pre_T = gt & pre
         # prediced wrong labels
         wrg = pre - pre_T
-        if pre_T: # hit !!
+        if pre_T:  # hit !!
             for t_lbl in pre_T:
-                confuse[t_lbl][t_lbl] += 1 # right cnt
+                confuse[t_lbl][t_lbl] += 1  # right cnt
                 for w_lbl in wrg:
-                    confuse[t_lbl]['+%s'%w_lbl] += 1
+                    confuse[t_lbl]['+%s' % w_lbl] += 1
         # label with no predict result
         pre_w = gt - pre_T
         if pre_w:
             for t_lbl in gt - pre_T:
                 for w_lbl in pre_w:
-                    confuse[t_lbl]['-%s'%w_lbl] += 1
+                    confuse[t_lbl]['-%s' % w_lbl] += 1
 
     return confuse
-
-
 
 
 if __name__ == "__main__":

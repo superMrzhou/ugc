@@ -53,12 +53,22 @@ class MLC(Model):
 
         return T
 
-    def fit_thresholds(self, data, alpha, batch_size=128, y_name=['Y0', 'Y1'], verbose=0,
-                       validation_data=None, cv=None, top_k=None, input_sparse=False, vocab_size=None):
+    def fit_thresholds(self,
+                       data,
+                       alpha,
+                       batch_size=128,
+                       y_name=['Y0', 'Y1'],
+                       verbose=0,
+                       validation_data=None,
+                       cv=None,
+                       top_k=None,
+                       input_sparse=False,
+                       vocab_size=None):
 
         inputs = np.hstack([data[k] for k in self.input_names])
         # get outputs of conv layer
-        vec_model = K.function([self.get_layer('X').input],[self.get_layer('H').output])
+        vec_model = K.function([self.get_layer('X').input],
+                               [self.get_layer('H').output])
 
         t_inputs = vec_model([inputs])[0]
 
@@ -84,8 +94,8 @@ class MLC(Model):
                               "be selected based on the default "
                               "cross-validation procedure in RidgeCV.")
             elif validation_data is not None:
-                val_inputs = np.hstack([validation_data[k]
-                                        for k in self.input_names])
+                val_inputs = np.hstack(
+                    [validation_data[k] for k in self.input_names])
                 # if input_sparse and isinstance(vocab_size, int):
                 #     val_t_inputs = np.zeros((val_inputs.shape[0], vocab_size))
                 #     for i in range(val_inputs.shape[0]):
@@ -96,8 +106,10 @@ class MLC(Model):
                 val_t_inputs = vec_model([val_inputs])[0]
                 val_probs = self.predict(val_inputs)
                 val_probs = dict(zip(y_name, val_probs))
-                val_targets = {k: validation_data[k]
-                               for k in self.output_names}
+                val_targets = {
+                    k: validation_data[k]
+                    for k in self.output_names
+                }
 
         if verbose:
             sys.stdout.write("Constructing thresholds.")
@@ -114,9 +126,8 @@ class MLC(Model):
             alpha_best = 0
             if isinstance(alpha, list):
                 if validation_data is not None:
-                    val_T = self._construct_thresholds(val_probs[k],
-                                                       val_targets[k],
-                                                       top_k=top_k)
+                    val_T = self._construct_thresholds(
+                        val_probs[k], val_targets[k], top_k=top_k)
                     score_best, alpha_best = -np.Inf, None
                     for a in alpha:
 
@@ -138,7 +149,8 @@ class MLC(Model):
     def threshold(self, data, verbose=0):
         inputs = np.hstack([data[k] for k in self.input_names])
         # get outputs of conv layer
-        vec_model = K.function([self.get_layer('X').input],[self.get_layer('H').output])
+        vec_model = K.function([self.get_layer('X').input],
+                               [self.get_layer('H').output])
 
         t_inputs = vec_model([inputs])[0]
         # t_inputs = np.average(inputs, axis=1) if len(
@@ -148,8 +160,10 @@ class MLC(Model):
             sys.stdout.write("Thresholding...\n")
             sys.stdout.flush()
 
-        T = {k: self.t_models[k].predict(
-            t_inputs.astype(float)) for k in self.output_names}
+        T = {
+            k: self.t_models[k].predict(t_inputs.astype(float))
+            for k in self.output_names
+        }
 
         if verbose:
             sys.stdout.write("Done.\n")
@@ -157,10 +171,14 @@ class MLC(Model):
 
         return T
 
-    def predict_threshold(self, data, batch_size=128, y_name=['Y0', 'Y1'], verbose=0):
+    def predict_threshold(self,
+                          data,
+                          batch_size=128,
+                          y_name=['Y0', 'Y1'],
+                          verbose=0):
         inputs = np.hstack([data[k] for k in self.input_names])
-        probs = self.predict(inputs.astype(
-            float), batch_size=batch_size, verbose=verbose)
+        probs = self.predict(
+            inputs.astype(float), batch_size=batch_size, verbose=verbose)
 
         probs = dict(zip(y_name, probs))
         T = self.threshold(data, verbose=verbose)

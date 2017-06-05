@@ -18,11 +18,20 @@ class MLCDataset(object):
     It provides the essential MLC-specific initial data preprocessing
     functionality through a set of methods.
     """
-    def  __init__(self, datadir, which_set, only_labels=False,
-                  n_labels=None, take_labels_from_start=True,
-                  labels_order='original', min_labels_per_example=1,
-                  start=0.0, stop=100.0, dataseed=42, labelseed=42,
-                  verbose=False):
+
+    def __init__(self,
+                 datadir,
+                 which_set,
+                 only_labels=False,
+                 n_labels=None,
+                 take_labels_from_start=True,
+                 labels_order='original',
+                 min_labels_per_example=1,
+                 start=0.0,
+                 stop=100.0,
+                 dataseed=42,
+                 labelseed=42,
+                 verbose=False):
         self.datadir = datadir
         self.verbose = verbose
 
@@ -51,13 +60,13 @@ class MLCDataset(object):
             self.n_features = n_labels
             self.n_labels = y.shape[1] - self.n_features
 
-            X = y[:,:self.n_features] if take_labels_from_start \
-                else y[:,-self.n_features:]
-            y = y[:,-self.n_labels:] if take_labels_from_start \
-                else y[:,:self.n_labels]
+            X = y[:, :self.n_features] if take_labels_from_start \
+                else y[:, -self.n_features:]
+            y = y[:, -self.n_labels:] if take_labels_from_start \
+                else y[:, :self.n_labels]
 
         else:
-            y = y[:,:n_labels] if take_labels_from_start else y[:,-n_labels:]
+            y = y[:, :n_labels] if take_labels_from_start else y[:, -n_labels:]
 
         self.n_examples = X.shape[0]
         self.n_labels = y.shape[1]
@@ -70,9 +79,8 @@ class MLCDataset(object):
             sys.stdout.write("Reading data...")
 
         if which_set not in {'train', 'test', 'full'}:
-            raise ValueError(
-                'Unrecognized `which_set` value "%s". ' % (which_set,) +
-                'Valid values are ["train", "test", "full"].')
+            raise ValueError('Unrecognized `which_set` value "%s". ' % (
+                which_set, ) + 'Valid values are ["train", "test", "full"].')
 
         datapath = os.path.join(self.datadir, which_set + '.pkl.gz')
         dataset = pkl.load(gzip.open(datapath))
@@ -120,7 +128,7 @@ class MLCDataset(object):
             with gzip.open(path) as fp:
                 label_idx = pkl.load(fp)
 
-        return y[:,label_idx]
+        return y[:, label_idx]
 
     def label_cardinality(self):
 
@@ -140,7 +148,7 @@ class MLCDataset(object):
                 batch_idx = idx[i:min(i + batch_size, self.n_examples)]
                 batch = {'X': self.X[batch_idx]}
                 for k, v in outputs.iteritems():
-                    batch[k] = self.y[batch_idx][:,v]
+                    batch[k] = self.y[batch_idx][:, v]
                 yield batch
 
 
