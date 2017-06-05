@@ -18,6 +18,8 @@ import yaml
 import numpy as np
 import json
 from copy import deepcopy
+import itertools
+from collections import Counter
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.optimizers import Adagrad
@@ -365,7 +367,11 @@ if __name__ == '__main__':
     # filter 其他 and 新闻
     trn_text, trn_labels = filter_data(trn_text, trn_labels)
     tst_text, tst_labels = filter_data(tst_text, tst_labels)
-    cate = list(set(sum(trn_labels + tst_labels, [])))
+
+    _labels = trn_labels + tst_labels
+    cate_counts = Counter(itertools.chain(*_labels))
+    # Mapping from index to word
+    cate = [x[0] for x in cate_counts.most_common()]
 
     cate_id = {v: i for i, v in enumerate(cate)}
     Y1 = filter(lambda x: re.search('-|_', x), cate)
