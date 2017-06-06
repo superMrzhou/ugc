@@ -362,7 +362,7 @@ if __name__ == '__main__':
     vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data(
-        '../docs/CNN/split_aa',
+        '../docs/CNN/imageText_ml_v5',
         use_tst=True,
         lbl_text_index=[0, 1],
         split_tag='@@@',
