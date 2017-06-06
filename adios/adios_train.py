@@ -129,7 +129,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
-    # save predict samples
+    # save predict sampless
     save_predict_samples()
     for i in range(300):
         print('\n')
