@@ -129,7 +129,9 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
-    for i in range(30):
+    # save predict samples
+    save_predict_samples()
+    for i in range(300):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
                         for ii in raw_test_dataset['X'][i]]))
@@ -177,6 +179,23 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     g_recall, g_precision = recall_precision(test_dataset['Y1'], preds['Y1'])
     print('G2 recall : %.4f' % g_recall)
     print('G2 precision : %.4f' % g_precision)
+
+
+def save_predict_samples():
+    with open('../docs/CNN/test_pre_result.txt', 'w') as f:
+        for i in range(len(test_dataset['X'])):
+            text = ' '.join(
+                [vocabulary_inv[ii] for ii in raw_test_dataset['X'][i]])
+            gt = ' '.join([
+                Y0Y1[ii]
+                for ii in np.where(
+                    np.concatenate(
+                        [test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i]
+                    == 1)[0]
+            ])
+            pre = ' '.join(
+                [Y0Y1[ii] for ii in np.where(preds_all[i] is True)[0]])
+            f.write('%s@@@%s@@@%s\n' % (gt, pre, text))
 
 
 def all_recall_precision(Y1_true, preds):
