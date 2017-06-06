@@ -130,7 +130,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     # save predict sampless
-    save_predict_samples()
+    save_predict_samples(raw_test_dataset, test_dataset, preds_all)
     for i in range(300):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
@@ -181,7 +181,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print('G2 precision : %.4f' % g_precision)
 
 
-def save_predict_samples():
+def save_predict_samples(raw_test_dataset, test_dataset, preds_all):
     with open('../docs/CNN/test_pre_result.txt', 'w') as f:
         for i in range(len(test_dataset['X'])):
             text = ' '.join(

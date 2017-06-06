@@ -35,7 +35,7 @@ def assemble_adios(params):
     # embedding
     # Static model do not have embedding layer
     if params['iter']['model_type'] == "CNN-static":
-        embedding = X
+        embedding = BatchNormalization()(X)
     elif 'embedding_dim' in params['X'] and params['X']['embedding_dim']:
         embedding = Embedding(
             output_dim=params['X']['embedding_dim'],
@@ -43,6 +43,7 @@ def assemble_adios(params):
             input_length=params['X']['sequence_length'],
             name="embedding",
             mask_zero=False)(X)
+        embedding = BatchNormalization()(embedding)
     else:
         exit('embedding_dim param is not given!')
 
@@ -60,9 +61,10 @@ def assemble_adios(params):
             filters=filters,
             kernel_size=size,
             padding='valid',
-            activation='relu',
+            # activation='relu',
             strides=1,
             bias_regularizer=l2(0.01), )(embedding)
+        conv = Activation('relu')(BatchNormalization()(conv))
         pooling = AvgPool1D(
             pool_size=params['Conv1D']['layer%s' % i]['pooling_size'])(conv)
         flatten = Flatten()(pooling)
@@ -73,8 +75,8 @@ def assemble_adios(params):
         pooled_output,
         name='H') if len(pooled_output) > 1 else pooled_output[0]
     # batch_norm
-    if 'batch_norm' in params['H'] and params['H']['batch_norm']:
-        H = BatchNormalization(**params['H']['batch_norm'])(H)
+    # if 'batch_norm' in params['H'] and params['H']['batch_norm']:
+    #     H = BatchNormalization(**params['H']['batch_norm'])(H)
     # dropout
     if 'dropout' in params['H']:
         H = Dropout(params['H']['dropout'])(H)
@@ -86,16 +88,17 @@ def assemble_adios(params):
     Y0 = Dense(
         params['Y0']['dim'],
         activation='softmax',
-        name='Y0_active',
+        # name='Y0_active',
         bias_regularizer=l2(0.01),
         **kwargs)(H)
+    # batch_norm
+    if 'batch_norm' in params['Y0'] and params['Y0']['batch_norm']:
+        Y0 = BatchNormalization(**params['Y0']['batch_norm'])(Y0)
+    Y0 = Activation('softmax')(Y0)
     if 'activity_reg' in params['Y0']:
         Y0 = ActivityRegularization(
             name='Y0', **params['Y0']['activity_reg'])(Y0)
-    # batch_norm
-    if 'batch_norm' in params['Y0'] and params['Y0']['batch_norm']:
-        Y0 = BatchNormalization(name='Y0_', **params['Y0']['batch_norm'])(Y0)
-    # Y0 = Activation('softmax')(Y0)
+
     # H0
     if 'H0' in params:  # we have a composite layer (Y0|H0)
         kwargs = params['H0']['kwargs'] if 'kwargs' in params['H0'] else {}
@@ -103,13 +106,14 @@ def assemble_adios(params):
         # ReLu
         H0 = Dense(
             params['H0']['dim'],
-            activation='relu',
+            # activation='relu',
             bias_regularizer=l2(0.01),
             **kwargs)(H)
         # batch_norm
         if 'batch_norm' in params['H0'] and params['H0']['batch_norm']:
             H0 = BatchNormalization(
                 name='H0_batchNorm', **params['H0']['batch_norm'])(H0)
+        H0 = Activation('relu')(H0)
         # dropout
         if 'dropout' in params['H0']:
             H0 = Dropout(params['H0']['dropout'], name='H0_dropout')(H0)
@@ -124,13 +128,14 @@ def assemble_adios(params):
 
         H1 = Dense(
             params['H1']['dim'],
-            activation='relu',
+            # activation='relu',
             bias_regularizer=l2(0.01),
             **kwargs)(Y0_H0)
         # batch_norm
         if 'batch_norm' in params['H1'] and params['H1']['batch_norm']:
             H1 = BatchNormalization(
                 name='H1_batch_norm', **params['H1']['batch_norm'])(H1)
+        H1 = Activation('relu')(H1)
         # dropout
         if 'dropout' in params['H1']:
             H1 = Dropout(params['H1']['dropout'], name='H1_dropout')(H1)
