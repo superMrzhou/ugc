@@ -368,7 +368,7 @@ if __name__ == '__main__':
         padding_mod='average',
         vocabulary=vocabulary,
         vocabulary_inv=vocabulary_inv,
-        ratio=0.2)
+        ratio=0.03)
 
     # Y1, Y0 = get_Y0_and_Y1('../docs/CNN/cate_id')
 
