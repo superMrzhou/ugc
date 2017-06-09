@@ -129,8 +129,8 @@ class MLC(Model):
                     val_T = self._construct_thresholds(
                         val_probs[k], val_targets[k], top_k=top_k)
                     score_best, alpha_best = -np.Inf, None
-                    for a in alpha:
-
+                    for ind, a in enumerate(alpha):
+                        print('fit threshold iter number: %d' % ind)
                         model = lm.Ridge(alpha=a).fit(t_inputs, T)
                         score = model.score(val_t_inputs.astype(float), val_T)
                         if score > score_best:
