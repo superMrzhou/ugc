@@ -142,11 +142,11 @@ def train(train_dataset, valid_dataset, test_dataset, params):
                     [test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i] == 1)
             [0]
         ]))
-        print(np.where(targets_all[i] is True))
+        print(np.where(targets_all[i] == 1))
         print(' '.join(
-            [Y0Y1[ii] for ii in np.where(targets_all[i] is True)[0]]))
-        print(np.where(preds_all[i] is True))
-        print(' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] is True)[0]]))
+            [Y0Y1[ii] for ii in np.where(targets_all[i] == 1)[0]]))
+        print(np.where(preds_all[i] == 1))
+        print(' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]]))
 
     print('start calculate confuse matix....')
     get_confuse(test_dataset, preds, 'Y0')
@@ -170,9 +170,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print("P@3 (%s): %.4f" % (k, p_at_3[k]))
         print("P@5 (%s): %.4f" % (k, p_at_5[k]))
 
-    # t_recall, t_precision = recall_precision(targets_all,preds_all)
-    t_recall, t_precision = all_recall_precision(test_dataset['Y1'],
-                                                 preds['Y1'])
+    t_recall, t_precision = recall_precision(targets_all, preds_all)
+    # t_recall, t_precision = all_recall_precision(test_dataset['Y1'], preds['Y1'])
     print('total recall : %.4f' % t_recall)
     print('total precision : %.4f' % t_precision)
 
@@ -223,7 +222,7 @@ def get_confuse(data, pred, kw):
     _cate = Y0 if kw == 'Y0' else Y1
     for i in range(len(data[kw])):
         y_true.append([_cate[ii] for ii in np.where(data[kw][i] == 1)[0]])
-        y_pre.append([_cate[ii] for ii in np.where(pred[kw][i] is True)[0]])
+        y_pre.append([_cate[ii] for ii in np.where(pred[kw][i] == 1)[0]])
     confuse_dict = ml_confuse(y_true, y_pre)
     with open('../docs/CNN/%s_confuse' % kw, 'w') as f:
         for lbl, c_dict in confuse_dict.items():
