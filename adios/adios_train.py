@@ -69,8 +69,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             'Y0': 'categorical_crossentropy',
             'Y1': 'categorical_crossentropy'
         },
-        loss_weights={'Y0': 0.5,
-                      'Y1': 1},
+        loss_weights={'Y0': 1,
+                      'Y1': 0.6},
         metrics=[categorical_accuracy],
         optimizer=Adagrad(1e-2))
 
