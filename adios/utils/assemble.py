@@ -60,10 +60,10 @@ def assemble_adios(params):
             filters=filters,
             kernel_size=size,
             padding='valid',
-            activation='relu',
+            # activation='relu',
             strides=1,
-            bias_regularizer=l2(0.01), )(embedding)
-        conv = BatchNormalization()(conv)
+            bias_regularizer=l2(0.01))(embedding)
+        conv = Activation('relu')(BatchNormalization()(conv))
         pooling = MaxPool1D(
             pool_size=params['Conv1D']['layer%s' % i]['pooling_size'])(conv)
         flatten = Flatten()(pooling)
@@ -90,13 +90,13 @@ def assemble_adios(params):
         # name='Y0_active',
         bias_regularizer=l2(0.01),
         **kwargs)(H)
+    # batch_norm
+    if 'batch_norm' in params['Y0']:
+        Y0 = BatchNormalization(**params['Y0']['batch_norm'])(Y0)
     Y0 = Activation('softmax')(Y0)
     if 'activity_reg' in params['Y0']:
         Y0 = ActivityRegularization(
             name='Y0', **params['Y0']['activity_reg'])(Y0)
-    # batch_norm
-    if 'batch_norm' in params['Y0'] and params['Y0']['batch_norm']:
-        Y0 = BatchNormalization(**params['Y0']['batch_norm'])(Y0)
 
     # H0
     if 'H0' in params:  # we have a composite layer (Y0|H0)
@@ -147,12 +147,16 @@ def assemble_adios(params):
         kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
     Y1 = Dense(
         params['Y1']['dim'],
-        activation='softmax',
+        # activation='softmax',
         name='Y1_activation',
         bias_regularizer=l2(0.01),
         **kwargs)(H1)
+    # batch_norm
+    if 'batch_norm' in params['Y1']:
+        Y1 = BatchNormalization(**params['Y1']['batch_norm'])(Y1)
+    Y1 = Activation('relu')(Y1)
 
-    if 'activity_reg' in params['Y0']:
+    if 'activity_reg' in params['Y1']:
         Y1 = ActivityRegularization(
             name='Y1', **params['Y1']['activity_reg'])(Y1)
 
