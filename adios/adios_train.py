@@ -193,7 +193,7 @@ def save_predict_samples(raw_test_dataset, test_dataset, preds_all):
                     == 1)[0]
             ])
             pre = ' '.join(
-                [Y0Y1[ii] for ii in np.where(preds_all[i] is True)[0]])
+                [Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]])
             f.write('%s@@@%s@@@%s\n' % (gt, pre, text))
 
 
