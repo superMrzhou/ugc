@@ -27,7 +27,7 @@ H0:
 H1:
     dim:         256
     dropout:     0.3
-    batch_norm: {}
+    batch_norm: {momentum:0.9}
 Y0:
     W_regularizer: 0.1
     activity_reg: {l1: 0.1}
