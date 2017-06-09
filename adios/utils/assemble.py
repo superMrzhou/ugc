@@ -1,14 +1,13 @@
 """
 Utility functions for constructing MLC models.
 """
-from keras.layers import Conv1D, Embedding, Flatten, AvgPool1D
+from keras.layers import Conv1D, Embedding, Flatten, AvgPool1D, MaxPool1D
 from keras.layers import Dense, Dropout, Input, Activation
 from keras.layers import ActivityRegularization, concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 
 from utils.models import MLC
-from copy import deepcopy
 
 
 def assemble(name, params):
@@ -43,7 +42,7 @@ def assemble_adios(params):
             input_length=params['X']['sequence_length'],
             name="embedding",
             mask_zero=False)(X)
-        embedding = BatchNormalization()(embedding)
+        # embedding = BatchNormalization()(embedding)
     else:
         exit('embedding_dim param is not given!')
 
@@ -51,7 +50,7 @@ def assemble_adios(params):
     # embed_reshape = Reshape((params['X']['sequence_length'], params['X']['embedding_dim'], 1))(embedding)
 
     # multi-layer Conv and max-pooling
-    conv_layer_num = len(params['Conv1D'])
+    # conv_layer_num = len(params['Conv1D'])
     # for i in range(1,conv_layer_num+1):
     i = 1
     filters = params['Conv1D']['layer%s' % i]['filters']
@@ -61,11 +60,11 @@ def assemble_adios(params):
             filters=filters,
             kernel_size=size,
             padding='valid',
-            # activation='relu',
+            activation='relu',
             strides=1,
             bias_regularizer=l2(0.01), )(embedding)
-        conv = Activation('relu')(BatchNormalization()(conv))
-        pooling = AvgPool1D(
+        conv = BatchNormalization()(conv)
+        pooling = MaxPool1D(
             pool_size=params['Conv1D']['layer%s' % i]['pooling_size'])(conv)
         flatten = Flatten()(pooling)
         pooled_output.append(flatten)
