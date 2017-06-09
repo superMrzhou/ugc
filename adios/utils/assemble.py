@@ -86,8 +86,8 @@ def assemble_adios(params):
         kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
     Y0 = Dense(
         params['Y0']['dim'],
-        activation='softmax',
-        # name='Y0_active',
+        # activation='softmax',
+        name='Y0_active',
         bias_regularizer=l2(0.01),
         **kwargs)(H)
     # batch_norm
