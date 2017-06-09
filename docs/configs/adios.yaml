@@ -2,7 +2,7 @@
 
 iter:
     batch_size:    5000
-    epoch:         10
+    epoch:         5
     model_dir:     '../docs/model/checkpoints/'
     model_name:    'adios_best.h5'
     model_type:    'CNN-non-static' # only CNN-static, CNN-non-static, CNN-rand valiable
