@@ -154,7 +154,7 @@ def assemble_adios(params):
     # batch_norm
     if 'batch_norm' in params['Y1']:
         Y1 = BatchNormalization(**params['Y1']['batch_norm'])(Y1)
-    Y1 = Activation('relu')(Y1)
+    Y1 = Activation('softmax')(Y1)
 
     if 'activity_reg' in params['Y1']:
         Y1 = ActivityRegularization(
