@@ -69,10 +69,10 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             'Y0': 'categorical_crossentropy',
             'Y1': 'categorical_crossentropy'
         },
-        loss_weights={'Y0': 1,
-                      'Y1': 0.6},
+        loss_weights={'Y0': 0.6,
+                      'Y1': 1},
         metrics=[categorical_accuracy],
-        optimizer=Adagrad(1e-2))
+        optimizer=Adagrad(1e-1))
 
     # Make sure checkpoints folder exists
     model_dir = params['iter']['model_dir']
