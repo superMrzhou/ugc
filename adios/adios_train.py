@@ -400,8 +400,8 @@ if __name__ == '__main__':
     cate = [x[0] for x in cate_counts.most_common()]
 
     cate_id = {v: i for i, v in enumerate(cate)}
-    Y1 = filter(lambda x: re.search('G1', x), cate)
-    Y0 = filter(lambda x: not re.search('G1', x), cate)
+    Y0 = filter(lambda x: re.search('G1', x), cate)
+    Y1 = filter(lambda x: not re.search('G1', x), cate)
     print(Y0)
     Y0Y1 = Y0 + Y1
 
