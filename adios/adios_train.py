@@ -259,6 +259,14 @@ def y2list(y):
     ]
 
 
+def y2list_and_g1(y):
+
+    y = [yy[0].strip('\n').split('&') for yy in y]
+    return [
+        list(set(['%s_G1' % re.split('-|_', lbl)[0] for lbl in yy])) + yy for yy in y
+    ]
+
+
 def get_Y0_and_Y1(file_path):
     with open(file_path, 'r') as f_cate:
         Y0, Y1 = [], []
@@ -379,8 +387,8 @@ if __name__ == '__main__':
     # id_cate = dict(zip([_id[0] for _id in ids], [cate[0] for cate in cates]))
 
     # add first cate
-    trn_labels = y2list(trn_labels)
-    tst_labels = y2list(tst_labels)
+    trn_labels = y2list_and_g1(trn_labels)
+    tst_labels = y2list_and_g1(tst_labels)
 
     # filter 其他 and 新闻
     trn_text, trn_labels = filter_data(trn_text, trn_labels)
@@ -392,8 +400,9 @@ if __name__ == '__main__':
     cate = [x[0] for x in cate_counts.most_common()]
 
     cate_id = {v: i for i, v in enumerate(cate)}
-    Y1 = filter(lambda x: re.search('-|_', x), cate)
-    Y0 = filter(lambda x: not re.search('-|_', x), cate)
+    Y1 = filter(lambda x: re.search('G1', x), cate)
+    Y0 = filter(lambda x: not re.search('G1', x), cate)
+    print(Y0)
     Y0Y1 = Y0 + Y1
 
     print('Y0 length: %s, Y1 length : %s' % (len(Y0), len(Y1)))
