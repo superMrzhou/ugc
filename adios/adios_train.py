@@ -91,7 +91,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             verbose=0,
             save_best_only=True,
             mode='min'),
-        EarlyStopping(monitor='val_Y1_categorical_accuracy', patience=15, verbose=1, mode='min'),
+        EarlyStopping(monitor='val_Y1_categorical_accuracy', patience=5, verbose=1, mode='min'),
     ]  # TODO 早停止参数需要进一步确定 (zhangliujie)
 
     # Fit the model to the data
