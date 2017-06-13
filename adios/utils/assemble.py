@@ -66,6 +66,9 @@ def assemble_adios(params):
         if 'dropout' in params['Conv1D']['layer%s' % i]:
             H = Dropout(params['Conv1D']['layer%s' % i]['dropout'])(conv_pooling)
 
+    # flatten
+    H = Flatten()(H)
+
     # Y0 output
     kwargs = params['Y0']['kwargs'] if 'kwargs' in params['Y0'] else {}
     if 'W_regularizer' in kwargs:
