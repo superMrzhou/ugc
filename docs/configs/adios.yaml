@@ -12,17 +12,20 @@ X:
 Conv1D:
     layer1:
         filters:       128
-        filter_size:   [3,4,5]
+        filter_size:   7
+        padding_mode:   'valid'
         pooling_size:  3 # default 2
         dropout:       0.3
     layer2:
         filters:       128
-        filter_size:   [3,4,5]
+        filter_size:   5
+        padding_mode:   'valid'
         pooling_size:  3 # default 2
         dropout:      0.3
     layer3:
         filters:       128
-        filter_size:   [3,4,5]
+        filter_size:   3
+        padding_mode:   'valid'
         pooling_size:  3 # default 2
         dropout:      0.3
 H0:
