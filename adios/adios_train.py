@@ -92,7 +92,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             save_best_only=True,
             mode='min'),
         EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='min'),
-    ]  # TODO 早停止参数需要进一步确定 (zhangliujie)
+    ]
 
     # Fit the model to the data
     batch_size = params['iter']['batch_size']
