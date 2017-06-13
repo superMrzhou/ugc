@@ -87,11 +87,11 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         }),
         ModelCheckpoint(
             model_dir + model_name,
-            monitor='val_Y1_categorical_accuracy',
+            monitor='val_hl',
             verbose=0,
             save_best_only=True,
-            mode='max'),
-        EarlyStopping(monitor='val_Y1_categorical_accuracy', patience=10, verbose=1, mode='max'),
+            mode='min'),
+        EarlyStopping(monitor='val_loss', patience=10, verbose=1, mode='min'),
     ]
 
     # Fit the model to the data
