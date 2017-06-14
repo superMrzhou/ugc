@@ -8,7 +8,7 @@ from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
 
 from utils.models import MLC
-from utils.selu import selu, dropout_selu
+# from utils.selu import selu, dropout_selu
 
 
 def assemble(name, params):
@@ -61,13 +61,13 @@ def assemble_adios(params):
             # activation='relu',
             strides=1,
             bias_regularizer=l2(0.01))(H_input)
-        # conv_batch_norm = Activation('relu')(BatchNormalization()(conv))
-        conv_batch_norm = selu(BatchNormalization()(conv))
+        conv_batch_norm = Activation('relu')(BatchNormalization()(conv))
+        # conv_batch_norm = selu(BatchNormalization()(conv))
         conv_pooling = MaxPool1D(pool_size=params['Conv1D']['layer%s' % i]['pooling_size'])(conv_batch_norm)
         # dropout
         if 'dropout' in params['Conv1D']['layer%s' % i]:
-            # H = Dropout(params['Conv1D']['layer%s' % i]['dropout'])(conv_pooling)
-            H = dropout_selu(conv_pooling, params['Conv1D']['layer%s' % i]['dropout'])
+            H = Dropout(params['Conv1D']['layer%s' % i]['dropout'])(conv_pooling)
+            # H = dropout_selu(conv_pooling, params['Conv1D']['layer%s' % i]['dropout'])
 
     # flatten
     H = Flatten()(H)
