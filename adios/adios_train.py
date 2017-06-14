@@ -69,8 +69,10 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             'Y0': params['Y0']['loss_func'],
             'Y1': params['Y1']['loss_func']
         },
-        loss_weights={'Y0': params['Y0']['loss_weight'],
-                      'Y1': params['Y1']['loss_weight']},
+        loss_weights={
+            'Y0': params['Y0']['loss_weight'],
+            'Y1': params['Y1']['loss_weight']
+        },
         metrics=[categorical_accuracy],
         optimizer=Adagrad(params['iter']['learn_rate']))
 
@@ -143,8 +145,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             [0]
         ]))
         print(np.where(targets_all[i] == 1))
-        print(' '.join(
-            [Y0Y1[ii] for ii in np.where(targets_all[i] == 1)[0]]))
+        print(' '.join([Y0Y1[ii] for ii in np.where(targets_all[i] == 1)[0]]))
         print(np.where(preds_all[i] == 1))
         print(' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]]))
 
@@ -192,8 +193,7 @@ def save_predict_samples(raw_test_dataset, test_dataset, preds_all):
                         [test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i]
                     == 1)[0]
             ])
-            pre = ' '.join(
-                [Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]])
+            pre = ' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]])
             f.write('%s@@@%s@@@%s\n' % (gt, pre, text))
 
 
@@ -248,6 +248,8 @@ def recall_precision(y_true, y_pre):
         gt_lbls_n += len(gt_ind)
         pr_lbls_n += len(pred_ind)
         tp_lbls_n += len(set(gt_ind) & set(pred_ind))
+    print('tp:%s\nprecision_dem:%s\nrecall_dem:%s\n' % (tp_lbls_n, pr_lbls_n,
+                                                        gt_lbls_n))
     return tp_lbls_n / gt_lbls_n, tp_lbls_n / pr_lbls_n
 
 
@@ -263,7 +265,8 @@ def y2list_and_g1(y):
 
     y = [yy[0].strip('\n').split('&') for yy in y]
     return [
-        list(set(['%s_G1' % re.split('-|_', lbl)[0] for lbl in yy])) + yy for yy in y
+        list(set(['%s_G1' % re.split('-|_', lbl)[0] for lbl in yy])) + yy
+        for yy in y
     ]
 
 
@@ -391,8 +394,8 @@ if __name__ == '__main__':
     tst_labels = y2list(tst_labels)
 
     # filter 其他 and 新闻
-    trn_text, trn_labels = filter_data(trn_text, trn_labels)
-    tst_text, tst_labels = filter_data(tst_text, tst_labels)
+    # trn_text, trn_labels = filter_data(trn_text, trn_labels)
+    # tst_text, tst_labels = filter_data(tst_text, tst_labels)
 
     _labels = trn_labels + tst_labels
     cate_counts = Counter(itertools.chain(*_labels))
