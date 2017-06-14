@@ -391,7 +391,7 @@ if __name__ == '__main__':
     tst_labels = y2list_and_g1(tst_labels)
     for i in range(100):
         print(' '.join(trn_labels[i]))
-
+    print('*'*10)
     # filter 其他 and 新闻
     trn_text, trn_labels = filter_data(trn_text, trn_labels)
     tst_text, tst_labels = filter_data(tst_text, tst_labels)
