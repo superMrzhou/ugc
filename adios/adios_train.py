@@ -389,7 +389,7 @@ if __name__ == '__main__':
     vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data(
-        '../docs/CNN/trainString',
+        '../docs/CNN/testString',
         # tst_file='../docs/CNN/testString',
         use_tst=True,
         lbl_text_index=[0, 1],
