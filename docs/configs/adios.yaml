@@ -2,7 +2,7 @@
 
 iter:
     batch_size:    2048
-    epoch:         32
+    epoch:         3
     learn_rate:    0.01
     model_dir:     '../docs/model/checkpoints/'
     model_name:    'adios_best.h5'
