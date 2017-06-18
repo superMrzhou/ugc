@@ -253,10 +253,10 @@ def load_data(trn_file,
     elif tst_file:
         split_n = len(trn_text)
     elif use_tst:
-        split_n = int(ratio * len(trn_text))
+        split_n = int((1 - ratio) * len(trn_text))
 
-    return x[split_n:], y[
-        split_n:], x[:split_n], y[:split_n], vocabulary, vocabulary_inv
+    return x[:split_n], y[:split_n], x[split_n:], y[
+        split_n:], vocabulary, vocabulary_inv
 
 
 def batch_iter(data, batch_size, num_epochs):
