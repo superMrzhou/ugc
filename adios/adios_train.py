@@ -472,6 +472,6 @@ if __name__ == '__main__':
         'Y1': tst_labels[valid_N:, nb_labels_Y0:]
     }
     # set gpu_options
-    KTF.set_session(get_session(gpu_fraction=params['iter']['gpu_fraction']))
+    # KTF.set_session(get_session(gpu_fraction=params['iter']['gpu_fraction']))
     # start train
     train(train_dataset, valid_dataset, test_dataset, params)
