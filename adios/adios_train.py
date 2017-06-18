@@ -455,7 +455,7 @@ if __name__ == '__main__':
     # trn_text = trn_text[:50000]
     # tst_labels = tst_labels[:5000]
     # tst_text = tst_text[:5000]
-    ratio = 0.2
+    ratio = 0.02
     valid_N = int(ratio * tst_text.shape[0])
     train_dataset = {
         'X': trn_text,
