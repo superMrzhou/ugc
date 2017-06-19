@@ -154,7 +154,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     # save predict sampless
     save_predict_samples(
-        raw_test_dataset, test_dataset, preds_all, save_num=3000)
+        raw_test_dataset, test_dataset, preds_all, save_num=300)
     for i in range(100):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
@@ -401,7 +401,7 @@ if __name__ == '__main__':
     print(len(vocabulary_inv), len(vocabulary))
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data(
-        '../docs/CNN/trainString',
+        '../docs/CNN/trainString_aa',
         tst_file='../docs/CNN/testString',
         use_tst=True,
         lbl_text_index=[0, 1],
@@ -424,8 +424,8 @@ if __name__ == '__main__':
     tst_labels = y2list(tst_labels)
 
     # filter 其他 and 新闻
-    # trn_text, trn_labels = filter_data(trn_text, trn_labels)
-    # tst_text, tst_labels = filter_data(tst_text, tst_labels)
+    trn_text, trn_labels = filter_data(trn_text, trn_labels)
+    tst_text, tst_labels = filter_data(tst_text, tst_labels)
 
     _labels = trn_labels + tst_labels
     cate_counts = Counter(itertools.chain(*_labels))
