@@ -103,17 +103,17 @@ def load_data_and_labels(file_path,
     """
 
     # Load data from files
-    raw_data = open(file_path, 'r')
-    # parse label
-    labels = [
-        data.strip('\n').split(split_tag)[lbl_text_index[0]]
-        for data in raw_data
-    ]
-    # parse text
-    texts = [
-        data.strip('\n').split(split_tag)[lbl_text_index[1]]
-        for data in raw_data
-    ]
+    with open(file_path, 'r') as f:
+        # parse label
+        labels = [
+            data.strip('\n').split(split_tag)[lbl_text_index[0]]
+            for data in f
+        ]
+        # parse text
+        texts = [
+            data.strip('\n').split(split_tag)[lbl_text_index[1]]
+            for data in f
+        ]
 
     # Split by words
     # texts = [clean_str(sent) for sent in texts]
