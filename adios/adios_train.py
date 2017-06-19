@@ -61,7 +61,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print("Model type is", model_type)
     if model_type == "CNN-non-static" or model_type == "CNN-static":
         embedding_weights = train_word2vec(
-            np.vstack((train_dataset['X'], valid_dataset['X'],
+            np.vstack((valid_dataset['X'],
                        test_dataset['X'])),
             vocabulary_inv,
             num_features=params['X']['embedding_dim'],
@@ -149,8 +149,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     # save predict sampless
-    save_predict_samples(raw_test_dataset, test_dataset, preds_all)
-    for i in range(300):
+    save_predict_samples(raw_test_dataset, test_dataset, preds_all, save_num=3000)
+    for i in range(100):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
                         for ii in raw_test_dataset['X'][i]]))
@@ -198,9 +198,10 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print('G2 precision : %.4f' % g_precision)
 
 
-def save_predict_samples(raw_test_dataset, test_dataset, preds_all):
+def save_predict_samples(raw_test_dataset, test_dataset, preds_all, save_num=None):
     with open('../docs/CNN/test_pre_result.txt', 'w') as f:
-        for i in range(len(test_dataset['X'])):
+        save_num = len(test_dataset['X']) if save_num is None else int(save_num)
+        for i in range(save_num):
             text = ' '.join(
                 [vocabulary_inv[ii] for ii in raw_test_dataset['X'][i]])
             gt = ' '.join([
@@ -389,8 +390,8 @@ if __name__ == '__main__':
     # vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data(
-        '../docs/CNN/testString',
-        # tst_file='../docs/CNN/testString',
+        '../docs/CNN/trainString',
+        tst_file='../docs/CNN/testString',
         use_tst=True,
         lbl_text_index=[0, 1],
         split_tag='@@@',
