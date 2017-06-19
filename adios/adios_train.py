@@ -133,8 +133,13 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     # Fit thresholds
     input_sparse = True if params['iter']['model_type'] == 'CNN-rand' else None
+    thres_data = {
+        'X': train_dataset['X'][:300000],
+        'Y0': train_dataset['Y0'][:300000],
+        'Y1': train_dataset['Y1'][:300000]
+    }
     model.fit_thresholds(
-        train_dataset,
+        thres_data,
         validation_data=valid_dataset,
         top_k=None,
         alpha=np.logspace(-3, 3, num=10).tolist(),
@@ -384,11 +389,12 @@ if __name__ == '__main__':
     # exit()
 
     # load vocabulary
-    vocabulary_inv = list(set([
-        wd[0]
-        for wd in load_data_and_labels(
-            '../docs/CNN/featureMap', lbl_text_index=[1, 0])[0]
-    ]))
+    vocabulary_inv = list(
+        set([
+            wd[0]
+            for wd in load_data_and_labels(
+                '../docs/CNN/featureMap', lbl_text_index=[1, 0])[0]
+        ]))
     # add <PAD/>
     vocabulary_inv.insert(0, '<PAD/>')
     vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
