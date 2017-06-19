@@ -384,11 +384,11 @@ if __name__ == '__main__':
     # exit()
 
     # load vocabulary
-    vocabulary_inv = [
+    vocabulary_inv = list(set([
         wd[0]
         for wd in load_data_and_labels(
             '../docs/CNN/featureMap', lbl_text_index=[1, 0])[0]
-    ]
+    ]))
     # add <PAD/>
     vocabulary_inv.insert(0, '<PAD/>')
     vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
