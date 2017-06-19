@@ -109,6 +109,7 @@ def load_data_and_labels(file_path,
             data.strip('\n').split(split_tag)[lbl_text_index[0]]
             for data in f
         ]
+    with open(file_path, 'r') as f:
         # parse text
         texts = [
             data.strip('\n').split(split_tag)[lbl_text_index[1]]
