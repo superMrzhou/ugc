@@ -392,6 +392,7 @@ if __name__ == '__main__':
     # add <PAD/>
     vocabulary_inv.insert(0, '<PAD/>')
     vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
+    print(len(vocabulary_inv), len(vocabulary))
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data(
         '../docs/CNN/testString',
