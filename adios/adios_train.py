@@ -379,14 +379,14 @@ if __name__ == '__main__':
     # exit()
 
     # load vocabulary
-    vocabulary_inv = [
-        wd[0]
-        for wd in load_data_and_labels(
-            '../docs/CNN/featureMap', lbl_text_index=[1, 0])[0]
-    ]
-    # add <PAD/>
-    vocabulary_inv.insert(0, '<PAD/>')
-    vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
+    # vocabulary_inv = [
+    #     wd[0]
+    #     for wd in load_data_and_labels(
+    #         '../docs/CNN/featureMap', lbl_text_index=[1, 0])[0]
+    # ]
+    # # add <PAD/>
+    # vocabulary_inv.insert(0, '<PAD/>')
+    # vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data(
         '../docs/CNN/testString',
@@ -395,8 +395,8 @@ if __name__ == '__main__':
         lbl_text_index=[0, 1],
         split_tag='@@@',
         padding_mod='average',
-        vocabulary=vocabulary,
-        vocabulary_inv=vocabulary_inv,
+        # vocabulary=vocabulary,
+        # vocabulary_inv=vocabulary_inv,
         ratio=0.03)
 
     # Y1, Y0 = get_Y0_and_Y1('../docs/CNN/cate_id')
