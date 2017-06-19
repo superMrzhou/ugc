@@ -61,8 +61,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print("Model type is", model_type)
     if model_type == "CNN-non-static" or model_type == "CNN-static":
         embedding_weights = train_word2vec(
-            np.vstack((valid_dataset['X'],
-                       test_dataset['X'])),
+            np.vstack((valid_dataset['X'], test_dataset['X'])),
             vocabulary_inv,
             num_features=params['X']['embedding_dim'],
             min_word_count=1,
@@ -149,7 +148,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     # save predict sampless
-    save_predict_samples(raw_test_dataset, test_dataset, preds_all, save_num=3000)
+    save_predict_samples(
+        raw_test_dataset, test_dataset, preds_all, save_num=3000)
     for i in range(100):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
@@ -198,9 +198,13 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print('G2 precision : %.4f' % g_precision)
 
 
-def save_predict_samples(raw_test_dataset, test_dataset, preds_all, save_num=None):
+def save_predict_samples(raw_test_dataset,
+                         test_dataset,
+                         preds_all,
+                         save_num=None):
     with open('../docs/CNN/test_pre_result.txt', 'w') as f:
-        save_num = len(test_dataset['X']) if save_num is None else int(save_num)
+        save_num = len(
+            test_dataset['X']) if save_num is None else int(save_num)
         for i in range(save_num):
             text = ' '.join(
                 [vocabulary_inv[ii] for ii in raw_test_dataset['X'][i]])
@@ -380,14 +384,14 @@ if __name__ == '__main__':
     # exit()
 
     # load vocabulary
-    # vocabulary_inv = [
-    #     wd[0]
-    #     for wd in load_data_and_labels(
-    #         '../docs/CNN/featureMap', lbl_text_index=[1, 0])[0]
-    # ]
-    # # add <PAD/>
-    # vocabulary_inv.insert(0, '<PAD/>')
-    # vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
+    vocabulary_inv = [
+        wd[0]
+        for wd in load_data_and_labels(
+            '../docs/CNN/featureMap', lbl_text_index=[1, 0])[0]
+    ]
+    # add <PAD/>
+    vocabulary_inv.insert(0, '<PAD/>')
+    vocabulary = {v: i for i, v in enumerate(vocabulary_inv)}
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data(
         '../docs/CNN/trainString',
@@ -396,8 +400,8 @@ if __name__ == '__main__':
         lbl_text_index=[0, 1],
         split_tag='@@@',
         padding_mod='average',
-        # vocabulary=vocabulary,
-        # vocabulary_inv=vocabulary_inv,
+        vocabulary=vocabulary,
+        vocabulary_inv=vocabulary_inv,
         ratio=0.03)
 
     # Y1, Y0 = get_Y0_and_Y1('../docs/CNN/cate_id')

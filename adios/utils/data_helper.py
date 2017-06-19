@@ -33,7 +33,7 @@ def train_word2vec(sentence_matrix,
 
     inputs:
     sentence_matrix # int matrix: num_sentences x max_sentence_len
-    vocabulary_inv  # dict {str:int}
+    vocabulary_inv  # list
     num_features    # Word vector dimensionality
     min_word_count  # Minimum word count
     context         # Context window size
