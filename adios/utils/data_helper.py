@@ -230,7 +230,7 @@ def load_data(trn_file,
     trn_text, trn_labels = load_data_and_labels(
         trn_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
     if tst_file:
-        print("%s  loading train data and label....." %
+        print("%s  loading test data and label....." %
               time.asctime(time.localtime(time.time())))
         tst_text, tst_labels = load_data_and_labels(
             tst_file, split_tag, lbl_text_index, is_shuffle=is_shuffle)
