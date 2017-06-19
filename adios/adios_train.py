@@ -395,8 +395,8 @@ if __name__ == '__main__':
     print(len(vocabulary_inv), len(vocabulary))
     # Load the datasets
     trn_text, trn_labels, tst_text, tst_labels, vocabulary, vocabulary_inv = load_data(
-        '../docs/CNN/testString',
-        # tst_file='../docs/CNN/testString',
+        '../docs/CNN/trainString',
+        tst_file='../docs/CNN/testString',
         use_tst=True,
         lbl_text_index=[0, 1],
         split_tag='@@@',
