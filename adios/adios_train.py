@@ -144,11 +144,12 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         top_k=None,
         alpha=np.logspace(-3, 3, num=10).tolist(),
         verbose=1,
+        batch_size=params['iter']['batch_size'],
         input_sparse=input_sparse,
         vocab_size=params['X']['vocab_size'])
 
     # Test the model
-    probs, preds = model.predict_threshold(test_dataset, verbose=1)
+    probs, preds = model.predict_threshold(test_dataset, verbose=1, batch_size=params['iter']['batch_size'])
 
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
