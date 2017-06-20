@@ -200,10 +200,15 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print('total precision : %.4f' % t_precision)
     print('total f1 : %.4f' % t_f1)
 
-    g_recall, g_precision, g_f1 = recall_precision_f1(test_dataset['Y1'], preds['Y1'])
-    print('G2 recall : %.4f' % g_recall)
-    print('G2 precision : %.4f' % g_precision)
-    print('G2 f1 : %.4f' % g_f1)
+    g1_recall, g1_precision, g1_f1 = recall_precision_f1(test_dataset['Y0'], preds['Y0'])
+    print('G1 recall : %.4f' % g1_recall)
+    print('G1 precision : %.4f' % g1_precision)
+    print('G1 f1 : %.4f' % g1_f1)
+
+    g2_recall, g2_precision, g2_f1 = recall_precision_f1(test_dataset['Y1'], preds['Y1'])
+    print('G2 recall : %.4f' % g2_recall)
+    print('G2 precision : %.4f' % g2_precision)
+    print('G2 f1 : %.4f' % g2_f1)
 
 
 def save_predict_samples(raw_test_dataset,
