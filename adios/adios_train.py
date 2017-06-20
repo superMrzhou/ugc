@@ -434,8 +434,8 @@ if __name__ == '__main__':
     tst_labels = y2list(tst_labels)
 
     # filter 其他 and 新闻
-    trn_text, trn_labels = filter_data(trn_text, trn_labels)
-    tst_text, tst_labels = filter_data(tst_text, tst_labels)
+    # trn_text, trn_labels = filter_data(trn_text, trn_labels)
+    # tst_text, tst_labels = filter_data(tst_text, tst_labels)
 
     _labels = trn_labels + tst_labels
     cate_counts = Counter(itertools.chain(*_labels))
