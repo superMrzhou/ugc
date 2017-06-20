@@ -78,17 +78,17 @@ def assemble_adios(params):
         kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
     Y0 = Dense(
         params['Y0']['dim'],
-        activation='sigmoid',
+        # activation='sigmoid',
         name='Y0_active',
         bias_regularizer=l2(0.01),
         **kwargs)(H)
     if 'activity_reg' in params['Y0']:
         Y0 = ActivityRegularization(
-            name='Y0', **params['Y0']['activity_reg'])(Y0)
+            name='Y0_reg', **params['Y0']['activity_reg'])(Y0)
     # batch_norm
     if 'batch_norm' in params['Y0']:
         Y0 = BatchNormalization(**params['Y0']['batch_norm'])(Y0)
-    # Y0 = Activation('sigmoid')(Y0)
+    Y0 = Activation('softmax', name='Y0',)(Y0)
 
     # H0
     if 'H0' in params:  # we have a composite layer (Y0|H0)
@@ -139,14 +139,14 @@ def assemble_adios(params):
         kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
     Y1 = Dense(
         params['Y1']['dim'],
-        activation='sigmoid',
+        # activation='sigmoid',
         name='Y1_activation',
         bias_regularizer=l2(0.01),
         **kwargs)(H1)
     # batch_norm
-    # if 'batch_norm' in params['Y1']:
-    #     Y1 = BatchNormalization(**params['Y1']['batch_norm'])(Y1)
-    # Y1 = Activation('sigmoid')(Y1)
+    if 'batch_norm' in params['Y1']:
+        Y1 = BatchNormalization(**params['Y1']['batch_norm'])(Y1)
+    Y1 = Activation('softmax')(Y1)
 
     if 'activity_reg' in params['Y1']:
         Y1 = ActivityRegularization(
