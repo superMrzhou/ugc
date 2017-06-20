@@ -193,14 +193,16 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print("P@3 (%s): %.4f" % (k, p_at_3[k]))
         print("P@5 (%s): %.4f" % (k, p_at_5[k]))
 
-    t_recall, t_precision = recall_precision(targets_all, preds_all)
+    t_recall, t_precision, t_f1 = recall_precision_f1(targets_all, preds_all)
     # t_recall, t_precision = all_recall_precision(test_dataset['Y1'], preds['Y1'])
     print('total recall : %.4f' % t_recall)
     print('total precision : %.4f' % t_precision)
+    print('total f1 : %.4f' % t_f1)
 
-    g_recall, g_precision = recall_precision(test_dataset['Y1'], preds['Y1'])
+    g_recall, g_precision, g_f1 = recall_precision_f1(test_dataset['Y1'], preds['Y1'])
     print('G2 recall : %.4f' % g_recall)
     print('G2 precision : %.4f' % g_precision)
+    print('G2 f1 : %.4f' % g_f1)
 
 
 def save_predict_samples(raw_test_dataset,
@@ -266,7 +268,7 @@ def y2vec(y, cate_id, cateIds_list):
     return res
 
 
-def recall_precision(y_true, y_pre):
+def recall_precision_f1(y_true, y_pre):
 
     gt_lbls_n, tp_lbls_n, pr_lbls_n = 0., 0., 0.
     for i in range(len(y_true)):
@@ -277,7 +279,10 @@ def recall_precision(y_true, y_pre):
         tp_lbls_n += len(set(gt_ind) & set(pred_ind))
     print('tp:%s\nprecision_dem:%s\nrecall_dem:%s\n' % (tp_lbls_n, pr_lbls_n,
                                                         gt_lbls_n))
-    return tp_lbls_n / gt_lbls_n, tp_lbls_n / pr_lbls_n
+    recall = tp_lbls_n / gt_lbls_n
+    acc = tp_lbls_n / pr_lbls_n
+    f1 = 2*recall*acc / (recall + acc)
+    return recall, acc, f1
 
 
 def y2list(y):
