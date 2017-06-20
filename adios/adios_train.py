@@ -154,7 +154,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     # save predict sampless
     save_predict_samples(
-        raw_test_dataset, test_dataset, preds_all, save_num=300)
+        raw_test_dataset, test_dataset, preds_all, save_num=2000)
     for i in range(100):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
@@ -424,8 +424,8 @@ if __name__ == '__main__':
     tst_labels = y2list(tst_labels)
 
     # filter 其他 and 新闻
-    trn_text, trn_labels = filter_data(trn_text, trn_labels)
-    tst_text, tst_labels = filter_data(tst_text, tst_labels)
+    # trn_text, trn_labels = filter_data(trn_text, trn_labels)
+    # tst_text, tst_labels = filter_data(tst_text, tst_labels)
 
     _labels = trn_labels + tst_labels
     cate_counts = Counter(itertools.chain(*_labels))
