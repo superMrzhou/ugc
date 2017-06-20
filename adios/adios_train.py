@@ -282,7 +282,7 @@ def recall_precision(y_true, y_pre):
 
 def y2list(y):
 
-    y = [yy[0].strip('\n').split(' ') for yy in y]
+    # y = [yy[0].strip('\n').split(' ') for yy in y]
     return [
         list(set([re.split('-|_', lbl)[0] for lbl in yy])) + yy for yy in y
     ]
