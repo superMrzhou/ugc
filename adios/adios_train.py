@@ -213,15 +213,14 @@ def save_predict_samples(raw_test_dataset,
     with open('../docs/CNN/test_pre_result.txt', 'w') as f:
         save_num = len(
             test_dataset['X']) if save_num is None else int(save_num)
+        gt_matrix = np.concatenate(
+            [test_dataset['Y0'], test_dataset['Y1']], axis=-1)
         for i in range(save_num):
             text = ' '.join(
                 [vocabulary_inv[ii] for ii in raw_test_dataset['X'][i]])
             gt = ' '.join([
                 Y0Y1[ii]
-                for ii in np.where(
-                    np.concatenate(
-                        [test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i]
-                    == 1)[0]
+                for ii in np.where(gt_matrix[i] == 1)[0]
             ])
             pre = ' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]])
             f.write('%s@@@%s@@@%s\n' % (gt, pre, text))
