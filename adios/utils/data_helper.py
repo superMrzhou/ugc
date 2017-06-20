@@ -106,14 +106,12 @@ def load_data_and_labels(file_path,
     with open(file_path, 'r') as f:
         # parse label
         labels = [
-            data.strip('\n').split(split_tag)[lbl_text_index[0]]
-            for data in f
+            data.strip('\n').split(split_tag)[lbl_text_index[0]] for data in f
         ]
     with open(file_path, 'r') as f:
         # parse text
         texts = [
-            data.strip('\n').split(split_tag)[lbl_text_index[1]]
-            for data in f
+            data.strip('\n').split(split_tag)[lbl_text_index[1]] for data in f
         ]
 
     # Split by words
@@ -377,8 +375,8 @@ def ml_confuse(y_true, y_pre):
     confuse = {}
     for lbl in lbl_set:
         confuse[lbl] = defaultdict(int)
-
-    for i in range(len(y_true)):
+    N = len(y_true)
+    for i in range(N):
         gt = set(y_true[i])
         pre = set(y_pre[i])
         if not pre:
@@ -398,6 +396,8 @@ def ml_confuse(y_true, y_pre):
             for t_lbl in gt - pre_T:
                 for w_lbl in pre_w:
                     confuse[t_lbl]['-%s' % w_lbl] += 1
+        if i % int(0.1 * N) == 0:
+            print('%s / %s' % (i, N))
 
     return confuse
 
