@@ -155,7 +155,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     # save predict sampless
     save_predict_samples(
-        raw_test_dataset, test_dataset, preds_all, save_num=2000)
+        raw_test_dataset, test_dataset, preds_all, save_num=20000)
     for i in range(100):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
