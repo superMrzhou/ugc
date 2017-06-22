@@ -217,7 +217,7 @@ def load_data(trn_file,
               vocabulary=None,
               vocabulary_inv=None,
               padding_mod='max',
-              is_shuffle=False,
+              is_shuffle=True,
               use_tst=False):
     """
     Loads and preprocessed data for the MR dataset.
