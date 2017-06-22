@@ -184,3 +184,28 @@ class MLC(Model):
         T = self.threshold(data, verbose=verbose)
         preds = {k: probs[k] >= T[k] for k in self.output_names}
         return probs, preds
+
+    def predict_combine(self,
+                        data,
+                        batch_size=128,
+                        y_name=['Y0', 'Y1'],
+                        verbose=0):
+        inputs = np.hstack([data[k] for k in self.input_names])
+        probs = self.predict(
+            inputs.astype(float), batch_size=batch_size, verbose=verbose)
+
+        probs = dict(zip(y_name, probs))
+        T = self.threshold(data, verbose=verbose)
+        preds_by_thres = {k: probs[k] >= T[k] for k in self.output_names}
+        max_ind = {
+            k: np.max(probs[k], axis=1).reshape(probs[k].shape[0], 1)
+            for k in self.output_names
+        }
+        preds_amx = {k: probs[k] >= max_ind[k] for k in self.output_names}
+
+        # combine result
+        preds_all = {
+            k: preds_by_thres[k] + preds_amx[k]
+            for k in self.output_names
+        }
+        return probs, preds_all

@@ -149,7 +149,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         vocab_size=params['X']['vocab_size'])
 
     # Test the model
-    probs, preds = model.predict_threshold(test_dataset, verbose=1, batch_size=params['iter']['batch_size'])
+    probs, preds = model.predict_combine(test_dataset, verbose=1, batch_size=params['iter']['batch_size'])
 
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
@@ -434,8 +434,8 @@ if __name__ == '__main__':
     tst_labels = y2list(tst_labels)
 
     # filter 其他 and 新闻
-    # trn_text, trn_labels = filter_data(trn_text, trn_labels)
-    # tst_text, tst_labels = filter_data(tst_text, tst_labels)
+    trn_text, trn_labels = filter_data(trn_text, trn_labels)
+    tst_text, tst_labels = filter_data(tst_text, tst_labels)
 
     _labels = trn_labels + tst_labels
     cate_counts = Counter(itertools.chain(*_labels))
