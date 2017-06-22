@@ -7,7 +7,7 @@ iter:
     model_dir:     '../docs/model/checkpoints/'
     model_name:    'adios_best.h5'
     model_type:    'CNN-non-static' # only CNN-static, CNN-non-static, CNN-rand valiable
-    gpu_fraction: 0.3
+    gpu_fraction: 0.5
 X:
     embedding_dim: 100
 Conv1D:
