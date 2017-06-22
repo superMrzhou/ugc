@@ -70,7 +70,7 @@ def assemble_adios(params):
             # H = dropout_selu(conv_pooling, params['Conv1D']['layer%s' % i]['dropout'])
 
     # flatten
-    H = Flatten()(H)
+    H = Flatten(name='H')(H)
 
     # Y0 output
     kwargs = params['Y0']['kwargs'] if 'kwargs' in params['Y0'] else {}

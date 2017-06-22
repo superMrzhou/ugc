@@ -132,7 +132,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         model.load_weights(model_dir + model_name)
 
     # Fit thresholds
-    input_sparse = True if params['iter']['model_type'] == 'CNN-rand' else None
+    input_sparse = True if params['iter']['model_type'] != 'CNN-static' else None
     thres_data = {
         'X': train_dataset['X'][:300000],
         'Y0': train_dataset['Y0'][:300000],
@@ -146,6 +146,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         verbose=1,
         batch_size=params['iter']['batch_size'],
         input_sparse=input_sparse,
+        use_hidden_feature=False,
         vocab_size=params['X']['vocab_size'])
 
     # Test the model
