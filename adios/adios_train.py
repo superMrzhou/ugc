@@ -154,8 +154,8 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     # save predict sampless
-    save_predict_samples(
-        raw_test_dataset, test_dataset, preds_all, save_num=20000)
+    # save_predict_samples(
+    #     raw_test_dataset, test_dataset, preds_all, save_num=20000)
     for i in range(100):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
@@ -172,9 +172,9 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         print(np.where(preds_all[i] == 1))
         print(' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]]))
 
-    print('start calculate confuse matix....')
-    get_confuse(test_dataset, preds, 'Y0')
-    get_confuse(test_dataset, preds, 'Y1')
+    # print('start calculate confuse matix....')
+    # get_confuse(test_dataset, preds, 'Y0')
+    # get_confuse(test_dataset, preds, 'Y1')
 
     hl = hamming_loss(test_dataset, preds)
     f1_macro = f1_measure(test_dataset, preds, average='macro')
