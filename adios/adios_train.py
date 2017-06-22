@@ -36,6 +36,7 @@ from utils.data_helper import *
 
 reload(sys)
 sys.setdefaultencoding('utf8')
+#
 
 
 def get_session(gpu_fraction=0.3):
