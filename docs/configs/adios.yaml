@@ -2,7 +2,7 @@
 
 iter:
     batch_size:    2048
-    epoch:         5
+    epoch:         7
     learn_rate:    0.01
     model_dir:     '../docs/model/checkpoints/'
     model_name:    'adios_best.h5'
@@ -44,7 +44,7 @@ Y0:
     activity_reg: {l1: 0.1}
     batch_norm: {momentum: 0.9}
 Y1:
-    loss_weight:    0.618
+    loss_weight:    1
     loss_func:  'categorical_crossentropy'
     W_regularizer: 0.1
     activity_reg: {l1: 0.1}
