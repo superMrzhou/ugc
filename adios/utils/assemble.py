@@ -64,7 +64,6 @@ def assemble_adios(params):
         conv_batch_norm = Activation('relu')(BatchNormalization()(conv))
         # conv_batch_norm = selu(BatchNormalization()(conv))
         conv_pooling = MaxPool1D(pool_size=params['Conv1D']['layer%s' % i]['pooling_size'], strides=1)(conv_batch_norm)
-        print(conv_pooling)
         # dropout
         if 'dropout' in params['Conv1D']['layer%s' % i]:
             H = Dropout(params['Conv1D']['layer%s' % i]['dropout'])(conv_pooling)
