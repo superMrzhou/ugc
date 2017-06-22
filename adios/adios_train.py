@@ -22,7 +22,7 @@ import itertools
 from collections import Counter
 
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.optimizers import Adagrad
+from keras.optimizers import Adagrad, RMSprop
 from keras.metrics import categorical_accuracy
 
 from utils.callbacks import HammingLoss
@@ -91,7 +91,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             'Y1': params['Y1']['loss_weight']
         },
         metrics=[categorical_accuracy],
-        optimizer=Adagrad(params['iter']['learn_rate']))
+        optimizer=RMSprop(params['iter']['learn_rate']))
 
     # Make sure checkpoints folder exists
     model_dir = params['iter']['model_dir']
