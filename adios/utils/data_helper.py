@@ -385,17 +385,15 @@ def ml_confuse(y_true, y_pre):
         pre_T = gt & pre
         # prediced wrong labels
         wrg = pre - pre_T
-        if pre_T:  # hit !!
-            for t_lbl in pre_T:
-                confuse[t_lbl][t_lbl] += 1  # right cnt
-                for w_lbl in wrg:
-                    confuse[t_lbl]['+%s' % w_lbl] += 1
+        for t_lbl in pre_T:
+            confuse[t_lbl][t_lbl] += 1  # right cnt
+            for w_lbl in wrg:
+                confuse[t_lbl]['+%s' % w_lbl] += 1
         # label with no predict result
         pre_w = gt - pre_T
-        if pre_w:
-            for t_lbl in gt - pre_T:
-                for w_lbl in pre_w:
-                    confuse[t_lbl]['-%s' % w_lbl] += 1
+        for t_lbl in pre_w:
+            for w_lbl in wrg:
+                confuse[t_lbl]['-%s' % w_lbl] += 1
         if i % int(0.1 * N) == 0:
             print('%s / %s' % (i, N))
 
