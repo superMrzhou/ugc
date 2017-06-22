@@ -18,13 +18,13 @@ Conv1D:
         pooling_size:  3 # default 2
         dropout:       0.3
     layer2:
-        filters:       256
+        filters:       128
         filter_size:   4
         padding_mode:   'valid'
-        pooling_size:  2 # default 2
+        pooling_size:  3 # default 2
         dropout:      0.3
     layer3:
-        filters:       256
+        filters:       128
         filter_size:   3
         padding_mode:   'valid'
         pooling_size:  3 # default 2
