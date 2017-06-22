@@ -6,6 +6,7 @@ from keras.layers import Dense, Dropout, Input, Activation
 from keras.layers import ActivityRegularization, concatenate
 from keras.layers.normalization import BatchNormalization
 from keras.regularizers import l2
+from keras.layers import GRU
 
 from utils.models import MLC
 # from utils.selu import selu, dropout_selu
@@ -70,7 +71,8 @@ def assemble_adios(params):
             # H = dropout_selu(conv_pooling, params['Conv1D']['layer%s' % i]['dropout'])
 
     # flatten
-    H = Flatten(name='H')(H)
+    # H = Flatten(name='H')(H)
+    H = GRU(128, name='H')(H)
 
     # Y0 output
     kwargs = params['Y0']['kwargs'] if 'kwargs' in params['Y0'] else {}
