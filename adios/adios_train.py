@@ -282,8 +282,7 @@ def recall_precision_f1(y_true, y_pre):
         gt_lbls_n += len(gt_ind)
         pr_lbls_n += len(pred_ind)
         tp_lbls_n += len(set(gt_ind) & set(pred_ind))
-    print('tp:%s\nprecision_dem:%s\nrecall_dem:%s' % (tp_lbls_n, pr_lbls_n,
-                                                        gt_lbls_n))
+    print('tp:%s\nprecision_dem:%s\nrecall_dem:%s' % (tp_lbls_n, pr_lbls_n, gt_lbls_n))
     recall = tp_lbls_n / gt_lbls_n
     acc = tp_lbls_n / pr_lbls_n
     f1 = 2*recall*acc / (recall + acc)
@@ -294,7 +293,7 @@ def y2list(y):
 
     # y = [yy[0].strip('\n').split(' ') for yy in y]
     return [
-        list(set([re.split('-|_', lbl)[0] for lbl in yy])) + yy for yy in y
+        list(set([re.split('-|_', lbl)[0] for lbl in yy] + yy)) for yy in y
     ]
 
 
@@ -302,7 +301,7 @@ def y2list_and_g1(y):
 
     # y = [yy[0].strip('\n').split('&') for yy in y]
     return [
-        list(set(['%s_G1' % re.split('-|_', lbl)[0] for lbl in yy])) + yy
+        list(set(['%s_G1' % re.split('-|_', lbl)[0] for lbl in yy] + yy))
         for yy in y
     ]
 
@@ -430,8 +429,8 @@ if __name__ == '__main__':
     # id_cate = dict(zip([_id[0] for _id in ids], [cate[0] for cate in cates]))
 
     # add first cate
-    trn_labels = y2list_and_g1(trn_labels)
-    tst_labels = y2list_and_g1(tst_labels)
+    trn_labels = y2list(trn_labels)
+    tst_labels = y2list(tst_labels)
 
     # filter 其他 and 新闻
     # trn_text, trn_labels = filter_data(trn_text, trn_labels)
@@ -443,10 +442,10 @@ if __name__ == '__main__':
     cate = [x[0] for x in cate_counts.most_common()]
     cate_id = {v: i for i, v in enumerate(cate)}
 
-    # Y0 = filter(lambda x: re.search('-|_', x), cate)
-    # Y1 = filter(lambda x: not re.search('-|_', x), cate)
-    Y1 = filter(lambda x: re.search('G1', x), cate)
-    Y0 = filter(lambda x: not re.search('G1', x), cate)
+    Y0 = filter(lambda x: re.search('-|_', x), cate)
+    Y1 = filter(lambda x: not re.search('-|_', x), cate)
+    # Y1 = filter(lambda x: re.search('G1', x), cate)
+    # Y0 = filter(lambda x: not re.search('G1', x), cate)
     Y0Y1 = Y0 + Y1
 
     print('Y0 length: %s, Y1 length : %s' % (len(Y0), len(Y1)))
