@@ -112,7 +112,8 @@ class MLC(Model):
                 val_inputs = np.hstack(
                     [validation_data[k] for k in self.input_names])
                 if use_hidden_feature:
-                    batch_num = int(ceil(val_inputs.shape[0] / float(batch_size)))
+                    batch_num = int(
+                        ceil(val_inputs.shape[0] / float(batch_size)))
                     for current_batch in range(batch_num):
                         start = current_batch * batch_size
                         step = batch_size if current_batch + 1 != batch_num else val_inputs.shape[0] - current_batch * batch_size
