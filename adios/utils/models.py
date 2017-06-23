@@ -15,6 +15,7 @@ from keras.models import Model
 
 K.set_learning_phase(1)
 
+
 class MLC(Model):
     """
     Multi-label classifier.
@@ -75,7 +76,15 @@ class MLC(Model):
             vec_model = K.function([self.get_layer('X').input],
                                    [self.get_layer('H').output])
 
-            t_inputs = vec_model([inputs])[0]
+            # get outputs of conv layer
+            batch_num = ceil(inputs.shape[0] / batch_size)
+            for current_batch in range(batch_num):
+                start = current_batch * batch_size
+                step = batch_size if current_batch + 1 != batch_num else inputs.shape[0] - current_batch * batch_size
+                batch_inputs = inputs[start:start + step]
+                batch_outputs = vec_model([batch_inputs])[0]
+                t_inputs = batch_outputs if current_batch == 0 else np.concatenate(
+                    (t_inputs, batch_outputs), axis=0)
 
         # now only support matrix average and one-hot vecotor representation
         # TODO sparse word index should be transformed to one-hot vecotor
@@ -84,8 +93,8 @@ class MLC(Model):
             for i in range(inputs.shape[0]):
                 t_inputs[i][inputs[i]] = 1
         else:
-            t_inputs = np.average(inputs, axis=1) if len(
-                inputs.shape) == 3 else inputs
+            t_inputs = np.average(
+                inputs, axis=1) if len(inputs.shape) == 3 else inputs
         probs = self.predict(data, batch_size=batch_size)
 
         probs = dict(zip(y_name, probs))
@@ -103,13 +112,22 @@ class MLC(Model):
                     [validation_data[k] for k in self.input_names])
                 if use_hidden_feature:
                     val_t_inputs = vec_model([val_inputs])[0]
+                    batch_num = ceil(val_inputs.shape[0] / batch_size)
+                    for current_batch in range(batch_num):
+                        start = current_batch * batch_size
+                        step = batch_size if current_batch + 1 != batch_num else inputs.shape[0] - current_batch * batch_size
+                        batch_inputs = inputs[start:start + step]
+                        batch_outputs = vec_model([batch_inputs])[0]
+                        val_t_inputs = batch_outputs if current_batch == 0 else np.concatenate(
+                            (val_t_inputs, batch_outputs), axis=0)
                 elif input_sparse and isinstance(vocab_size, int):
                     val_t_inputs = np.zeros((val_inputs.shape[0], vocab_size))
                     for i in range(val_inputs.shape[0]):
                         val_t_inputs[i][val_inputs[i]] = 1
                 else:
-                    val_t_inputs = np.average(val_inputs, axis=1) if len(
-                        val_inputs.shape) == 3 else val_inputs
+                    val_t_inputs = np.average(
+                        val_inputs,
+                        axis=1) if len(val_inputs.shape) == 3 else val_inputs
                 val_probs = self.predict(val_inputs)
                 val_probs = dict(zip(y_name, val_probs))
                 val_targets = {
@@ -152,16 +170,27 @@ class MLC(Model):
             sys.stdout.write("Done.\n")
             sys.stdout.flush()
 
-    def threshold(self, data, verbose=0, use_hidden_feature=False):
+    def threshold(self,
+                  data,
+                  verbose=0,
+                  batch_size=128,
+                  use_hidden_feature=False):
         inputs = np.hstack([data[k] for k in self.input_names])
         if use_hidden_feature:
             # get outputs of conv layer
             vec_model = K.function([self.get_layer('X').input],
                                    [self.get_layer('H').output])
-
-            t_inputs = vec_model([inputs])[0]
+            batch_num = ceil(inputs.shape[0] / batch_size)
+            for current_batch in range(batch_num):
+                start = current_batch * batch_size
+                step = batch_size if current_batch + 1 != batch_num else inputs.shape[0] - current_batch * batch_size
+                batch_inputs = inputs[start:start + step]
+                batch_outputs = vec_model([batch_inputs])[0]
+                t_inputs = batch_outputs if current_batch == 0 else np.concatenate(
+                    (t_inputs, batch_outputs), axis=0)
         else:
-            t_inputs = np.average(inputs, axis=1) if len(inputs.shape) == 3 else inputs
+            t_inputs = np.average(
+                inputs, axis=1) if len(inputs.shape) == 3 else inputs
 
         if verbose:
             sys.stdout.write("Thresholding...\n")
@@ -189,7 +218,11 @@ class MLC(Model):
             inputs.astype(float), batch_size=batch_size, verbose=verbose)
 
         probs = dict(zip(y_name, probs))
-        T = self.threshold(data, verbose=verbose, use_hidden_feature=use_hidden_feature)
+        T = self.threshold(
+            data,
+            verbose=verbose,
+            batch_size=batch_size,
+            use_hidden_feature=use_hidden_feature)
         preds = {k: probs[k] >= T[k] for k in self.output_names}
         return probs, preds
 
@@ -204,7 +237,11 @@ class MLC(Model):
             inputs.astype(float), batch_size=batch_size, verbose=verbose)
 
         probs = dict(zip(y_name, probs))
-        T = self.threshold(data, verbose=verbose, use_hidden_feature=use_hidden_feature)
+        T = self.threshold(
+            data,
+            verbose=verbose,
+            batch_size=batch_size,
+            use_hidden_feature=use_hidden_feature)
         preds_by_thres = {k: probs[k] >= T[k] for k in self.output_names}
         max_ind = {
             k: np.max(probs[k], axis=1).reshape(probs[k].shape[0], 1)
