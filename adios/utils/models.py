@@ -112,12 +112,11 @@ class MLC(Model):
                 val_inputs = np.hstack(
                     [validation_data[k] for k in self.input_names])
                 if use_hidden_feature:
-                    val_t_inputs = vec_model([val_inputs])[0]
-                    batch_num = int(ceil(val_t_inputs.shape[0] / float(batch_size)))
+                    batch_num = int(ceil(val_inputs.shape[0] / float(batch_size)))
                     for current_batch in range(batch_num):
                         start = current_batch * batch_size
-                        step = batch_size if current_batch + 1 != batch_num else inputs.shape[0] - current_batch * batch_size
-                        batch_inputs = inputs[start:start + step]
+                        step = batch_size if current_batch + 1 != batch_num else val_inputs.shape[0] - current_batch * batch_size
+                        batch_inputs = val_inputs[start:start + step]
                         batch_outputs = vec_model([batch_inputs])[0]
                         val_t_inputs = batch_outputs if current_batch == 0 else np.concatenate(
                             (val_t_inputs, batch_outputs), axis=0)
