@@ -13,6 +13,7 @@ from sklearn import linear_model as lm
 from keras import backend as K
 from keras.models import Model
 
+K.set_learning_phase(1)
 
 class MLC(Model):
     """
