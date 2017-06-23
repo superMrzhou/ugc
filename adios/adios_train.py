@@ -36,6 +36,7 @@ from utils.data_helper import *
 
 reload(sys)
 sys.setdefaultencoding('utf8')
+
 #
 
 
@@ -147,11 +148,15 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         verbose=1,
         batch_size=params['iter']['batch_size'],
         input_sparse=input_sparse,
-        use_hidden_feature=False,
+        use_hidden_feature=True,
         vocab_size=params['X']['vocab_size'])
 
     # Test the model
-    probs, preds = model.predict_combine(test_dataset, verbose=1, batch_size=params['iter']['batch_size'])
+    probs, preds = model.predict_combine(
+        test_dataset,
+        verbose=1,
+        batch_size=params['iter']['batch_size'],
+        use_hidden_feature=True, )
 
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
@@ -202,12 +207,14 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     print('total precision : %.4f' % t_precision)
     print('total f1 : %.4f\n' % t_f1)
 
-    g1_recall, g1_precision, g1_f1 = recall_precision_f1(test_dataset['Y0'], preds['Y0'])
+    g1_recall, g1_precision, g1_f1 = recall_precision_f1(
+        test_dataset['Y0'], preds['Y0'])
     print('G1 recall : %.4f' % g1_recall)
     print('G1 precision : %.4f' % g1_precision)
     print('G1 f1 : %.4f\n' % g1_f1)
 
-    g2_recall, g2_precision, g2_f1 = recall_precision_f1(test_dataset['Y1'], preds['Y1'])
+    g2_recall, g2_precision, g2_f1 = recall_precision_f1(
+        test_dataset['Y1'], preds['Y1'])
     print('G2 recall : %.4f' % g2_recall)
     print('G2 precision : %.4f' % g2_precision)
     print('G2 f1 : %.4f\n' % g2_f1)
@@ -225,10 +232,7 @@ def save_predict_samples(raw_test_dataset,
         for i in range(save_num):
             text = ' '.join(
                 [vocabulary_inv[ii] for ii in raw_test_dataset['X'][i]])
-            gt = ' '.join([
-                Y0Y1[ii]
-                for ii in np.where(gt_matrix[i] == 1)[0]
-            ])
+            gt = ' '.join([Y0Y1[ii] for ii in np.where(gt_matrix[i] == 1)[0]])
             pre = ' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]])
             f.write('%s@@@%s@@@%s\n' % (gt, pre, text))
 
@@ -284,10 +288,11 @@ def recall_precision_f1(y_true, y_pre):
         gt_lbls_n += len(gt_ind)
         pr_lbls_n += len(pred_ind)
         tp_lbls_n += len(set(gt_ind) & set(pred_ind))
-    print('tp:%s\nprecision_dem:%s\nrecall_dem:%s' % (tp_lbls_n, pr_lbls_n, gt_lbls_n))
+    print('tp:%s\nprecision_dem:%s\nrecall_dem:%s' % (tp_lbls_n, pr_lbls_n,
+                                                      gt_lbls_n))
     recall = tp_lbls_n / gt_lbls_n
     acc = tp_lbls_n / pr_lbls_n
-    f1 = 2*recall*acc / (recall + acc)
+    f1 = 2 * recall * acc / (recall + acc)
     return recall, acc, f1
 
 
