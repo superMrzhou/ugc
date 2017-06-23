@@ -78,7 +78,7 @@ class MLC(Model):
                                    [self.get_layer('H').output])
 
             # get outputs of conv layer
-            batch_num = ceil(inputs.shape[0] / batch_size)
+            batch_num = int(ceil(inputs.shape[0] / float(batch_size)))
             for current_batch in range(batch_num):
                 start = current_batch * batch_size
                 step = batch_size if current_batch + 1 != batch_num else inputs.shape[0] - current_batch * batch_size
@@ -113,7 +113,7 @@ class MLC(Model):
                     [validation_data[k] for k in self.input_names])
                 if use_hidden_feature:
                     val_t_inputs = vec_model([val_inputs])[0]
-                    batch_num = ceil(val_inputs.shape[0] / batch_size)
+                    batch_num = int(ceil(val_t_inputs.shape[0] / float(batch_size)))
                     for current_batch in range(batch_num):
                         start = current_batch * batch_size
                         step = batch_size if current_batch + 1 != batch_num else inputs.shape[0] - current_batch * batch_size
@@ -181,7 +181,7 @@ class MLC(Model):
             # get outputs of conv layer
             vec_model = K.function([self.get_layer('X').input],
                                    [self.get_layer('H').output])
-            batch_num = ceil(inputs.shape[0] / batch_size)
+            batch_num = int(ceil(inputs.shape[0] / float(batch_size)))
             for current_batch in range(batch_num):
                 start = current_batch * batch_size
                 step = batch_size if current_batch + 1 != batch_num else inputs.shape[0] - current_batch * batch_size
