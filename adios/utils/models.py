@@ -7,6 +7,7 @@ import sys
 import warnings
 import numpy as np
 from scipy import sparse
+from math import ceil
 
 from sklearn import linear_model as lm
 
