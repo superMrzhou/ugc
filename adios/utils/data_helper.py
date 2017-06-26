@@ -258,6 +258,65 @@ def load_data(trn_file,
         split_n:], vocabulary, vocabulary_inv
 
 
+def process_line(texts,
+                 labels,
+                 vocabulary,
+                 category,
+                 cate_split_n,
+                 sequence_length=256,
+                 padding_word='<PAD/>'):
+    """Process line data to train format."""
+
+    # padding
+    if len(texts) < sequence_length:
+        texts = texts + [padding_word] * (sequence_length - len(texts))
+    else:
+        texts = texts[:sequence_length]
+    # build_input_data
+    texts = [
+        vocabulary[word] if word in vocabulary else vocabulary[padding_word]
+        for word in texts
+    ]
+
+    # labels to vecs
+    labels = list(set([re.split('-|_', lbl)[0] for lbl in labels] + labels))
+    labels_vec = np.zeros(len(category))
+    labels_vec[[category.index(lbl) for lbl in labels]] = 1
+
+    return texts, labels_vec[:cate_split_n], labels_vec[cate_split_n:]
+
+
+def generate_arrays_from_dataset(texts,
+                                 labels,
+                                 vocabulary,
+                                 category,
+                                 cate_split_n,
+                                 batch_size=2048,
+                                 sequence_length=256,
+                                 padding_word='<PAD/>'):
+    """Data generator."""
+    assert (len(texts) == len(labels))
+    total_n = len(labels)
+    X, Y0, Y1 = [], [], []
+    while 1:
+        for cnt in range(1, total_n + 1):
+            x, y0, y1 = process_line(
+                texts[cnt - 1],
+                labels[cnt - 1],
+                vocabulary,
+                category,
+                cate_split_n,
+                sequence_length=sequence_length,
+                padding_word=padding_word)
+            X.append(x)
+            Y0.append(y0)
+            Y1.append(y1)
+            if cnt % batch_size == 0 or cnt == total_n:
+                yield ({'X': np.array(X)}, {'Y0': np.array(Y0), 'Y1': np.array(Y1)})
+            # yield ({'X': x}, {'Y0': y0, 'Y1': y1})
+                X, Y0, Y1 = [], [], []
+
+
 def batch_iter(data, batch_size, num_epochs):
     """
     Generates a batch iterator for a dataset.
