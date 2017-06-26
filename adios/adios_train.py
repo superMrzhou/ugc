@@ -165,7 +165,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
         'Y1': np.array(thres_Y1),
     }
     model.fit_thresholds(
-        thres_data,
+        thres_dataset,
         validation_data=valid_dataset,
         top_k=None,
         alpha=np.logspace(-3, 3, num=10).tolist(),
