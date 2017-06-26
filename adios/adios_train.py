@@ -146,10 +146,23 @@ def train(train_dataset, valid_dataset, test_dataset, params):
 
     # Fit thresholds
     input_sparse = True if params['iter']['model_type'] != 'CNN-non-static' else None
-    thres_data = {
-        'X': train_dataset['X'][:300000],
-        'Y0': train_dataset['Y0'][:300000],
-        'Y1': train_dataset['Y1'][:300000]
+    # Fit thresholds
+    thres_X, thres_Y0, thres_Y1 = [], [], []
+    for i in range(300000):
+        x, y0, y1 = process_line(
+            train_dataset['X'][i],
+            train_dataset['Y'][i],
+            vocabulary,
+            Y0Y1,
+            params['Y0']['dim'],
+            sequence_length=256)
+        thres_X.append(x)
+        thres_Y0.append(y0)
+        thres_Y1.append(y1)
+    thres_dataset = {
+        'X': np.array(thres_X),
+        'Y0': np.array(thres_Y0),
+        'Y1': np.array(thres_Y1),
     }
     model.fit_thresholds(
         thres_data,
