@@ -10,6 +10,7 @@ iter:
     gpu_fraction: 0.5
 X:
     embedding_dim: 100
+    sequence_length:  256
 Conv1D:
     layer1:
         filters:       128
