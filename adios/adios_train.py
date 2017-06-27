@@ -136,7 +136,7 @@ def train(valid_dataset, test_dataset, params):
             'Y0': valid_dataset['Y0'],
             'Y1': valid_dataset['Y1']
         }),
-        steps_per_epoch=1012,
+        steps_per_epoch=48,
         epochs=nb_epoch,
         callbacks=callbacks,
         verbose=1)
@@ -154,7 +154,7 @@ def train(valid_dataset, test_dataset, params):
         x_dict, y_dict = train_data_generator.next()
         thres_X.extend(x_dict['X'].tolist())
         thres_Y0.extend(y_dict['Y0'].tolist())
-        thres_Y1.extend(y_dict['Y1'].tolsit())
+        thres_Y1.extend(y_dict['Y1'].tolist())
     thres_dataset = {
         'X': np.array(thres_X),
         'Y0': np.array(thres_Y0),
