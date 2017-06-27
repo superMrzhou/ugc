@@ -264,6 +264,7 @@ def process_line(texts,
                  vocabulary,
                  category,
                  cate_split_n,
+                 use_G1=True,
                  sequence_length=256,
                  padding_word='<PAD/>'):
     """Process line data to train format."""
@@ -280,7 +281,12 @@ def process_line(texts,
     ]
 
     # labels to vecs
-    labels = list(set([re.split('-|_', lbl)[0] for lbl in labels] + labels))
+    if use_G1:
+        labels = list(
+            set(['%_G1' % re.split('-|_', lbl)[0] for lbl in labels] + labels))
+    else:
+        labels = list(
+            set([re.split('-|_', lbl)[0] for lbl in labels] + labels))
     labels_vec = np.zeros(len(category))
     labels_vec[[category.index(lbl) for lbl in labels]] = 1
 
@@ -295,6 +301,7 @@ def generate_arrays_from_dataset(file_path,
                                  lbl_text_index=[0, 1],
                                  batch_size=2048,
                                  sequence_length=256,
+                                 use_G1=True,
                                  padding_word='<PAD/>'):
     """Data generator."""
     while 1:
@@ -331,6 +338,7 @@ def generate_arrays_from_dataset(file_path,
                             vocabulary,
                             category,
                             cate_split_n,
+                            use_G1=True,
                             sequence_length=sequence_length,
                             padding_word=padding_word)
                         for i in range(len(batch_labels))
