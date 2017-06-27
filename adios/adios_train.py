@@ -119,7 +119,7 @@ def train(valid_dataset, test_dataset, params):
     batch_size = params['iter']['batch_size']
     nb_epoch = params['iter']['epoch']
     train_data_generator = generate_arrays_from_dataset(
-        '../docs/CNN/trainString_split_aa',
+        '../docs/CNN/trainString',
         vocabulary,
         Y0Y1,
         params['Y0']['dim'],
@@ -136,7 +136,7 @@ def train(valid_dataset, test_dataset, params):
             'Y0': valid_dataset['Y0'],
             'Y1': valid_dataset['Y1']
         }),
-        steps_per_epoch=48,
+        steps_per_epoch=1012,
         epochs=nb_epoch,
         callbacks=callbacks,
         verbose=1)
@@ -150,7 +150,7 @@ def train(valid_dataset, test_dataset, params):
     # Fit thresholds
     thres_X, thres_Y0, thres_Y1 = [], [], []
     # data_size = 150 * batch_size (2048)
-    for _ in range(10):
+    for _ in range(150):
         x_dict, y_dict = train_data_generator.next()
         thres_X.extend(x_dict['X'].tolist())
         thres_Y0.extend(y_dict['Y0'].tolist())
@@ -181,8 +181,8 @@ def train(valid_dataset, test_dataset, params):
     targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
     preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
     # save predict sampless
-    # save_predict_samples(
-    #     raw_test_dataset, test_dataset, preds_all, save_num=20000)
+    save_predict_samples(
+        raw_test_dataset, test_dataset, preds_all, save_num=2000)
     for i in range(100):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
@@ -365,7 +365,7 @@ if __name__ == '__main__':
 
     # load tst_file
     tst_texts, tst_labels = load_data_and_labels(
-        '../docs/CNN/testString_aa', lbl_text_index=[0, 1], split_tag='@@@')
+        '../docs/CNN/testString', lbl_text_index=[0, 1], split_tag='@@@')
 
     # category
     Y0 = [yy[0] for yy in load_data_and_labels(
