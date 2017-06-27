@@ -54,7 +54,7 @@ def get_session(gpu_fraction=0.3):
         return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
 
-def train(train_dataset, valid_dataset, test_dataset, params):
+def train(valid_dataset, test_dataset, params):
 
     # Assemble and compile the model
     model = assemble('ADIOS', params)
@@ -70,7 +70,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             min_word_count=1,
             context=5)
         if model_type == "CNN-static":
-            train_dataset['X'] = embedding_weights[0][train_dataset['X']]
+            # train_dataset['X'] = embedding_weights[0][train_dataset['X']]
             test_dataset['X'] = embedding_weights[0][test_dataset['X']]
             valid_dataset['X'] = embedding_weights[0][valid_dataset['X']]
 
@@ -122,8 +122,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
     # start to train
     model.fit_generator(
         generate_arrays_from_dataset(
-            train_dataset['X'],
-            train_dataset['Y'],
+            '../docs/CNN/trainString',
             vocabulary,
             Y0Y1,
             params['Y0']['dim'],
@@ -135,7 +134,7 @@ def train(train_dataset, valid_dataset, test_dataset, params):
             'Y0': valid_dataset['Y0'],
             'Y1': valid_dataset['Y1']
         }),
-        steps_per_epoch=int(ceil(len(train_dataset['Y']) / batch_size)),
+        steps_per_epoch=2000,
         epochs=nb_epoch,
         callbacks=callbacks,
         verbose=1)
@@ -375,25 +374,20 @@ if __name__ == '__main__':
     print(len(vocabulary_inv), len(vocabulary))
 
     # load trn_file
-    trn_texts, trn_labels = load_data_and_labels(
-        '../docs/CNN/trainString_split_aa',
-        lbl_text_index=[0, 1],
-        split_tag='@@@')
+    # trn_texts, trn_labels = load_data_and_labels(
+    #     '../docs/CNN/trainString_split_aa',
+    #     lbl_text_index=[0, 1],
+    #     split_tag='@@@')
 
     # load tst_file
     tst_texts, tst_labels = load_data_and_labels(
         '../docs/CNN/testString_aa', lbl_text_index=[0, 1], split_tag='@@@')
 
     # category
-    _labels = trn_labels + tst_labels
-    cate_counts = Counter(itertools.chain(*_labels))
-    # Mapping from index to word
-    category = [x[0] for x in cate_counts.most_common()]
-    category = list(
-        set([re.split('-|_', cate)[0] for cate in category] + category))
-    # print(category)
-    Y0 = filter(lambda x: re.search('-|_', x), category)
-    Y1 = filter(lambda x: not re.search('-|_', x), category)
+    Y0, _ = load_data_and_labels(
+        '../docs/CNN/cate_Y0', split_tag='\t', lbl_text_index=[1, 0])
+    Y1, _ = load_data_and_labels(
+        '../docs/CNN/cate_Y1', split_tag='\t', lbl_text_index=[1, 0])
     Y0Y1 = Y0 + Y1
     print(len(Y0Y1))
 
@@ -410,8 +404,8 @@ if __name__ == '__main__':
     params['Y1']['dim'] = nb_labels_Y1
     print json.dumps(params, indent=4)
 
-    print('train data size : %d , test data size : %d' % (len(trn_labels),
-                                                          len(tst_labels)))
+    # print('train data size : %d , test data size : %d' % (len(trn_labels),
+    #                                                       len(tst_labels)))
 
     # set gpu_option
     KTF.set_session(get_session(gpu_fraction=params['iter']['gpu_fraction']))
@@ -419,7 +413,7 @@ if __name__ == '__main__':
     ratio = 0.02
     valid_N = int(ratio * len(tst_texts))
     # train_dataset just input raw data
-    train_dataset = {'X': trn_texts, 'Y': trn_labels}
+    # train_dataset = {'X': trn_texts, 'Y': trn_labels}
     # valid_dataset should transform
     test_X, test_Y0, test_Y1 = [], [], []
     for i in range(len(tst_texts)):
@@ -444,4 +438,4 @@ if __name__ == '__main__':
         'Y1': np.array(test_Y1)[valid_N:, :],
     }
     # start train
-    train(train_dataset, valid_dataset, test_dataset, params)
+    train(valid_dataset, test_dataset, params)
