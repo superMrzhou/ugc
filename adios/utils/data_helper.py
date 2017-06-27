@@ -16,6 +16,7 @@ import itertools
 import xlrd
 import time
 import numpy as np
+from math import ceil
 from collections import defaultdict
 from collections import Counter
 from gensim.models import word2vec
@@ -286,35 +287,62 @@ def process_line(texts,
     return texts, labels_vec[:cate_split_n], labels_vec[cate_split_n:]
 
 
-def generate_arrays_from_dataset(texts,
-                                 labels,
+def generate_arrays_from_dataset(file_path,
                                  vocabulary,
                                  category,
                                  cate_split_n,
+                                 split_tag='\t',
+                                 lbl_text_index=[0, 1],
                                  batch_size=2048,
                                  sequence_length=256,
                                  padding_word='<PAD/>'):
     """Data generator."""
-    assert (len(texts) == len(labels))
-    total_n = len(labels)
-    X, Y0, Y1 = [], [], []
     while 1:
-        for cnt in range(1, total_n + 1):
-            x, y0, y1 = process_line(
-                texts[cnt - 1],
-                labels[cnt - 1],
-                vocabulary,
-                category,
-                cate_split_n,
-                sequence_length=sequence_length,
-                padding_word=padding_word)
-            X.append(x)
-            Y0.append(y0)
-            Y1.append(y1)
-            if cnt % batch_size == 0 or cnt == total_n:
-                yield ({'X': np.array(X)}, {'Y0': np.array(Y0), 'Y1': np.array(Y1)})
-            # yield ({'X': x}, {'Y0': y0, 'Y1': y1})
-                X, Y0, Y1 = [], [], []
+        line_cnt = 0
+        texts, labels = [], []
+        with open(file_path, 'r') as f:
+            for line in f:
+                if line:
+                    texts.append(
+                        line.strip('\n').split(split_tag)[lbl_text_index[1]]
+                        .split())
+                    labels.append(
+                        line.strip('\n').split(split_tag)[lbl_text_index[0]]
+                        .split())
+                    line_cnt += 1
+                elif line_cnt < batch_size * 30:
+                    continue
+                # shuffle
+                local_num = len(texts)
+                ind = np.arange(local_num)
+                np.random.shuffle(ind)
+                texts = np.array(texts)[ind]
+                labels = np.array(labels)[ind]
+
+                batch_num = int(ceil(local_num / float(batch_size)))
+                for current_batch in range(batch_num):
+                    start = current_batch * batch_size
+                    step = min(batch_size, local_num - start)
+                    batch_texts = texts[start:start + step]
+                    batch_labels = labels[start:start + step]
+                    res = [
+                        process_line(
+                            batch_texts[i],
+                            batch_labels[i],
+                            vocabulary,
+                            category,
+                            cate_split_n,
+                            sequence_length=sequence_length,
+                            padding_word=padding_word)
+                        for i in range(len(batch_labels))
+                    ]
+                    res = zip(*res)
+                    yield ({
+                        'X': np.array(res[0])
+                    }, {
+                        'Y0': np.array(res[1]),
+                        'Y1': np.array(res[2])
+                    })
 
 
 def batch_iter(data, batch_size, num_epochs):
