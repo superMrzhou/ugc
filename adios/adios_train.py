@@ -126,6 +126,8 @@ def train(valid_dataset, test_dataset, params):
             vocabulary,
             Y0Y1,
             params['Y0']['dim'],
+            split_tag='@@@',
+            lbl_text_index=[0, 1],
             batch_size=batch_size,
             sequence_length=params['X']['sequence_length']),
         validation_data=({
