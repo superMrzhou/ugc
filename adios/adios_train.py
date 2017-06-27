@@ -384,10 +384,10 @@ if __name__ == '__main__':
         '../docs/CNN/testString_aa', lbl_text_index=[0, 1], split_tag='@@@')
 
     # category
-    Y0, _ = load_data_and_labels(
-        '../docs/CNN/cate_Y0', split_tag='\t', lbl_text_index=[1, 0])
-    Y1, _ = load_data_and_labels(
-        '../docs/CNN/cate_Y1', split_tag='\t', lbl_text_index=[1, 0])
+    Y0, _ = [yy[0] for yy in load_data_and_labels(
+        '../docs/CNN/cate_Y0', split_tag='\t', lbl_text_index=[1, 0])]
+    Y1, _ = [yy[0] for yy in load_data_and_labels(
+        '../docs/CNN/cate_Y1', split_tag='\t', lbl_text_index=[1, 0])]
     Y0Y1 = Y0 + Y1
     print(len(Y0Y1))
 
