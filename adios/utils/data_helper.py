@@ -283,7 +283,7 @@ def process_line(texts,
     # labels to vecs
     if use_G1:
         labels = list(
-            set(['%_G1' % re.split('-|_', lbl)[0] for lbl in labels] + labels))
+            set(['%s_G1' % re.split('-|_', lbl)[0] for lbl in labels] + labels))
     else:
         labels = list(
             set([re.split('-|_', lbl)[0] for lbl in labels] + labels))
