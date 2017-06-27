@@ -343,6 +343,7 @@ def generate_arrays_from_dataset(file_path,
                         'Y0': np.array(res[1]),
                         'Y1': np.array(res[2])
                     })
+                texts, labels = [], []
 
 
 def ml_confuse(y_true, y_pre):
