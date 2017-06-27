@@ -52,7 +52,7 @@ class MLC(Model):
         col = F1.argmax(axis=1)
         p_sorted = np.hstack([p_sorted, np.zeros(nb_samples)[:, None]])
         # T = p_sorted[row, col][:,None]
-        ratio = 0.3
+        ratio = 0.42
         T = (ratio * p_sorted[row, col] +
              (1 - ratio) * p_sorted[row, col + 1])[:, None]
 
