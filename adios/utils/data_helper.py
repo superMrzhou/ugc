@@ -327,8 +327,8 @@ def generate_arrays_from_dataset(file_path,
                     batch_labels = labels[start:start + step]
                     res = [
                         process_line(
-                            batch_texts[i],
-                            batch_labels[i],
+                            list(batch_texts[i]),
+                            list(batch_labels[i]),
                             vocabulary,
                             category,
                             cate_split_n,
