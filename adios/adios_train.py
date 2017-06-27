@@ -193,8 +193,8 @@ def train(valid_dataset, test_dataset, params):
         print(' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]]))
 
     # print('start calculate confuse matix....')
-    # get_confuse(test_dataset, preds, 'Y0')
-    # get_confuse(test_dataset, preds, 'Y1')
+    get_confuse(test_dataset, preds, 'Y0')
+    get_confuse(test_dataset, preds, 'Y1')
 
     hl = hamming_loss(test_dataset, preds)
     f1_macro = f1_measure(test_dataset, preds, average='macro')
