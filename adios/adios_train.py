@@ -118,18 +118,18 @@ def train(valid_dataset, test_dataset, params):
     # Fit the model to the data
     batch_size = params['iter']['batch_size']
     nb_epoch = params['iter']['epoch']
-
+    train_data_generator = generate_arrays_from_dataset(
+        '../docs/CNN/trainString',
+        vocabulary,
+        Y0Y1,
+        params['Y0']['dim'],
+        split_tag='@@@',
+        lbl_text_index=[0, 1],
+        batch_size=batch_size,
+        sequence_length=params['X']['sequence_length'])
     # start to train
     model.fit_generator(
-        generate_arrays_from_dataset(
-            '../docs/CNN/trainString',
-            vocabulary,
-            Y0Y1,
-            params['Y0']['dim'],
-            split_tag='@@@',
-            lbl_text_index=[0, 1],
-            batch_size=batch_size,
-            sequence_length=params['X']['sequence_length']),
+        train_data_generator,
         validation_data=({
             'X': valid_dataset['X']
         }, {
@@ -149,17 +149,12 @@ def train(valid_dataset, test_dataset, params):
     input_sparse = True if params['iter']['model_type'] != 'CNN-non-static' else None
     # Fit thresholds
     thres_X, thres_Y0, thres_Y1 = [], [], []
-    for i in range(300000):
-        x, y0, y1 = process_line(
-            train_dataset['X'][i],
-            train_dataset['Y'][i],
-            vocabulary,
-            Y0Y1,
-            params['Y0']['dim'],
-            sequence_length=256)
-        thres_X.append(x)
-        thres_Y0.append(y0)
-        thres_Y1.append(y1)
+    # data_size = 150 * batch_size (2048)
+    for _ in range(150):
+        x_dict, y_dict = train_data_generator.next()
+        thres_X.extend(x_dict['X'].tolist())
+        thres_Y0.extend(y_dict['Y0'].tolist())
+        thres_Y1.extend(y_dict['Y1'].tolsit())
     thres_dataset = {
         'X': np.array(thres_X),
         'Y0': np.array(thres_Y0),
