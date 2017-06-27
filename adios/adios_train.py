@@ -136,7 +136,7 @@ def train(valid_dataset, test_dataset, params):
             'Y0': valid_dataset['Y0'],
             'Y1': valid_dataset['Y1']
         }),
-        steps_per_epoch=2000,
+        steps_per_epoch=1012,
         epochs=nb_epoch,
         callbacks=callbacks,
         verbose=1)
@@ -192,13 +192,6 @@ def train(valid_dataset, test_dataset, params):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
                         for ii in raw_test_dataset['X'][i]]))
-        # print(' '.join([
-        #     Y0Y1[ii]
-        #     for ii in np.where(
-        #         np.concatenate(
-        #             [test_dataset['Y0'], test_dataset['Y1']], axis=-1)[i] == 1)
-        #     [0]
-        # ]))
         print(np.where(targets_all[i] == 1))
         print(' '.join([Y0Y1[ii] for ii in np.where(targets_all[i] == 1)[0]]))
         print(np.where(preds_all[i] == 1))
