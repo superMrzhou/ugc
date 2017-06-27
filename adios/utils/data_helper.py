@@ -302,7 +302,7 @@ def generate_arrays_from_dataset(file_path,
         texts, labels = [], []
         with open(file_path, 'r') as f:
             for line in f:
-                if line:
+                if line and line_cnt < batch_size * 30:
                     texts.append(
                         line.strip('\n').split(split_tag)[lbl_text_index[1]]
                         .split())
@@ -310,7 +310,6 @@ def generate_arrays_from_dataset(file_path,
                         line.strip('\n').split(split_tag)[lbl_text_index[0]]
                         .split())
                     line_cnt += 1
-                elif line_cnt < batch_size * 30:
                     continue
                 # shuffle
                 local_num = len(texts)
