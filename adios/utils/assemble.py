@@ -64,7 +64,8 @@ def assemble_adios(params):
             bias_regularizer=l2(0.01))(H_input)
         conv_batch_norm = Activation('relu')(BatchNormalization()(conv))
         # conv_batch_norm = selu(BatchNormalization()(conv))
-        conv_pooling = MaxPool1D(pool_size=params['Conv1D']['layer%s' % i]['pooling_size'], strides=2)(conv_batch_norm)
+        pool_size = params['Conv1D']['layer%s' % i]['pooling_size'] if i < conv_layer_num else 128
+        conv_pooling = MaxPool1D(pool_size=pool_size, strides=3)(conv_batch_norm)
         # dropout
         if 'dropout' in params['Conv1D']['layer%s' % i]:
             H = Dropout(params['Conv1D']['layer%s' % i]['dropout'])(conv_pooling)
