@@ -13,6 +13,7 @@
 import os
 import re
 import sys
+import gc
 
 import yaml
 import numpy as np
@@ -169,7 +170,10 @@ def train(valid_dataset, params):
         input_sparse=input_sparse,
         use_hidden_feature=True,
         vocab_size=params['X']['vocab_size'])
-
+    # 回收内存
+    del valid_dataset
+    del thres_dataset
+    gc.collect()
     # Test the model
     test_data_generator = generate_arrays_from_dataset(
         '../docs/CNN/testString',
@@ -180,12 +184,14 @@ def train(valid_dataset, params):
         lbl_text_index=[0, 1],
         batch_size=batch_size,
         sequence_length=params['X']['sequence_length'])
-    for i in range(150):
+    steps = 150
+    for i in range(steps):
+        print('pridict %s / %s' % (i, steps))
         x_dict, y_dict = test_data_generator.next()
         batch_data = {'X': x_dict['X'], 'Y0': y_dict['Y0'], 'Y1': y_dict['Y1']}
         probs, preds = model.predict_combine(
             batch_data,
-            verbose=1,
+            verbose=0,
             batch_size=params['iter']['batch_size'],
             use_hidden_feature=True, )
 
@@ -240,7 +246,7 @@ def train(valid_dataset, params):
     print('G1 f1 : %.4f\n' % g1_f1)
 
     g2_recall, g2_precision, g2_f1 = recall_precision_f1(
-        targets_all[:, params['Y0']['dim']:], preds_all[:, :params['Y0']['dim']:])
+        targets_all[:, params['Y0']['dim']:], preds_all[:, params['Y0']['dim']:])
     print('G2 recall : %.4f' % g2_recall)
     print('G2 precision : %.4f' % g2_precision)
     print('G2 f1 : %.4f\n' % g2_f1)
