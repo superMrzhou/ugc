@@ -53,7 +53,8 @@ def train_word2vec(sentence_matrix,
 
         # Initialize and train the model
         print('Training Word2Vec model...')
-        sentences = [[vocabulary_inv[w] for w in s] for s in sentence_matrix]
+        sentences = [[vocabulary_inv[w] for w in filter(
+            lambda w_id: w_id > 0, s)] for s in sentence_matrix]
         embedding_model = word2vec.Word2Vec(
             sentences,
             workers=num_workers,
