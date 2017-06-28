@@ -150,7 +150,7 @@ def train(valid_dataset, test_dataset, params):
     # Fit thresholds
     thres_X, thres_Y0, thres_Y1 = [], [], []
     # data_size = 150 * batch_size (2048)
-    for _ in range(200):
+    for _ in range(100):
         x_dict, y_dict = train_data_generator.next()
         thres_X.extend(x_dict['X'].tolist())
         thres_Y0.extend(y_dict['Y0'].tolist())
