@@ -31,7 +31,7 @@ def assemble_adios(params):
     input_shape = (params['X']['sequence_length'], params['X']['embedding_dim']
                    ) if params['iter']['model_type'] == "CNN-static" else (
                        params['X']['sequence_length'], )
-    X = Input(shape=input_shape, dtype='float32', name='X')
+    X = Input(shape=input_shape, dtype='int32', name='X')
 
     # embedding
     # Static model do not have embedding layer
