@@ -54,24 +54,23 @@ def get_session(gpu_fraction=0.3):
         return tf.Session(config=tf.ConfigProto(gpu_options=gpu_options))
 
 
-def train(valid_dataset, test_dataset, params):
+def train(valid_dataset, params):
 
     # Assemble and compile the model
     model = assemble('ADIOS', params)
-    raw_test_dataset = deepcopy(test_dataset)
     # Prepare embedding layer weights and convert inputs for static model
     model_type = params['iter']['model_type']
     print("Model type is", model_type)
     if model_type == "CNN-non-static" or model_type == "CNN-static":
         embedding_weights = train_word2vec(
-            np.vstack((valid_dataset['X'], test_dataset['X'])),
+            valid_dataset['X'],
             vocabulary_inv,
             num_features=params['X']['embedding_dim'],
             min_word_count=1,
             context=5)
         if model_type == "CNN-static":
             # train_dataset['X'] = embedding_weights[0][train_dataset['X']]
-            test_dataset['X'] = embedding_weights[0][test_dataset['X']]
+            # test_dataset['X'] = embedding_weights[0][test_dataset['X']]
             valid_dataset['X'] = embedding_weights[0][valid_dataset['X']]
 
         elif params['iter']['model_type'] == "CNN-non-static":
@@ -93,7 +92,7 @@ def train(valid_dataset, test_dataset, params):
             'Y1': params['Y1']['loss_weight']
         },
         metrics=[categorical_accuracy],
-        optimizer=RMSprop(params['iter']['learn_rate']))
+        optimizer=Adagrad(params['iter']['learn_rate']))
 
     # Make sure checkpoints folder exists
     model_dir = params['iter']['model_dir']
@@ -172,37 +171,51 @@ def train(valid_dataset, test_dataset, params):
         vocab_size=params['X']['vocab_size'])
 
     # Test the model
-    probs, preds = model.predict_combine(
-        test_dataset,
-        verbose=1,
-        batch_size=params['iter']['batch_size'],
-        use_hidden_feature=True, )
+    test_data_generator = generate_arrays_from_dataset(
+        '../docs/CNN/testString',
+        vocabulary,
+        Y0Y1,
+        params['Y0']['dim'],
+        split_tag='@@@',
+        lbl_text_index=[0, 1],
+        batch_size=batch_size,
+        sequence_length=params['X']['sequence_length'])
+    for i in range(150):
+        x_dict, y_dict = test_data_generator.next()
+        batch_data = {'X': x_dict['X'], 'Y0': y_dict['Y0'], 'Y1': y_dict['Y1']}
+        probs, preds = model.predict_combine(
+            batch_data,
+            verbose=1,
+            batch_size=params['iter']['batch_size'],
+            use_hidden_feature=True, )
 
-    targets_all = np.hstack([test_dataset[k] for k in ['Y0', 'Y1']])
-    preds_all = np.hstack([preds[k] for k in ['Y0', 'Y1']])
+        target = np.hstack([batch_data[k] for k in ['Y0', 'Y1']])
+        pred = np.hstack([preds[k] for k in ['Y0', 'Y1']])
+        targets_all = target if i == 0 else np.vstack((targets_all, target))
+        preds_all = pred if i == 0 else np.vstack((preds_all, pred))
     # save predict sampless
-    save_predict_samples(
-        raw_test_dataset, test_dataset, preds_all, save_num=2000)
+    # save_predict_samples(
+    #     raw_test_dataset, test_dataset, preds_all, save_num=2000)
     for i in range(100):
         print('\n')
         print(' '.join([vocabulary_inv[ii]
-                        for ii in raw_test_dataset['X'][i]]))
-        print(np.where(targets_all[i] == 1))
-        print(' '.join([Y0Y1[ii] for ii in np.where(targets_all[i] == 1)[0]]))
-        print(np.where(preds_all[i] == 1))
-        print(' '.join([Y0Y1[ii] for ii in np.where(preds_all[i] == 1)[0]]))
+                        for ii in batch_data['X'][i]]))
+        print(np.where(target[i] == 1))
+        print(' '.join([Y0Y1[ii] for ii in np.where(target[i] == 1)[0]]))
+        print(np.where(pred[i] == 1))
+        print(' '.join([Y0Y1[ii] for ii in np.where(pred[i] == 1)[0]]))
 
     # print('start calculate confuse matix....')
-    get_confuse(test_dataset, preds, 'Y0')
-    get_confuse(test_dataset, preds, 'Y1')
+    get_confuse(batch_data, preds, 'Y0')
+    get_confuse(batch_data, preds, 'Y1')
 
-    hl = hamming_loss(test_dataset, preds)
-    f1_macro = f1_measure(test_dataset, preds, average='macro')
-    f1_micro = f1_measure(test_dataset, preds, average='micro')
-    f1_samples = f1_measure(test_dataset, preds, average='samples')
-    p_at_1 = precision_at_k(test_dataset, probs, K=1)
-    p_at_3 = precision_at_k(test_dataset, probs, K=3)
-    p_at_5 = precision_at_k(test_dataset, probs, K=5)
+    hl = hamming_loss(batch_data, preds)
+    f1_macro = f1_measure(batch_data, preds, average='macro')
+    f1_micro = f1_measure(batch_data, preds, average='micro')
+    f1_samples = f1_measure(batch_data, preds, average='samples')
+    p_at_1 = precision_at_k(batch_data, probs, K=1)
+    p_at_3 = precision_at_k(batch_data, probs, K=3)
+    p_at_5 = precision_at_k(batch_data, probs, K=5)
 
     for k in ['Y0', 'Y1', 'all']:
         print
@@ -221,13 +234,13 @@ def train(valid_dataset, test_dataset, params):
     print('total f1 : %.4f\n' % t_f1)
 
     g1_recall, g1_precision, g1_f1 = recall_precision_f1(
-        test_dataset['Y0'], preds['Y0'])
+        targets_all[:, :params['Y0']['dim']], preds_all[:, :params['Y0']['dim']])
     print('G1 recall : %.4f' % g1_recall)
     print('G1 precision : %.4f' % g1_precision)
     print('G1 f1 : %.4f\n' % g1_f1)
 
     g2_recall, g2_precision, g2_f1 = recall_precision_f1(
-        test_dataset['Y1'], preds['Y1'])
+        targets_all[:, params['Y0']['dim']:], preds_all[:, :params['Y0']['dim']:])
     print('G2 recall : %.4f' % g2_recall)
     print('G2 precision : %.4f' % g2_precision)
     print('G2 f1 : %.4f\n' % g2_f1)
@@ -341,7 +354,8 @@ def filter_data(x, y):
     res_x, res_y = [], []
     for i, yy in enumerate(y):
         temp_y = filter(lambda lbl: '其他' not in lbl and '新闻' not in lbl, yy)
-        if len(temp_y) > 1:  # and not (len(temp_y) == 1 and 'G1' in temp_y[0]):
+        # and not (len(temp_y) == 1 and 'G1' in temp_y[0]):
+        if len(temp_y) > 1:
             res_x.append(x[i])
             res_y.append(temp_y)
         if i % 2000 == 0:
@@ -364,8 +378,8 @@ if __name__ == '__main__':
     print(len(vocabulary_inv), len(vocabulary))
 
     # load tst_file
-    tst_texts, tst_labels = load_data_and_labels(
-        '../docs/CNN/testString', lbl_text_index=[0, 1], split_tag='@@@')
+    val_texts, val_labels = load_data_and_labels(
+        '../docs/CNN/valString', lbl_text_index=[0, 1], split_tag='@@@')
 
     # category
     # 一级原始类目
@@ -405,16 +419,11 @@ if __name__ == '__main__':
     # set gpu_option
     KTF.set_session(get_session(gpu_fraction=params['iter']['gpu_fraction']))
 
-    ratio = 0.02
-    valid_N = int(ratio * len(tst_texts))
-    # train_dataset just input raw data
-    # train_dataset = {'X': trn_texts, 'Y': trn_labels}
-    # valid_dataset should transform
     test_X, test_Y0, test_Y1 = [], [], []
-    for i in range(len(tst_texts)):
+    for i in range(len(val_texts)):
         x, y0, y1 = process_line(
-            tst_texts[i],
-            tst_labels[i],
+            val_texts[i],
+            val_labels[i],
             vocabulary,
             Y0Y1,
             nb_labels_Y0,
@@ -423,14 +432,9 @@ if __name__ == '__main__':
         test_Y0.append(y0)
         test_Y1.append(y1)
     valid_dataset = {
-        'X': np.array(test_X)[:valid_N, :],
-        'Y0': np.array(test_Y0)[:valid_N, :],
-        'Y1': np.array(test_Y1)[:valid_N, :],
-    }
-    test_dataset = {
-        'X': np.array(test_X)[valid_N:, :],
-        'Y0': np.array(test_Y0)[valid_N:, :],
-        'Y1': np.array(test_Y1)[valid_N:, :],
+        'X': np.array(test_X),
+        'Y0': np.array(test_Y0),
+        'Y1': np.array(test_Y1),
     }
     # start train
-    train(valid_dataset, test_dataset, params)
+    train(valid_dataset, params)
