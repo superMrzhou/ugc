@@ -123,4 +123,5 @@ if __name__ == '__main__':
         '../docs/CNN/testString_title_aa',
         vocabulary,
         Y0Y1,
+        test_data_file='../docs/CNN/testString_title_aa',
         valid_data=valid_dataset)

@@ -182,7 +182,6 @@ class GRU_CNN_Attention():
               w2v_preTrain_file,
               vocabulary_inv,
               category,
-              test_data_file=None,
               valid_data=None,
               test_data_file=None):
         '''Train model.'''
