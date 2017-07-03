@@ -1,0 +1,60 @@
+# params config
+
+iter:
+    batch_size:    2048
+    steps_per_epoch: 50
+    test_steps: 50
+    epoch:         1
+    learn_rate:    0.01
+    model_dir:     '../docs/model/checkpoints/'
+    model_name:    'gru_cnn_best'
+    model_type:    'CNN-non-static' # only CNN-static, CNN-non-static, CNN-rand valiable
+    gpu_fraction:  0.5
+title_layer:
+    embedding_dic_dim: 0
+    embedding_dim: 100
+    sequence_length: 15
+    gru_cell: 48
+content_layer:
+    embedding_dic_dim: 0
+    embedding_dim: 100
+    sequence_length: 181
+Conv1D:
+    layer1:
+        filters:       128
+        filter_size:   5
+        padding_mode:   'valid'
+        pooling_size:  3 # default 2
+        dropout:       0.3
+    layer2:
+        filters:       128
+        filter_size:   4
+        padding_mode:   'valid'
+        pooling_size:  3 # default 2
+        dropout:      0.3
+    layer3:
+        filters:       128
+        filter_size:   3
+        padding_mode:   'valid'
+        pooling_size:  3 # default 2
+        dropout:      0.3
+H0:
+    dim:           256
+    dropout:       0.3
+    batch_norm: {momentum: 0.9}
+H1:
+    dim:         256
+    dropout:     0.3
+    batch_norm: {momentum: 0.9}
+Y0:
+    loss_weight:    1
+    loss_func:  'categorical_crossentropy'
+    W_regularizer: 0.1
+    activity_reg: {l1: 0.1}
+    batch_norm: {momentum: 0.9}
+Y1:
+    loss_weight:    1
+    loss_func:  'categorical_crossentropy'
+    W_regularizer: 0.1
+    activity_reg: {l1: 0.1}
+    batch_norm: {momentum: 0.9}
