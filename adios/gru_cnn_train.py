@@ -62,7 +62,7 @@ if __name__ == '__main__':
     cate = [
         yy[0]
         for yy in load_data_and_labels(
-            '../docs/CNN/cate_Y0', split_tag='\t', lbl_text_index=[1, 0])[0]
+            '../docs/CNN/categoryMap', split_tag='\t', lbl_text_index=[1, 0])[0]
     ]
     # 一级原始类目
     G0 = filter(lambda yy: not re.search('-|_', yy) for yy in cate)
