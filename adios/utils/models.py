@@ -449,9 +449,8 @@ class MLC_GRU(Model):
                           y_name=['Y0', 'Y1'],
                           use_hidden_feature=False,
                           verbose=0):
-        inputs = np.hstack([data[k] for k in self.input_names])
         probs = self.predict(
-            inputs.astype(float), batch_size=batch_size, verbose=verbose)
+            data, batch_size=batch_size, verbose=verbose)
 
         probs = dict(zip(y_name, probs))
         T = self.threshold(
@@ -468,9 +467,8 @@ class MLC_GRU(Model):
                         y_name=['Y0', 'Y1'],
                         use_hidden_feature=False,
                         verbose=0):
-        inputs = np.hstack([data[k] for k in self.input_names])
         probs = self.predict(
-            inputs.astype(float), batch_size=batch_size, verbose=verbose)
+            data, batch_size=batch_size, verbose=verbose)
 
         probs = dict(zip(y_name, probs))
         T = self.threshold(
