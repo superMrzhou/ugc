@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     # load tst_file
     val_labels, val_titles, val_contents = load_labels_title_content(
-        '../docs/CNN/valString_title_aa', lbl_text_index=[0, 1, 2], split_tag='@@@')
+        '../docs/CNN/valString_title', lbl_text_index=[0, 1, 2], split_tag='@@@')
     # category
     # 所有类目
     cate = [
@@ -119,9 +119,9 @@ if __name__ == '__main__':
     # complie model
     gru_cnn_model = GRU_CNN_Attention(params)
     gru_cnn_model.train(
-        '../docs/CNN/trainString_title_aa',
-        '../docs/CNN/testString_title_aa',
+        '../docs/CNN/trainString_title',
+        '../docs/CNN/testString_title',
         vocabulary_inv,
         Y0Y1,
-        test_data_file='../docs/CNN/testString_title_aa',
+        test_data_file='../docs/CNN/testString_title',
         valid_data=valid_dataset)

@@ -2,9 +2,9 @@
 
 iter:
     batch_size:    2048
-    steps_per_epoch: 50
-    test_steps: 50
-    epoch:         1
+    steps_per_epoch: 821
+    test_steps: 350
+    epoch:         7
     learn_rate:    0.01
     model_dir:     '../docs/model/checkpoints/'
     model_name:    'gru_cnn_best'

@@ -260,7 +260,7 @@ class GRU_CNN_Attention():
             verbose=1)
         # fit threshold
         thres_titles, thres_contents, thres_Y0, thres_Y1 = [], [], [], []
-        for _ in range(10):
+        for _ in range(150):
             x_dict, y_dict = data_generator.next()
             thres_titles.extend(x_dict['title'].tolist())
             thres_contents.extend(x_dict['content'].tolist())
@@ -296,7 +296,7 @@ class GRU_CNN_Attention():
             split_tag='@@@',
             lbl_text_index=[0, 1, 2],
             batch_size=self.params['iter']['batch_size'],
-            shuffle_batch_num=20,
+            shuffle_batch_num=50,
             title_sequence_length=self.params['title_layer'][
                 'sequence_length'],
             content_sequence_length=self.params['content_layer'][
@@ -306,7 +306,7 @@ class GRU_CNN_Attention():
         for i in range(self.params['iter']['test_steps']):
             print('predict %s / %s....start loading batch_data' %
                   (i, self.params['iter']['test_steps']))
-            x_dict, y_dict = test_data_generator.next()
+            x_dict, y_dict = test_data_generwcator.next()
             batch_data = {
                 'title': x_dict['title'],
                 'content': x_dict['content'],
