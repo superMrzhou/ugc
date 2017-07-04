@@ -121,7 +121,7 @@ if __name__ == '__main__':
     gru_cnn_model.train(
         '../docs/CNN/trainString_title_aa',
         '../docs/CNN/testString_title_aa',
-        vocabulary,
+        vocabulary_inv,
         Y0Y1,
         test_data_file='../docs/CNN/testString_title_aa',
         valid_data=valid_dataset)

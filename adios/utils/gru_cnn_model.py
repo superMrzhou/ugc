@@ -313,7 +313,6 @@ class GRU_CNN_Attention():
                 'Y0': y_dict['Y0'],
                 'Y1': y_dict['Y1']
             }
-            print('start predicting.....')
             probs, preds = self.model.predict_combine(
                 batch_data,
                 verbose=0,
@@ -330,9 +329,6 @@ class GRU_CNN_Attention():
         #     raw_test_dataset, test_dataset, preds_all, save_num=2000)
         for i in range(100):
             print('\n')
-            print(batch_data['title'][i][:10])
-            print(type(vocabulary_inv))
-            print(vocabulary[:10])
             print(' '.join([
                 vocabulary_inv[ii] for ii in batch_data['title'][i]
             ]) + '@@@' + ' '.join(
