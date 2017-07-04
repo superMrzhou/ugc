@@ -296,6 +296,7 @@ class GRU_CNN_Attention():
             split_tag='@@@',
             lbl_text_index=[0, 1, 2],
             batch_size=self.params['iter']['batch_size'],
+            shuffle_batch_num=20,
             title_sequence_length=self.params['title_layer'][
                 'sequence_length'],
             content_sequence_length=self.params['content_layer'][
