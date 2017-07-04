@@ -507,6 +507,7 @@ def generate_arrays_from_dataset(file_path,
                                  split_tag='\t',
                                  lbl_text_index=[0, 1, 2],
                                  batch_size=2048,
+                                 shuffle_batch_num=100,
                                  title_sequence_length=30,
                                  content_sequence_length=256,
                                  use_G1=True,
@@ -517,7 +518,7 @@ def generate_arrays_from_dataset(file_path,
         titles, contents, labels = [], [], []
         with open(file_path, 'r') as f:
             for line in f:
-                if line and line_cnt < batch_size * 100:
+                if line and line_cnt < batch_size * shuffle_batch_num:
                     titles.append(
                         line.strip('\n').split(split_tag)[lbl_text_index[1]]
                         .split())
