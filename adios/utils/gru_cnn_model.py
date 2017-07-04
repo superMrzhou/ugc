@@ -28,7 +28,7 @@ from keras.regularizers import l2
 from utils.callbacks import HammingLoss
 from utils.data_helper_attention_cnn_gru import (generate_arrays_from_dataset,
                                                  train_word2vec)
-from utils.metrics import f1_measure, precision_at_k
+from utils.metrics import f1_measure, precision_at_k, hamming_loss
 from utils.models import MLC_GRU
 
 
@@ -332,8 +332,7 @@ class GRU_CNN_Attention():
             print('\n')
             print(' '.join([
                 vocabulary_inv[ii] for ii in batch_data['title'][i]
-            ]) + '@@@' + ' '.join(
-                [vocabulary_inv[ii] for ii in batch_data['content'][i]]))
+            ]) + '@@@' + ' '.join([vocabulary_inv[ii] for ii in batch_data['content'][i]]))
             print(np.where(target[i] == 1))
             print(
                 ' '.join([category[ii] for ii in np.where(target[i] == 1)[0]]))
