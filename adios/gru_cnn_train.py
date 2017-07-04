@@ -69,8 +69,8 @@ if __name__ == '__main__':
     # 二级原始类目
     G1 = filter(lambda yy: re.search('-|_', yy), cate)
     # 是否需要反转标签
-    Y1 = ['%s_G1' % yy for yy in G0]
-    Y0 = G0 + G1
+    Y0 = ['%s_G1' % yy for yy in G0]
+    Y1 = G0 + G1
     Y0Y1 = Y0 + Y1
     print(len(Y0Y1))
 
