@@ -312,6 +312,7 @@ class GRU_CNN_Attention():
                 'Y0': y_dict['Y0'],
                 'Y1': y_dict['Y1']
             }
+            print('start predicting.....')
             probs, preds = self.model.predict_combine(
                 batch_data,
                 verbose=0,
