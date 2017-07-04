@@ -306,7 +306,7 @@ class GRU_CNN_Attention():
         for i in range(self.params['iter']['test_steps']):
             print('predict %s / %s....start loading batch_data' %
                   (i, self.params['iter']['test_steps']))
-            x_dict, y_dict = test_data_generwcator.next()
+            x_dict, y_dict = test_data_generator.next()
             batch_data = {
                 'title': x_dict['title'],
                 'content': x_dict['content'],
