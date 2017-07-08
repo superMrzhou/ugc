@@ -191,7 +191,7 @@ def train_word2vec_params(params, vocabulary_title_inv,
 def train_word2vec(file_name,
                    vocabulary_inv,
                    num_features=100,
-                   min_word_count=1,
+                   min_word_count=2,
                    context=5):
     """
     Trains, saves, loads Word2Vec model

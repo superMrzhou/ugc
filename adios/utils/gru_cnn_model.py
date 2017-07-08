@@ -136,26 +136,26 @@ class GRU_CNN_Attention():
             name='Y0', **self.params['Y0']['activity_reg'])(Y0)
 
         # content_hidden
-        content_hidden = Conv1D(
+        content_hidden1 = Conv1D(
             128, 3, activation='relu')(content_embedding_layer)
-        content_hidden = MaxPooling1D(3)(content_hidden)
-        content_hidden = BatchNormalization(
-            name='content_batchNorm1', momentum=0.9)(content_hidden)
-        content_hidden = Dropout(0.3)(content_hidden)
+        content_hidden2 = MaxPooling1D(3)(content_hidden1)
+        content_hidden3 = BatchNormalization(
+            name='content_batchNorm1', momentum=0.9)(content_hidden2)
+        content_hidden4 = Dropout(0.3)(content_hidden3)
 
-        content_hidden = Conv1D(128, 4, activation='relu')(content_hidden)
-        content_hidden = MaxPooling1D(4)(content_hidden)
-        content_hidden = BatchNormalization(
-            name='content_batchNorm2', momentum=0.9)(content_hidden)
-        content_hidden = Dropout(0.3)(content_hidden)
+        content_hidden5 = Conv1D(128, 4, activation='relu')(content_hidden4)
+        content_hidden6 = MaxPooling1D(4)(content_hidden5)
+        content_hidden7 = BatchNormalization(
+            name='content_batchNorm2', momentum=0.9)(content_hidden6)
+        content_hidden8 = Dropout(0.3)(content_hidden7)
 
-        content_hidden = Conv1D(128, 5, activation='relu')(content_hidden)
-        content_hidden = MaxPooling1D(5)(content_hidden)  # global max pooling
-        content_hidden = BatchNormalization(
-            name='content_batchNorm3', momentum=0.9)(content_hidden)
-        content_hidden = Dropout(0.3)(content_hidden)
+        content_hidden9 = Conv1D(128, 5, activation='relu')(content_hidden8)
+        content_hidden10 = MaxPooling1D(5)(content_hidden9)  # global max pooling
+        content_hidden11 = BatchNormalization(
+            name='content_batchNorm3', momentum=0.9)(content_hidden10)
+        content_hidden12= Dropout(0.3)(content_hidden11)
         # Flatten feature
-        content_hidden = Flatten()(content_hidden)
+        content_hidden = Flatten()(content_hidden12)
 
         # combine feature
         Y0_H0 = concatenate([Y0_input, content_hidden])
@@ -196,7 +196,7 @@ class GRU_CNN_Attention():
             file_name=w2v_preTrain_file,
             vocabulary_inv=vocabulary_inv,
             num_features=self.params['title_layer']['embedding_dim'],
-            min_word_count=1,
+            min_word_count=2,
             context=5)
         # init embedding layer weights
         content_embedding_layer = self.model.get_layer(
