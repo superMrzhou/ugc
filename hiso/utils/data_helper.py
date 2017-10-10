@@ -21,7 +21,7 @@ from gensim.models import word2vec
 from os.path import join, exists, split
 
 
-class HMultLabelSample(object):
+class MultiLabelSample(object):
     """ 多层标记数据样本
     @self.data: list - Feature vector of raw data
     @self.sentence_len: int - Num of words of sentence
@@ -71,7 +71,7 @@ def build_data_cv(file_path, cv=5):
                         pd_data['Reproach'][i], pd_data['Like'][i], pd_data['Dislike'][i]]
 
         split = np.random.randint(0, cv)
-        datum = HMultLabelSample(
+        datum = MultiLabelSample(
             content, sentence_len, top_label, bottom_label, split)
         rev.append(datum)
 
