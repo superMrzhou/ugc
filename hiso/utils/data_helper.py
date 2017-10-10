@@ -21,6 +21,66 @@ from gensim.models import word2vec
 from os.path import join, exists, split
 
 
+class HMultLabelSample(object):
+    """ 多层标记数据样本
+    @self.data: list - Feature vector of raw data
+    @self.sentence_len: int - Num of words of sentence
+    @self.top_label: str - The top label of data
+    @self.bottom_label: str - The bottom label of data
+    @self.split: int - k folds set index
+    @self.vec: list - feature vector
+    标记对应映射关系
+    top_label_map = ['event', 'agent', 'object']
+    bottom_label_map = ['Satisfaction', 'Disappointment',
+        'Admiration', 'Reproach', 'Like', 'Dislike']
+    """
+
+    top_label_map = ['Event', 'Agent', 'Object']
+    bottom_label_map = ['Satisfaction', 'Disappointment',
+                        'Admiration', 'Reproach', 'Like', 'Dislike']
+
+    def __init__(self, content, sentence_len, top_label, bottom_label, split):
+        self.content = content
+        self.sentence_len = sentence_len
+        self.top_label = top_label
+        self.bottom_label = bottom_label
+        self.split = split
+        self.vec = None
+
+    def __str__(self):
+        return ''.join([word for word, _ in self.content])
+
+    def __len__(self):
+        return self.sentence_len
+
+
+def build_data_cv(file_path, cv=5):
+    """ 从文件载入数据， 每个样本是一个HMultLabelSample对象
+    @file_path: data file path
+    @cv: k folds set
+    @rtype: list(HMultLabelSample)
+    """
+    pd_data = pd.read_pickle(file_path)
+    rev = []
+    vocab = defaultdict(int)
+    for i in range(pd_data.shape[0]):
+        content = pd_data['Cut'][i]
+        sentence_len = pd_data['Len'][i]
+        top_label = [pd_data['Event'][i], pd_data['Agent'][i], pd_data['Object'][i]]
+        bottom_label = [pd_data['Satisfaction'][i], pd_data['Disappointment'][i], pd_data['Admiration'][i],
+                        pd_data['Reproach'][i], pd_data['Like'][i], pd_data['Dislike'][i]]
+
+        split = np.random.randint(0, cv)
+        datum = HMultLabelSample(
+            content, sentence_len, top_label, bottom_label, split)
+        rev.append(datum)
+
+        words = set([word for word, _ in content])
+        for word in words:
+            vocab[word] += 1
+    return rev, vocab
+
+
 def train_word2vec(sentence_matrix,
                    vocabulary_inv,
                    num_features=100,
@@ -88,36 +148,9 @@ def clean_str(string):
     Tokenization/string cleaning for all datasets except for SST.
     Original taken from https://github.com/yoonkim/CNN_sentence/blob/master/process_data.py
     """
-    string = re.sub(r"[^A-Za-z0-9(),!?！？，。；’‘“”’\'\`]", " ", string)
+    string = re.sub(r"[^A-Za-z(),!?！？，。；’‘“”’\'\`]", " ", string)
 
     return string.strip().lower()
-
-
-def build_data_cv(file_path, cv=10):
-    """ 从文件载入数据， 每个样本是一个HMultLabelSample对象
-    @file_path: data file path
-    @cv: k folds set
-    @rtype: list(HMultLabelSample)
-    """
-    pd_data = pd.read_pickle(file_path)
-    rev = []
-    vocab = defaultdict(int)
-    for i in range(pd_data.shape[0]):
-        content = pd_data['Cut'][i]
-        sentence_len = pd_data['Len'][i]
-        top_label = [pd_data['Event'][i], pd_data['Agent'][i], pd_data['Object'][i]]
-        bottom_label = [pd_data['Satisfaction'][i], pd_data['Disappointment'][i], pd_data['Admiration'][i],
-                        pd_data['Reproach'][i], pd_data['Like'][i], pd_data['Dislike'][i]]
-
-        split = np.random.randint(0, cv)
-        datum = HMultLabelSample(
-            content, sentence_len, top_label, bottom_label, split)
-        rev.append(datum)
-
-        words = set([word for word, _ in content])
-        for word in words:
-            vocab[word] += 1
-    return rev, vocab
 
 
 def pad_sentences(sentences, padding_word="<PAD/>", mode='max'):
