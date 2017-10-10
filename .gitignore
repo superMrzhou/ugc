@@ -88,6 +88,7 @@ ENV/
 # Rope project settings
 .ropeproject
 .DS_Store
+*.local
 
 docs/CNN/*
 .idea/*

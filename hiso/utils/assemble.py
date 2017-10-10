@@ -12,13 +12,6 @@ from keras.objectives import categorical_crossentropy
 from utils.models import MLC
 
 
-def assemble(name, params):
-    if name == 'ADIOS':
-        return assemble_adios(params)
-    else:
-        raise ValueError("Unknown name of the model: %s." % name)
-
-
 class HISO(object):
     def __init__(self, sentence_len, embed_size, vocab_size, Y0_dim, Y1_dim, mask_zero=True):
         # input
