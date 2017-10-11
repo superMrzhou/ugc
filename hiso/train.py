@@ -115,7 +115,7 @@ if __name__ == '__main__':
                     feed_dict={hiso.inputs: inputs,
                                hiso.Y0: Y0,
                                hiso.Y1: Y1})
-                if end / batch_size == 10:
+                if (end / batch_size) % 4 == 0:
                     tst_loss = do_eval(sess, hiso, test_datas, batch_size)
                     print('epoch: {}, train loss: {}, test loss: {}'.format(
                         epoch, trn_loss, tst_loss))
