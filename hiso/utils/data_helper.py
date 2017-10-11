@@ -10,20 +10,20 @@
 @time: 17/05/03 12:01
 """
 
-import re
-import os
 import itertools
+import os
+import re
+from collections import Counter, defaultdict
+from os.path import exists, join, split
+
 import numpy as np
-import pands as pd
-from collections import defaultdict
-from collections import Counter
+import pandas as pd
 from gensim.models import word2vec
-from os.path import join, exists, split
 
 
 class MultiLabelSample(object):
     """ 多层标记数据样本
-    @self.data: list - Feature vector of raw data
+    @self.content: list(tuple) - tuple(word, word_type)
     @self.sentence_len: int - Num of words of sentence
     @self.top_label: str - The top label of data
     @self.bottom_label: str - The bottom label of data
@@ -35,20 +35,25 @@ class MultiLabelSample(object):
         'Admiration', 'Reproach', 'Like', 'Dislike']
     """
 
-    top_label_map = ['Event', 'Agent', 'Object']
-    bottom_label_map = ['Satisfaction', 'Disappointment',
-                        'Admiration', 'Reproach', 'Like', 'Dislike']
-
-    def __init__(self, content, sentence_len, top_label, bottom_label, split):
+    def __init__(self, content, sentence_len, top_label, bottom_label, cv_n):
+        self.top_label_map = ['Event', 'Agent', 'Object']
+        self.bottom_label_map = [
+            'Satisfaction', 'Disappointment', 'Admiration', 'Reproach', 'Like',
+            'Dislike'
+        ]
         self.content = content
         self.sentence_len = sentence_len
         self.top_label = top_label
         self.bottom_label = bottom_label
-        self.split = split
+        self.cv_n = cv_n
         self.vec = None
 
     def __str__(self):
-        return ''.join([word for word, _ in self.content])
+        return 'top_label_map:\t{}\ntop_label:\t{}\nbottom_label_map:\t{}\nbottom_label:\t\t{}\nsentence_len:\t{}\ncv_n:\t{}\ncontent:\t{}\nvec:\t{}\n'.format(
+            '\t'.join(self.top_label_map), '\t'.join(map(str, self.top_label)),
+            '\t'.join(self.bottom_label_map),
+            '\t\t'.join(map(str, self.bottom_label)), self.sentence_len,
+            self.cv_n, self.content, self.vec)
 
     def __len__(self):
         return self.sentence_len
@@ -66,13 +71,18 @@ def build_data_cv(file_path, cv=5):
     for i in range(pd_data.shape[0]):
         content = pd_data['Cut'][i]
         sentence_len = pd_data['Len'][i]
-        top_label = [pd_data['Event'][i], pd_data['Agent'][i], pd_data['Object'][i]]
-        bottom_label = [pd_data['Satisfaction'][i], pd_data['Disappointment'][i], pd_data['Admiration'][i],
-                        pd_data['Reproach'][i], pd_data['Like'][i], pd_data['Dislike'][i]]
+        top_label = [
+            pd_data['Event'][i], pd_data['Agent'][i], pd_data['Object'][i]
+        ]
+        bottom_label = [
+            pd_data['Satisfaction'][i], pd_data['Disappointment'][i],
+            pd_data['Admiration'][i], pd_data['Reproach'][i],
+            pd_data['Like'][i], pd_data['Dislike'][i]
+        ]
 
-        split = np.random.randint(0, cv)
-        datum = MultiLabelSample(
-            content, sentence_len, top_label, bottom_label, split)
+        cv_n = np.random.randint(0, cv)
+        datum = MultiLabelSample(content, sentence_len, top_label,
+                                 bottom_label, cv_n)
         rev.append(datum)
 
         words = set([word for word, _ in content])
@@ -111,8 +121,9 @@ def train_word2vec(sentence_matrix,
 
         # Initialize and train the model
         print('Training Word2Vec model...')
-        sentences = [[vocabulary_inv[w] for w in filter(
-            lambda w_id: w_id > 0, s)] for s in sentence_matrix]
+        sentences = [[
+            vocabulary_inv[w] for w in filter(lambda w_id: w_id > 0, s)
+        ] for s in sentence_matrix]
         embedding_model = word2vec.Word2Vec(
             sentences,
             workers=num_workers,
@@ -224,7 +235,8 @@ def process_line(texts,
     # labels to vecs
     if use_G1:
         labels = list(
-            set(['%s_G1' % re.split('-|_', lbl)[0] for lbl in labels] + labels))
+            set(['%s_G1' % re.split('-|_', lbl)[0]
+                 for lbl in labels] + labels))
     else:
         labels = list(
             set([re.split('-|_', lbl)[0] for lbl in labels] + labels))

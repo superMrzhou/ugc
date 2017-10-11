@@ -42,6 +42,11 @@ def _construct_thresholds(probs, targets, top_k=None):
 
 
 if __name__ == '__main__':
+    a = [1, 2, 3]
+    for aa in a:
+        aa += 1
+    print(a)
+    exit()
     probs = np.array([[0.2, 0.1, 0.1, 0.23,
                        0.37], [0.18, 0.12, 0.13, 0.26, 0.37],
                       [0.1, 0.2, 0.05, 0.55, 0.1]])

@@ -2,14 +2,10 @@
 Utility functions for constructing MLC models.
 """
 import tensorflow as tf
-from keras.layers import Embedding, Dense, Dropout, concatenate, GRU
+import numpy as np
+from keras.layers import Embedding, Dense, concatenate, GRU
 from keras.layers.wrappers import Bidirectional
-from keras.layers import ActivityRegularization
-from keras.layers.normalization import BatchNormalization
-from keras.regularizers import l2
 from keras.objectives import categorical_crossentropy
-
-from utils.models import MLC
 
 
 class HISO(object):
@@ -38,7 +34,7 @@ class HISO(object):
         with tf.name_scope('loss'):
             Y0_loss = tf.reduce_mean(categorical_crossentropy(Y0, Y0_preds), name='Y0_loss')
             Y1_loss = tf.reduce_mean(categorical_crossentropy(Y1, Y1_preds), name='Y1_loss')
-            loss = tf.add(Y0_loss, Y1_loss, name='loss')
+            self.loss = tf.add_n([Y0_loss, Y1_loss], name='loss')
 
     def hamming_loss(self, data, preds):
         # Compute the scores for each output separately
