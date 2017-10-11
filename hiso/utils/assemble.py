@@ -1,7 +1,8 @@
 """
 Utility functions for constructing MLC models.
+multilabel loss functions see：
+http://d0evi1.com/sklearn/model_evaluation/ and http://www.jos.org.cn/html/2014/9/4634.htm
 """
-import numpy as np
 import tensorflow as tf
 from keras.layers import GRU, Dense, Embedding, concatenate
 from keras.layers.wrappers import Bidirectional
@@ -58,53 +59,3 @@ class HISO(object):
 
         self.train_op = tf.train.GradientDescentOptimizer(0.5).minimize(
             self.loss)
-
-    def hamming_loss(self, labels, preds):
-        '''
-        用于度量样本在单个标记上的真实标记和预测标记的错误匹配情况
-        @labels: true labels of samples
-        @preds:  predict labels of samples
-        '''
-        hl = tf.reduce_mean(
-            tf.not_equal(tf.cast(labels, tf.int32), tf.cast(preds, tf.int32)))
-        return hl
-
-    def rank_loss(self, labels, preds):
-        '''
-        用来考察样本的不相关标记的排序低于相关标记的排序情况
-        '''
-        pass
-
-    def one_error(self, labels, probs):
-        '''
-        用来考察预测值排在第一位的标记却不隶属于该样本的情况
-        @labels: true labels of samples
-        @probs:  label's probility  of samples
-        '''
-        # get the index with the largest value across axes of a Tensor
-        preds_at_1 = tf.argmax(probs, axis=1)
-        labels_at_1 = tf.gather(labels, preds_at_1, axis=1)
-        error = tf.reduce_mean(
-            tf.not_equal(
-                tf.cast(labels_at_1, tf.int32), tf.cast(preds_at_1, tf.int32)))
-        return error
-
-    def Coverage(self, labels, probs):
-        '''
-        用于度量平均上需要多少步才能遍历样本所有的相关标记
-        @labels: true labels of samples
-        @probs:  label's probility  of samples
-        '''
-        # find min prob of true label
-        lbl_probs_min = tf.reduce_min(tf.multiply(labels, probs), axis=1)
-        # [n, 1] X [1, L] = [n, L]
-        min_probs = tf.matmul(lbl_probs_min, tf.constant(1, shape=[1, tf.shape(probs)[-1]]))
-
-        steps = tf.reduce_mean(tf.greater_equal(probs, min_probs))
-        return steps
-
-    def average_precision(self, labels, preds):
-        '''
-        用来考察排在隶属于该样本标记之前标记仍属于样本的相关标记集合的情况
-        '''
-        pass

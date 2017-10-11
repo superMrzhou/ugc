@@ -3,53 +3,113 @@ Metrics for multi-label classification.
 """
 import numpy as np
 
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, label_ranking_loss
 
 
-def f1_measure(data, preds, average='binary'):
-    # Compute the scores for each output separately
-    f1_scores = {
-        k: float(f1_score(data[k], preds[k], average=average))
-        for k in preds
-    }
-
-    # Concatenate the outputs and compute the overall score
-    targets_all = np.hstack([data[k] for k in preds])
-    preds_all = np.hstack([preds[k] for k in preds])
-    f1_scores['all'] = float(f1_score(targets_all, preds_all, average=average))
-
+def F1_measure(labels, preds, average='binary'):
+    '''
+    Compute the scores for each output separately
+    support 'binary' (default), 'micro', 'macro', 'samples'
+    '''
+    f1_scores = float(f1_score(labels, preds, average=average))
     return f1_scores
 
 
-def hamming_loss(data, preds):
-    # Compute the scores for each output separately
-    hl = {k: float((data[k] != preds[k]).sum(axis=1).mean()) for k in preds}
-
-    # Concatenate the outputs and compute the overall score
-    targets_all = np.hstack([data[k] for k in preds])
-    preds_all = np.hstack([preds[k] for k in preds])
-    hl['all'] = float((targets_all != preds_all).sum(axis=1).mean())
+def Hamming_loss(labels, preds):
+    '''
+    用于度量样本在单个标记上的真实标记和预测标记的错误匹配情况
+    @labels: true labels of samples
+    @preds:  predict labels of samples
+    '''
+    hl = float((labels != preds).mean())
 
     return hl
 
 
-def precision_at_k(data, probs, K):
-    P_at_K = {}
+def One_error(labels, probs):
+    '''
+    用来考察预测值排在第一位的标记却不隶属于该样本的情况
+    @labels: true labels of samples
+    @probs:  label's probility  of samples
+    '''
+    idx = probs.argsort(axis=1)[:, -1:]
+    targets_top_1 = [labels[i, idx[i][0]] for i in range(len(idx))]
+    error = 1. - np.mean(targets_top_1)
 
-    # Compute P@K for every output layer separately
-    for k in probs:
-        if probs[k].shape[1] >= K:
-            idx = probs[k].argsort(axis=1)[:, -K:]
-            targets_topk = [data[k][i, idx[i]] for i in xrange(len(idx))]
-            P_at_K[k] = float(np.mean(targets_topk))
+    return error
 
-    # Concatenate the outputs and compute the overall P@K
-    targets_all = np.hstack([data[k] for k in probs])
-    probs_all = np.hstack([probs[k] for k in probs])
 
-    if probs_all.shape[1] >= K:
-        idx = probs_all.argsort(axis=1)[:, -K:]
-        targets_topk = [targets_all[i, idx[i]] for i in xrange(len(idx))]
-        P_at_K['all'] = float(np.mean(targets_topk))
+def Ranking_loss(labels, probs):
+    '''
+    用来考察样本的不相关标记的排序低于相关标记的排序情况
+    @labels: true labels of samples
+    @probs:  label's probility  of samples
+    '''
+    return label_ranking_loss(labels, probs)
 
-    return P_at_K
+
+def Average_precision(labels, preds):
+    '''
+    用来考察排在隶属于该样本标记之前标记仍属于样本的相关标记集合的情况
+    '''
+    pass
+
+
+def Coverage(labels, probs):
+    '''
+    用于度量平均上需要多少步才能遍历样本所有的相关标记
+    @labels: true labels of samples
+    @probs:  label's probility  of samples
+    '''
+    # find min prob of true label
+    lbl_probs = labels*probs
+    # deal label==0
+    lbl_probs[lbl_probs == 0.] = 10
+    lbl_probs_min = np.reshape(np.min(lbl_probs, axis=1), (len(probs), -1))
+
+    steps = np.mean(probs >= lbl_probs_min)
+
+    return steps - 1
+
+
+def average_precision(pred, test):
+    """ 单样本评估标记结果的Average precision指标
+
+    pred 为预测标签的概率向量, test为测试标签1/0向量
+    pred 中相关标记之前仍为相关标记的数目
+    """
+
+    assert len(pred) == len(test)
+    n_pred = np.array(pred)
+    n_test = np.array(tes t)
+    # [1, 0, 1]
+    print(n_pred)
+    n_sort = np.argsort(-n_pred) + 1
+    # [1,3,2]
+    print(n_sort)
+    n_rank = n_sort[n_test == 1]
+    # [1]
+    print(n_rank)
+    n_rank.sort()
+    # [1]
+    print(n_rank)
+    precision_value = 0.0
+    for idx, rank in enumerate(n_rank):
+        if rank > 0:
+            precision_value += (idx + 1) / rank
+    print(precision_value)
+    return precision_value / len(n_rank) if len(n_rank) > 0 else 0
+
+
+if __name__ == '__main__':
+    average_precision([0.7, 0.2, 0.8], [1, 0, 1])
+    exit()
+    y_true = np.array([[1, 0, 0], [0, 0, 1]])
+    y_score = np.array([[0.75, 0.5, 1], [1, 0.2, 0.1]])
+    y_preds = np.array([[1, 0, 1], [1, 0, 0]])
+    print('F1@micro: {}'.format(F1_measure(y_true, y_preds, average='micro')))
+    print('F1@macro: {}'.format(F1_measure(y_true, y_preds, average='macro')))
+    print('hamming_loss: {}'.format(Hamming_loss(y_true, y_preds)))
+    print('ranking_loss: {}'.format(Ranking_loss(y_true, y_score)))
+    print('one_error: {}'.format(One_error(y_true, y_score)))
+    print('coverage: {}'.format(Coverage(y_true, y_score)))
