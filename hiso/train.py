@@ -16,7 +16,7 @@ import tensorflow as tf
 from keras import backend as K
 from utils.assemble import HISO
 from utils.data_helper import build_data_cv
-from utils.metrics import (Average_precision, Coverage, F1_measure,
+from utils.metrics import (Average_precision, Coverage,
                            Hamming_loss, One_error, Ranking_loss)
 
 
@@ -138,15 +138,17 @@ if __name__ == '__main__':
     ]
 
     with tf.Session() as sess:
-        K.set_session(sess)
         hiso = HISO(
             sentence_len=100,
             Y0_dim=3,
             Y1_dim=6,
             vocab_size=len(vocab_wds),
             embed_size=100)
+        summary_writer = tf.summary.FileWriter('../docs/train', sess.graph)
+
         init_op = tf.global_variables_initializer()
         sess.run(init_op)
+        step = 0
         with open('../docs/%s.log' % timestamp, 'w') as f:
             for epoch in range(3):
                 for start, end in zip(
@@ -166,16 +168,28 @@ if __name__ == '__main__':
                             hiso.Y1: Y1
                         })
                     if (end / batch_size) % 5 == 0:
+                        step += 1
                         loss_dict = do_eval(sess, hiso, test_datas, batch_size)
 
                         timestamp = time.strftime("%Y-%m-%d %H:%M:%S",
                                                   time.localtime())
-                        str_loss = '{}:  epoch: {} eval_loss: {}\n'.format(
+                        str_loss = '{}:  epoch: {} eval_loss: {}'.format(
                             timestamp, epoch, loss_dict['eval_loss'])
                         print(str_loss)
-                        f.writelines(str_loss)
+                        f.writelines(str_loss + '\n')
                         for key in loss_key:
                             f.writelines('Y0_{}:\t{}\tY1_{}:\t{}\n'.format(
                                 key, loss_dict['Y0'][key], key, loss_dict['Y1']
                                 [key]))
+                            if key == 'Hamming_loss':
+                                summary = tf.Summary(value=[
+                                    tf.Summary.Value(tag="Y0_hamming_loss", simple_value=loss_dict['Y0'][key]),
+                                    tf.Summary.Value(tag="Y1_hamming_loss", simple_value=loss_dict['Y1'][key])
+                                ])
+                                summary_writer.add_summary(summary, step)
+                                print('Y0_{}:\t{}\tY1_{}:\t{}'.format(
+                                    key, loss_dict['Y0'][key], key, loss_dict['Y1']
+                                    [key]))
+
                         f.writelines('\n')
+        summary_writer.close()
