@@ -85,8 +85,8 @@ def do_eval(sess, model, eval_data, batch_size):
     Y1_probs = np.array(Y1_probs)
     # probs to predict label over thresholds
     # TODO: fit_threshold automatally
-    Y0_preds = Y0_probs >= 0.3
-    Y1_preds = Y1_probs >= 0.3
+    Y0_preds = Y0_probs >= 0.75
+    Y1_preds = Y1_probs >= 0.75
 
     loss_dict = {'eval_loss': eval_loss / eval_cnt, 'Y0': {}, 'Y1': {}}
     # use eval
