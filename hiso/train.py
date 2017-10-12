@@ -177,19 +177,19 @@ if __name__ == '__main__':
                             timestamp, epoch, loss_dict['eval_loss'])
                         print(str_loss)
                         f.writelines(str_loss + '\n')
+                        value = []
                         for key in loss_key:
                             f.writelines('Y0_{}:\t{}\tY1_{}:\t{}\n'.format(
                                 key, loss_dict['Y0'][key], key, loss_dict['Y1']
                                 [key]))
+                            value.append(tf.Summary.Value(tag="Y0_%s" % key, simple_value=loss_dict['Y0'][key]))
+                            value.append(tf.Summary.Value(tag="Y1_%s" % key, simple_value=loss_dict['Y1'][key]))
                             if key == 'Hamming_loss':
-                                summary = tf.Summary(value=[
-                                    tf.Summary.Value(tag="Y0_hamming_loss", simple_value=loss_dict['Y0'][key]),
-                                    tf.Summary.Value(tag="Y1_hamming_loss", simple_value=loss_dict['Y1'][key])
-                                ])
-                                summary_writer.add_summary(summary, step)
                                 print('Y0_{}:\t{}\tY1_{}:\t{}'.format(
                                     key, loss_dict['Y0'][key], key, loss_dict['Y1']
                                     [key]))
 
+                        summary = tf.Summary(value=value)
+                        summary_writer.add_summary(summary, step)
                         f.writelines('\n')
         summary_writer.close()
