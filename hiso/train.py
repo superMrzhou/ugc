@@ -13,7 +13,6 @@ import time
 
 import numpy as np
 import tensorflow as tf
-from keras import backend as K
 from utils.assemble import HISO
 from utils.data_helper import build_data_cv
 from utils.metrics import (Average_precision, Coverage,
