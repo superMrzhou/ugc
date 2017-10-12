@@ -143,7 +143,7 @@ if __name__ == '__main__':
             Y1_dim=6,
             vocab_size=len(vocab_wds),
             embed_size=100)
-        summary_writer = tf.summary.FileWriter('../docs/train', sess.graph)
+        summary_writer = tf.summary.FileWriter('../docs/test', sess.graph)
 
         init_op = tf.global_variables_initializer()
         sess.run(init_op)

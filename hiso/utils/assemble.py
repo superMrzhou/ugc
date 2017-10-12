@@ -40,14 +40,14 @@ class HISO(object):
         # Firstly, learn a hidden layer from Bi_GRU
         # Secondly, consider Y0_preds as middle feature and combine it with hidden layer
         hidden_layer_1 = Dense(64, name='hidden_layer_1')(Bi_GRU)
-        hidden_layer_1 = BatchNormalization(0.9, name='hidden_layer_1_BN')(hidden_layer_1)
+        hidden_layer_1 = BatchNormalization(momentum=0.9, name='hidden_layer_1_BN')(hidden_layer_1)
         hidden_layer_1 = Dropout(0.3, name='hidden_layer_1_dropout')(hidden_layer_1)
 
         combine_layer = concatenate(
             [self.Y0_preds, hidden_layer_1], axis=-1, name='combine_layer')
 
         hidden_layer_2 = Dense(96, name='hidden_layer_2')(combine_layer)
-        hidden_layer_2 = BatchNormalization(0.9, name='hidden_layer_2_BN')(hidden_layer_2)
+        hidden_layer_2 = BatchNormalization(momentum=0.9, name='hidden_layer_2_BN')(hidden_layer_2)
         hidden_layer_2 = Dropout(0.3, name='hidden_layer_2_dropout')(hidden_layer_2)
 
         # 5. layer for predict Y1
