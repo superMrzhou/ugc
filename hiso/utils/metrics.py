@@ -2,7 +2,6 @@
 Metrics for multi-label classification.
 """
 import numpy as np
-
 from sklearn.metrics import f1_score, label_ranking_loss
 
 
@@ -52,7 +51,21 @@ def Average_precision(labels, preds):
     '''
     用来考察排在隶属于该样本标记之前标记仍属于样本的相关标记集合的情况
     '''
-    pass
+    # 倒序
+    pred_sort = np.argsort(-preds, axis=1)
+    # generate rank matrix
+    for i in range(preds.shape[0]):
+        preds[i, pred_sort[i]] = np.arange(1, preds.shape[1] + 1)
+
+    # calcu precision for each sample
+    precision_value = 0.
+    for i in range(preds.shape[0]):
+        n_rank = preds[i][labels[i] == 1]
+        n_rank.sort()
+        if len(n_rank) == 0: continue
+        for idx, rank in enumerate(n_rank):
+            precision_value += (idx + 1) / (rank * len(n_rank))
+    return precision_value / preds.shape[0]
 
 
 def Coverage(labels, probs):
@@ -62,54 +75,23 @@ def Coverage(labels, probs):
     @probs:  label's probility  of samples
     '''
     # find min prob of true label
-    lbl_probs = labels*probs
+    lbl_probs = labels * probs
     # deal label==0
-    lbl_probs[lbl_probs == 0.] = 10
+    lbl_probs[lbl_probs == 0.] = 100
     lbl_probs_min = np.reshape(np.min(lbl_probs, axis=1), (len(probs), -1))
+    steps = (probs >= lbl_probs_min).sum(-1).mean()
 
-    steps = np.mean(probs >= lbl_probs_min)
-
-    return steps - 1
-
-
-def average_precision(pred, test):
-    """ 单样本评估标记结果的Average precision指标
-
-    pred 为预测标签的概率向量, test为测试标签1/0向量
-    pred 中相关标记之前仍为相关标记的数目
-    """
-
-    assert len(pred) == len(test)
-    n_pred = np.array(pred)
-    n_test = np.array(tes t)
-    # [1, 0, 1]
-    print(n_pred)
-    n_sort = np.argsort(-n_pred) + 1
-    # [1,3,2]
-    print(n_sort)
-    n_rank = n_sort[n_test == 1]
-    # [1]
-    print(n_rank)
-    n_rank.sort()
-    # [1]
-    print(n_rank)
-    precision_value = 0.0
-    for idx, rank in enumerate(n_rank):
-        if rank > 0:
-            precision_value += (idx + 1) / rank
-    print(precision_value)
-    return precision_value / len(n_rank) if len(n_rank) > 0 else 0
+    return steps
 
 
 if __name__ == '__main__':
-    average_precision([0.7, 0.2, 0.8], [1, 0, 1])
-    exit()
-    y_true = np.array([[1, 0, 0], [0, 0, 1]])
-    y_score = np.array([[0.75, 0.5, 1], [1, 0.2, 0.1]])
-    y_preds = np.array([[1, 0, 1], [1, 0, 0]])
+    y_true = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 0]])
+    y_score = np.array([[0.75, 0.5, 1], [0.1, 0.8, 1], [0.3, 0.7, 0.8]])
+    y_preds = np.array([[1, 0, 1], [0, 1, 1], [0, 0, 1]])
     print('F1@micro: {}'.format(F1_measure(y_true, y_preds, average='micro')))
     print('F1@macro: {}'.format(F1_measure(y_true, y_preds, average='macro')))
     print('hamming_loss: {}'.format(Hamming_loss(y_true, y_preds)))
     print('ranking_loss: {}'.format(Ranking_loss(y_true, y_score)))
     print('one_error: {}'.format(One_error(y_true, y_score)))
     print('coverage: {}'.format(Coverage(y_true, y_score)))
+    print('average_precision: {}'.format(Average_precision(y_true, y_score)))
