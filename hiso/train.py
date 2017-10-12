@@ -9,10 +9,15 @@
 @file: adios_train.py
 @time: 17/05/03 17:39
 """
+import time
+
+import numpy as np
 import tensorflow as tf
 from keras import backend as K
 from utils.assemble import HISO
 from utils.data_helper import build_data_cv
+from utils.metrics import (Average_precision, Coverage, F1_measure,
+                           Hamming_loss, One_error, Ranking_loss)
 
 
 def padding_sentence(hmlObjectList, sequence_len):
@@ -47,23 +52,58 @@ def word2index(hmlObjectList, vocab_word2index):
 
 
 def do_eval(sess, model, eval_data, batch_size):
-    number_example = len(eval_data)
-    eval_loss, eval_acc, eval_counter = 0., 0., 0
+    '''
+    eval test data for moedel.
+    '''
+    number_of_data = len(eval_data)
+    Y0_labels, Y1_labels, Y0_probs, Y1_probs = [], [], [], []
+    eval_loss, eval_cnt = 0., 0.
     for start, end in zip(
-            range(0, number_example, batch_size),
-            range(batch_size, number_example, batch_size)):
-        curr_eval_loss = sess.run(
-            model.loss,
+            range(0, number_of_data, batch_size),
+            range(batch_size, number_of_data, batch_size)):
+        eval_Y0_labels = [hml.top_label for hml in eval_data[start:end]]
+        eval_Y1_labels = [hml.bottom_label for hml in eval_data[start:end]]
+
+        curr_loss, eval_Y0_probs, eval_Y1_probs = sess.run(
+            [model.loss, model.Y0_preds, model.Y1_preds],
             feed_dict={
-                model.inputs: [hml.vec for hml in eval_data],
-                model.Y0: [hml.top_label for hml in eval_data],
-                model.Y1: [hml.bottom_label for hml in eval_data],
+                model.inputs: [hml.vec for hml in eval_data[start:end]],
+                model.Y0: eval_Y0_labels,
+                model.Y1: eval_Y1_labels,
             })
+        eval_loss += curr_loss
+        eval_cnt += 1
 
-        eval_loss += curr_eval_loss
-        eval_counter += 1
+        Y0_labels.extend(eval_Y0_labels)
+        Y1_labels.extend(eval_Y1_labels)
+        Y0_probs.extend(eval_Y0_probs)
+        Y1_probs.extend(eval_Y1_probs)
 
-        return eval_loss / eval_counter
+    # evaluation metrics
+    Y0_labels = np.array(Y0_labels)
+    Y1_labels = np.array(Y1_labels)
+    Y0_probs = np.array(Y0_probs)
+    Y1_probs = np.array(Y1_probs)
+    # probs to predict label over thresholds
+    # TODO: fit_threshold automatally
+    Y0_preds = Y0_probs >= 0.3
+    Y1_preds = Y1_probs >= 0.3
+
+    loss_dict = {'eval_loss': eval_loss / eval_cnt, 'Y0': {}, 'Y1': {}}
+    # use eval
+    func_eval = [
+        'Hamming_loss', 'One_error', 'Ranking_loss', 'Coverage',
+        'Average_precision'
+    ]
+    for func in func_eval:
+        if func == 'Hamming_loss':
+            loss_dict['Y0'][func] = eval(func)(Y0_labels, Y0_preds)
+            loss_dict['Y1'][func] = eval(func)(Y1_labels, Y1_preds)
+        else:
+            loss_dict['Y0'][func] = eval(func)(Y0_labels, Y0_probs)
+            loss_dict['Y1'][func] = eval(func)(Y1_labels, Y1_probs)
+
+    return loss_dict
 
 
 if __name__ == '__main__':
@@ -91,6 +131,12 @@ if __name__ == '__main__':
     number_of_training_data = len(train_datas)
     batch_size = 32
     # build model
+    timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
+    loss_key = [
+        'Hamming_loss', 'One_error', 'Ranking_loss', 'Coverage',
+        'Average_precision'
+    ]
+
     with tf.Session() as sess:
         K.set_session(sess)
         hiso = HISO(
@@ -101,21 +147,35 @@ if __name__ == '__main__':
             embed_size=100)
         init_op = tf.global_variables_initializer()
         sess.run(init_op)
-        for epoch in range(3):
-            for start, end in zip(
-                    range(0, number_of_training_data, batch_size),
-                    range(batch_size, number_of_training_data, batch_size)):
+        with open('../docs/%s.log' % timestamp, 'w') as f:
+            for epoch in range(3):
+                for start, end in zip(
+                        range(0, number_of_training_data, batch_size),
+                        range(batch_size, number_of_training_data,
+                              batch_size)):
 
-                inputs = [hml.vec for hml in train_datas[start:end]]
-                Y0 = [hml.top_label for hml in train_datas[start:end]]
-                Y1 = [hml.bottom_label for hml in train_datas[start:end]]
+                    inputs = [hml.vec for hml in train_datas[start:end]]
+                    Y0 = [hml.top_label for hml in train_datas[start:end]]
+                    Y1 = [hml.bottom_label for hml in train_datas[start:end]]
 
-                trn_loss, _ = sess.run(
-                    [hiso.loss, hiso.train_op],
-                    feed_dict={hiso.inputs: inputs,
-                               hiso.Y0: Y0,
-                               hiso.Y1: Y1})
-                if (end / batch_size) % 4 == 0:
-                    tst_loss = do_eval(sess, hiso, test_datas, batch_size)
-                    print('epoch: {}, train loss: {}, test loss: {}'.format(
-                        epoch, trn_loss, tst_loss))
+                    trn_loss, _ = sess.run(
+                        [hiso.loss, hiso.train_op],
+                        feed_dict={
+                            hiso.inputs: inputs,
+                            hiso.Y0: Y0,
+                            hiso.Y1: Y1
+                        })
+                    if (end / batch_size) % 5 == 0:
+                        loss_dict = do_eval(sess, hiso, test_datas, batch_size)
+
+                        timestamp = time.strftime("%Y-%m-%d %H:%M:%S",
+                                                  time.localtime())
+                        str_loss = '{}:  epoch: {} eval_loss: {}\n'.format(
+                            timestamp, epoch, loss_dict['eval_loss'])
+                        print(str_loss)
+                        f.writelines(str_loss)
+                        for key in loss_key:
+                            f.writelines('Y0_{}:\t{}\tY1_{}:\t{}\n'.format(
+                                key, loss_dict['Y0'][key], key, loss_dict['Y1']
+                                [key]))
+                        f.writelines('\n')

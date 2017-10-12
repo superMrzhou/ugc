@@ -19,7 +19,7 @@ class test(object):
                     input_dim, activation='softmax', name='attention_vec')(self.inputs)
         attention_mul = multiply([self.inputs, attention_probs])
         attention_mul = Dense(64)(attention_mul)
-        self.prods = Dense(y_dim, activation='sigmoid')(attention_mul)
+        self.probs = Dense(y_dim, activation='sigmoid')(attention_mul)
         self.labels = tf.placeholder(tf.float32, shape=[None, y_dim])
 
         self.loss = tf.reduce_mean(categorical_crossentropy(self.labels, self.probs))
@@ -59,11 +59,11 @@ if __name__ == '__main__':
     y_dim = 6
     inputs, outputs = get_data(N, input_dim, y_dim)
 
-    init_op = tf.global_variables_initializer()
-    sess.run(init_op)
     # run model
     with sess.as_default():
         tt = test(input_dim=input_dim, y_dim=y_dim)
+        init_op = tf.global_variables_initializer()
+        sess.run(init_op)
         # feed data to training
         number_of_training_data = len(outputs)
         batch_size = 20

@@ -47,25 +47,27 @@ def Ranking_loss(labels, probs):
     return label_ranking_loss(labels, probs)
 
 
-def Average_precision(labels, preds):
+def Average_precision(labels, probs):
     '''
     用来考察排在隶属于该样本标记之前标记仍属于样本的相关标记集合的情况
+    @labels: true labels of samples
+    @probs:  label's probility  of samples
     '''
     # 倒序
-    pred_sort = np.argsort(-preds, axis=1)
+    prob_sort = np.argsort(-probs, axis=1)
     # generate rank matrix
-    for i in range(preds.shape[0]):
-        preds[i, pred_sort[i]] = np.arange(1, preds.shape[1] + 1)
+    for i in range(probs.shape[0]):
+        probs[i, prob_sort[i]] = np.arange(1, probs.shape[1] + 1)
 
     # calcu precision for each sample
     precision_value = 0.
-    for i in range(preds.shape[0]):
-        n_rank = preds[i][labels[i] == 1]
+    for i in range(probs.shape[0]):
+        n_rank = probs[i][labels[i] == 1]
         n_rank.sort()
         if len(n_rank) == 0: continue
         for idx, rank in enumerate(n_rank):
             precision_value += (idx + 1) / (rank * len(n_rank))
-    return precision_value / preds.shape[0]
+    return precision_value / probs.shape[0]
 
 
 def Coverage(labels, probs):
@@ -85,8 +87,12 @@ def Coverage(labels, probs):
 
 
 if __name__ == '__main__':
+
     y_true = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 0]])
     y_score = np.array([[0.75, 0.5, 1], [0.1, 0.8, 1], [0.3, 0.7, 0.8]])
+    print(y_score >= 0.1)
+    print(np.array(y_score >= 0.1, dtype=np.int))
+    exit()
     y_preds = np.array([[1, 0, 1], [0, 1, 1], [0, 0, 1]])
     print('F1@micro: {}'.format(F1_measure(y_true, y_preds, average='micro')))
     print('F1@macro: {}'.format(F1_measure(y_true, y_preds, average='macro')))
