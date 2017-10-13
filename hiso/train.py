@@ -170,7 +170,6 @@ if __name__ == '__main__':
                         range(0, number_of_training_data, batch_size),
                         range(batch_size, number_of_training_data,
                               batch_size)):
-                    step += 1
 
                     inputs = [hml.vec for hml in train_datas[start:end]]
                     Y0 = [hml.top_label for hml in train_datas[start:end]]
@@ -183,9 +182,10 @@ if __name__ == '__main__':
                             hiso.Y0: Y0,
                             hiso.Y1: Y1
                         })
-                    train_writer.add_summary(tf.Summary(value=[tf.Summary.Value(tag="loss", simple_value=trn_loss)]), step)
 
-                    if step % 5 == 0:
+                    if step % 2 == 0:
+                        step += 1
+                        train_writer.add_summary(tf.Summary(value=[tf.Summary.Value(tag="loss", simple_value=trn_loss)]), step)
                         loss_dict = do_eval(sess, hiso, test_datas, batch_size)
 
                         timestamp = time.strftime("%Y-%m-%d %H:%M:%S",
