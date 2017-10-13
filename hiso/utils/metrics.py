@@ -3,7 +3,7 @@ Metrics for multi-label classification.
 """
 import numpy as np
 from sklearn.metrics import f1_score, label_ranking_loss
-from base_metrics import hamming_loss, one_error, average_precision, coverage, ranking_loss
+from .base_metrics import hamming_loss, one_error, average_precision, coverage, ranking_loss
 
 
 def F1_measure(labels, preds, average='binary', mode=1):
