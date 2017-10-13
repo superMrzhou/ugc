@@ -83,8 +83,10 @@ def do_eval(sess, model, eval_data, batch_size):
     Y1_labels = np.array(Y1_labels)
     Y0_probs = np.array(Y0_probs)
     Y1_probs = np.array(Y1_probs)
-    print('Y0 probs:', Y0_probs[3])
-    print('Y1 probs:', Y1_probs[3])
+    print('Y0 label:', Y0_labels[:3])
+    print('Y0 probs:', Y0_probs[:3])
+    print('Y1 probs:', Y1_probs[:3])
+    print('Y1 label:', Y1_labels[:3])
     # probs to predict label over thresholds
     # TODO: fit_threshold automatally
     Y0_preds = Y0_probs >= 0.75
