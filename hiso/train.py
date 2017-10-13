@@ -138,8 +138,10 @@ if __name__ == '__main__':
     batch_size = 128
     # build model
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
-    log_dir = '../docs/test/%s' % timestamp
-    os.mkdir(log_dir)
+    log_test_dir = '../docs/test/%s' % timestamp
+    log_train_dir = '../docs/train/%s' % timestamp
+    os.mkdir(log_test_dir)
+    os.mkdir(log_train_dir)
 
     loss_key = [
         'Hamming_loss', 'One_error', 'Ranking_loss', 'Coverage',
@@ -153,7 +155,8 @@ if __name__ == '__main__':
             Y1_dim=6,
             vocab_size=len(vocab_wds),
             embed_size=100)
-        summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
+        test_writer = tf.summary.FileWriter(log_test_dir, sess.graph)
+        train_writer = tf.summary.FileWriter(log_train_dir, sess.graph)
 
         init_op = tf.global_variables_initializer()
         sess.run(init_op)
@@ -167,6 +170,7 @@ if __name__ == '__main__':
                         range(0, number_of_training_data, batch_size),
                         range(batch_size, number_of_training_data,
                               batch_size)):
+                    step += 1
 
                     inputs = [hml.vec for hml in train_datas[start:end]]
                     Y0 = [hml.top_label for hml in train_datas[start:end]]
@@ -179,8 +183,9 @@ if __name__ == '__main__':
                             hiso.Y0: Y0,
                             hiso.Y1: Y1
                         })
-                    if (end / batch_size) % 2 == 0:
-                        step += 1
+                    train_writer.add_summary(tf.Summary(value=[tf.Summary.Value(tag="loss", simple_value=trn_loss)]), step)
+
+                    if step % 5 == 0:
                         loss_dict = do_eval(sess, hiso, test_datas, batch_size)
 
                         timestamp = time.strftime("%Y-%m-%d %H:%M:%S",
@@ -189,7 +194,8 @@ if __name__ == '__main__':
                             timestamp, epoch, loss_dict['eval_loss'])
                         print(str_loss)
                         f.writelines(str_loss + '\n')
-                        value = []
+
+                        value = [tf.Summary.Value(tag="loss", simple_value=loss_dict['eval_loss'])]
                         for key in loss_key:
                             f.writelines('Y0_{}:\t{}\tY1_{}:\t{}\n'.format(
                                 key, loss_dict['Y0'][key], key, loss_dict['Y1']
@@ -202,6 +208,7 @@ if __name__ == '__main__':
                                     [key]))
 
                         summary = tf.Summary(value=value)
-                        summary_writer.add_summary(summary, step)
+                        test_writer.add_summary(summary, step)
                         f.writelines('\n')
-        summary_writer.close()
+        test_writer.close()
+        train_writer.close()
