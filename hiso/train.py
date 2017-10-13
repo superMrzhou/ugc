@@ -104,13 +104,15 @@ def do_eval(sess, model, eval_data, batch_size):
         'Hamming_loss', 'One_error', 'Ranking_loss', 'Coverage',
         'Average_precision'
     ]
+    # 0: 伟哥的评判标准， 1：正确的评判标准
+    mode = 0
     for func in func_eval:
         if func == 'Hamming_loss':
-            loss_dict['Y0'][func] = eval(func)(Y0_labels, Y0_preds)
-            loss_dict['Y1'][func] = eval(func)(Y1_labels, Y1_preds)
+            loss_dict['Y0'][func] = eval(func)(Y0_labels, Y0_preds, mode=mode)
+            loss_dict['Y1'][func] = eval(func)(Y1_labels, Y1_preds, mode=mode)
         else:
-            loss_dict['Y0'][func] = eval(func)(Y0_labels, Y0_probs)
-            loss_dict['Y1'][func] = eval(func)(Y1_labels, Y1_probs)
+            loss_dict['Y0'][func] = eval(func)(Y0_labels, Y0_probs, mode=mode)
+            loss_dict['Y1'][func] = eval(func)(Y1_labels, Y1_probs, mode=mode)
     K.set_learning_phase(1)
     return loss_dict
 
