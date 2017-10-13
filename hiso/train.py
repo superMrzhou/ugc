@@ -161,7 +161,7 @@ if __name__ == '__main__':
         init_op = tf.global_variables_initializer()
         sess.run(init_op)
 
-        step = 0
+        step = -1
         with open('../docs/%s.log' % timestamp, 'w') as f:
             for epoch in range(3):
                 # shuffle in each epoch
