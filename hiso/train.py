@@ -14,6 +14,7 @@ import os
 
 import numpy as np
 import tensorflow as tf
+from keras import backend as K
 from utils.assemble import HISO
 from utils.data_helper import build_data_cv
 from utils.metrics import (Average_precision, Coverage,
@@ -55,6 +56,7 @@ def do_eval(sess, model, eval_data, batch_size):
     '''
     eval test data for moedel.
     '''
+    K.set_learning_phase(0)
     number_of_data = len(eval_data)
     Y0_labels, Y1_labels, Y0_probs, Y1_probs = [], [], [], []
     eval_loss, eval_cnt = 0., 0.
@@ -69,7 +71,8 @@ def do_eval(sess, model, eval_data, batch_size):
             feed_dict={
                 model.inputs: [hml.vec for hml in eval_data[start:end]],
                 model.Y0: eval_Y0_labels,
-                model.Y1: eval_Y1_labels,
+                model.Y1: eval_Y1_labels
+                # K.learning_phase(): 0
             })
         eval_loss += curr_loss
         eval_cnt += 1
@@ -108,7 +111,7 @@ def do_eval(sess, model, eval_data, batch_size):
         else:
             loss_dict['Y0'][func] = eval(func)(Y0_labels, Y0_probs)
             loss_dict['Y1'][func] = eval(func)(Y1_labels, Y1_probs)
-
+    K.set_learning_phase(1)
     return loss_dict
 
 
@@ -182,6 +185,7 @@ if __name__ == '__main__':
                             hiso.inputs: inputs,
                             hiso.Y0: Y0,
                             hiso.Y1: Y1
+                            # K.learning_phase(): 1
                         })
 
                     if step % 5 == 0:

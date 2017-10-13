@@ -5,9 +5,6 @@ from keras.layers import Dense, multiply
 from keras.metrics import binary_accuracy
 from keras.objectives import binary_crossentropy
 
-sess = tf.Session()
-K.set_session(sess)
-
 np.random.seed(1337)  # for reproducibility
 
 input_dim = 32
@@ -41,13 +38,13 @@ def build_model():
     train_step = tf.train.GradientDescentOptimizer(0.5).minimize(loss)
 
     merged = tf.summary.merge_all()
-    train_writer = tf.summary.FileWriter('../docs/train', sess.graph)
-    test_writer = tf.summary.FileWriter('../docs/test')
-    # initializers
-    init_op = tf.global_variables_initializer()
-    sess.run(init_op)
     # run model
-    with sess.as_default():
+    with tf.Session() as sess:
+        train_writer = tf.summary.FileWriter('../docs/train', sess.graph)
+        test_writer = tf.summary.FileWriter('../docs/test')
+        # initializers
+        init_op = tf.global_variables_initializer()
+        sess.run(init_op)
         # feed data to training
         number_of_training_data = len(outputs)
         batch_size = 20
