@@ -130,7 +130,7 @@ if __name__ == '__main__':
     print('test dataset: {}'.format(len(test_datas)))
 
     number_of_training_data = len(train_datas)
-    batch_size = 32
+    batch_size = 128
     # build model
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
     loss_key = [
@@ -152,6 +152,9 @@ if __name__ == '__main__':
         step = 0
         with open('../docs/%s.log' % timestamp, 'w') as f:
             for epoch in range(3):
+                # shuffle in each epoch
+                train_datas = np.random.permutation(train_datas)
+
                 for start, end in zip(
                         range(0, number_of_training_data, batch_size),
                         range(batch_size, number_of_training_data,
@@ -168,7 +171,7 @@ if __name__ == '__main__':
                             hiso.Y0: Y0,
                             hiso.Y1: Y1
                         })
-                    if (end / batch_size) % 5 == 0:
+                    if (end / batch_size) % 2 == 0:
                         step += 1
                         loss_dict = do_eval(sess, hiso, test_datas, batch_size)
 
