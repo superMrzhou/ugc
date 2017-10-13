@@ -59,6 +59,7 @@ def do_eval(labels, probs):
 
 
 if __name__ == '__main__':
+
     import tensorflow as tf
     summary_writer = tf.summary.FileWriter('../docs/test')
     summary = tf.Summary(value=[

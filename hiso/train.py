@@ -10,6 +10,7 @@
 @time: 17/05/03 17:39
 """
 import time
+import os
 
 import numpy as np
 import tensorflow as tf
@@ -137,6 +138,9 @@ if __name__ == '__main__':
     batch_size = 128
     # build model
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
+    log_dir = '../docs/test/%s' % timestamp
+    os.mkdir(log_dir)
+
     loss_key = [
         'Hamming_loss', 'One_error', 'Ranking_loss', 'Coverage',
         'Average_precision'
@@ -149,7 +153,7 @@ if __name__ == '__main__':
             Y1_dim=6,
             vocab_size=len(vocab_wds),
             embed_size=100)
-        summary_writer = tf.summary.FileWriter('../docs/test', sess.graph)
+        summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
 
         init_op = tf.global_variables_initializer()
         sess.run(init_op)
