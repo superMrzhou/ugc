@@ -46,6 +46,8 @@ class MultiLabelSample(object):
         self.top_label = top_label
         self.bottom_label = bottom_label
         self.cv_n = cv_n
+        self.top_probs = ''
+        self.bottom_probs = ''
 
     def __str__(self):
         return 'top_label_map:\t{}\ntop_label:\t{}\nbottom_label_map:\t{}\nbottom_label:\t\t{}\nsentence_len:\t{}\ncv_n:\t{}\ncontent:\t{}\nwds:\t{}\n'.format(
@@ -82,7 +84,10 @@ def build_vocab(file_path, voc_path, pos_path):
         voc.extend(list(set(wds)))
         pos.extend(list(set(poss)))
 
+    # set index
     voc = {wd: v for v, wd in enumerate(voc)}
+    for j, p in enumerate(pos):
+        print(j, p)
     pos = {p: j for j, p in enumerate(pos)}
     print('build vocab done')
 
@@ -126,6 +131,8 @@ def build_data_cv(file_path, voc_path, pos_path, cv=5):
         voc, pos, max_length = build_vocab(
             file_path, voc_path, pos_path)
 
+    print('length of voc: ', len(voc))
+    print('length of pos: ', len(pos))
     for i in range(pd_data.shape[0]):
         if i % 1000 == 0:
             print('load data:...', i)
@@ -161,7 +168,7 @@ def build_data_cv(file_path, voc_path, pos_path, cv=5):
         datum = MultiLabelSample(content=content, wds=pad_wds, pos=pad_pos, wds_cnt=wds_cnt, sentence_len=sentence_len, top_label=top_label, bottom_label=bottom_label, cv_n=cv_n)
         rev.append(datum)
 
-    return rev, voc, pos
+    return rev, voc, pos, max_length
 
 
 def clean_str(string):
