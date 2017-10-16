@@ -104,7 +104,6 @@ def train(params):
         pos_path='../docs/data/pos.json',
         cv=5)
     # fill params
-    datas = datas[:1000]
     params['voc_size'] = len(voc)
     params['pos_size'] = len(pos)
     params['words']['dim'] = max_length
@@ -142,7 +141,7 @@ def train(params):
     os.mkdir(model_dir)
     model_name = model_dir + '/' + params['model_name']
 
-    with tf.Session(config=config) as sess:
+    with tf.Session(config=config) as sess, tf.device('/gpu:1'):
         hiso = HISO(params)
 
         saver = tf.train.Saver(max_to_keep=2)
