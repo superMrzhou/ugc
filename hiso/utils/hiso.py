@@ -5,9 +5,10 @@ http://d0evi1.com/sklearn/model_evaluation/ and http://www.jos.org.cn/html/2014/
 """
 import tensorflow as tf
 from keras.layers import GRU, Dense, Embedding, concatenate, merge, Activation
-from keras.layers import Dropout, BatchNormalization
+from keras.layers import Dropout, BatchNormalization, ActivityRegularization
 from keras.layers.wrappers import Bidirectional
 from keras.objectives import binary_crossentropy
+from keras.regularizers import l2
 
 
 class HISO(object):
@@ -17,6 +18,11 @@ class HISO(object):
             tf.float32, [None, params['words']['dim']], name='words')
         # input pos
         self.pos = tf.placeholder(tf.float32, [None, params['pos']['dim']], name='pos')
+        # output Y0
+        self.Y0 = tf.placeholder(tf.float32, [None, params['Y0']['dim']], name='Y0')
+        # output Y1
+        self.Y1 = tf.placeholder(tf.float32, [None, params['Y1']['dim']], name='Y1')
+
         # 1.base layers: embedding
         wd_embedding = Embedding(
             output_dim=params['embed_size'],
@@ -53,9 +59,24 @@ class HISO(object):
         # ATTENTION PART FINISHES HERE
 
         # 3. middle layer for predict Y0
+        kwargs = params['Y0']['kwargs'] if 'kwargs' in params['Y0'] else {}
+        if 'W_regularizer' in kwargs:
+            kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
         self.Y0_probs = Dense(
-            params['Y0_dim'], activation='sigmoid', name='Y0_predictions')(wd_Bi_GRU)
-        self.Y0 = tf.placeholder(tf.float32, [None, params['Y0_dim']], name='Y0')
+            params['Y0']['dim'],
+            # activation='softmax',
+            name='Y0_probs',
+            bias_regularizer=l2(0.01),
+            **kwargs)(wd_Bi_GRU)
+        # batch_norm
+        if 'batch_norm' in params['Y0']:
+            self.Y0_probs = BatchNormalization(**params['label']['batch_norm'])(self.Y0_probs)
+        self.Y0_probs = Activation(params['Y0']['activate_func'])(self.Y0_probs)
+
+        if 'activity_reg' in params['label']:
+            self.Y0_probs = ActivityRegularization(
+                name='Y0_activity_reg', **params['Y0']['activity_reg'])(self.Y0_probs)
+
         # 4. upper hidden layers
         # Firstly, learn a hidden layer from Bi_GRU
         # Secondly, consider Y0_preds as middle feature and combine it with hidden layer
@@ -71,12 +92,26 @@ class HISO(object):
             hidden_layer = Dropout(params['H']['drop_out'], name='hidden_layer_dropout')(hidden_layer)
 
         # 5. layer for predict Y1
+        kwargs = params['Y1']['kwargs'] if 'kwargs' in params['Y1'] else {}
+        if 'W_regularizer' in kwargs:
+            kwargs['W_regularizer'] = l2(kwargs['W_regularizer'])
         self.Y1_probs = Dense(
-            params['Y1_dim'], activation='sigmoid',
-            name='Y1_predictions')(hidden_layer)
-        self.Y1 = tf.placeholder(tf.float32, [None, params['Y1_dim']], name='Y1')
+            params['Y1']['dim'],
+            # activation='softmax',
+            name='Y1_probs',
+            bias_regularizer=l2(0.01),
+            **kwargs)(hidden_layer)
+        # batch_norm
+        if 'batch_norm' in params['Y1']:
+            self.Y1_probs = BatchNormalization(**params['label']['batch_norm'])(self.Y1_probs)
+        self.Y1_probs = Activation(params['Y1']['activate_func'])(self.Y1_probs)
 
-        # Calculate loss
+        if 'activity_reg' in params['label']:
+            self.Y1_probs = ActivityRegularization(
+                name='Y1_activity_reg', **params['Y1']['activity_reg'])(self.Y1_probs)
+
+
+        # 6. Calculate loss
         with tf.name_scope('loss'):
             Y0_loss = tf.reduce_mean(
                 binary_crossentropy(self.Y0, self.Y0_probs), name='Y0_loss')
