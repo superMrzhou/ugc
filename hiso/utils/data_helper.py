@@ -69,26 +69,24 @@ def build_vocab(file_path, voc_path, pos_path):
     :return:
     '''
     print('build vocab...')
-    voc = ['<s>']
-    pos = ['<s>']
+    voc = set([])
+    pos = set([])
     max_length = 0
 
     pd_data = pd.read_pickle(file_path)
     for i in range(pd_data.shape[0]):
         content = pd_data['Cut'][i]
         wds = [word for word, _ in content]
-        poss = [pos for _, pos in content]
+        poss = [p for _, p in content]
 
         max_length = max(max_length, len(wds))
 
-        voc.extend(list(set(wds)))
-        pos.extend(list(set(poss)))
+        voc |= set(wds)
+        pos |= set(poss)
 
     # set index
-    voc = {wd: v for v, wd in enumerate(voc)}
-    for j, p in enumerate(pos):
-        print(j, p)
-    pos = {p: j for j, p in enumerate(pos)}
+    voc = {wd: v for v, wd in enumerate(['<s>'] + list(voc))}
+    pos = {p: j for j, p in enumerate(['<s>'] + list(pos))}
     print('build vocab done')
 
     voc_dict = {
