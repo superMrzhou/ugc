@@ -63,10 +63,12 @@ class HISO(object):
         combine_layer = concatenate(
             [self.Y0_probs, attention_mul], axis=-1, name='combine_layer')
 
-        hidden_layer = Dense(96, name='hidden_layer')(combine_layer)
-        hidden_layer = BatchNormalization(momentum=0.9, name='hidden_layer_BN')(hidden_layer)
+        hidden_layer = Dense(params['H']['dim'], name='hidden_layer')(combine_layer)
+        if 'batch_norm' in params['H']:
+            hidden_layer = BatchNormalization(momentum=0.9, name='hidden_layer_BN')(hidden_layer)
         hidden_layer = Activation('relu')(hidden_layer)
-        hidden_layer = Dropout(0.3, name='hidden_layer_dropout')(hidden_layer)
+        if 'drop_out' in params['H']:
+            hidden_layer = Dropout(params['H']['drop_out'], name='hidden_layer_dropout')(hidden_layer)
 
         # 5. layer for predict Y1
         self.Y1_probs = Dense(
