@@ -10,10 +10,9 @@
 @time: 17/05/03 12:01
 """
 
-import itertools
 import os
+import json
 import re
-from collections import Counter, defaultdict
 from os.path import exists, join, split
 
 import numpy as np
@@ -35,31 +34,77 @@ class MultiLabelSample(object):
         'Admiration', 'Reproach', 'Like', 'Dislike']
     """
 
-    def __init__(self, content, sentence_len, top_label, bottom_label, cv_n):
+    def __init__(self, content, wds, pos, wds_cnt, sentence_len, top_label, bottom_label, cv_n):
         self.top_label_map = ['Event', 'Agent', 'Object']
         self.bottom_label_map = [
             'Satisfaction', 'Disappointment', 'Admiration', 'Reproach', 'Like',
             'Dislike'
         ]
         self.content = content
+        self.wds = wds
+        self.pos = pos
+        self.wds_cnt = wds_cnt
         self.sentence_len = sentence_len
         self.top_label = top_label
         self.bottom_label = bottom_label
         self.cv_n = cv_n
-        self.vec = None
 
     def __str__(self):
-        return 'top_label_map:\t{}\ntop_label:\t{}\nbottom_label_map:\t{}\nbottom_label:\t\t{}\nsentence_len:\t{}\ncv_n:\t{}\ncontent:\t{}\nvec:\t{}\n'.format(
+        return 'top_label_map:\t{}\ntop_label:\t{}\nbottom_label_map:\t{}\nbottom_label:\t\t{}\nsentence_len:\t{}\ncv_n:\t{}\ncontent:\t{}\nwds:\t{}\n'.format(
             '\t'.join(self.top_label_map), '\t'.join(map(str, self.top_label)),
             '\t'.join(self.bottom_label_map),
             '\t\t'.join(map(str, self.bottom_label)), self.sentence_len,
-            self.cv_n, self.content, self.vec)
+            self.cv_n, self.content, self.wds)
 
     def __len__(self):
         return self.sentence_len
 
 
-def build_data_cv(file_path, cv=5):
+def build_vocab(file_path, voc_path, pos_path):
+    """
+    建立词典
+    :param file_path: 建立词典文件地址
+    :param voc_path: 词典保存地址
+    :return:
+    """
+    print('build vocab...')
+    voc = ['<s>']
+    pos = ['<s>']
+    max_length = 0
+
+    pd_data = pd.read_pickle(file_path)
+    for i in range(pd_data.shape[0]):
+        content = pd_data['Cut'][i]
+        wds = [word for word, _ in content]
+        poss = [pos for _, pos in content]
+
+        max_length = max(max_length, len(wds))
+
+        voc.extend(list(set(wds)))
+        pos.extend(list(set(poss)))
+
+    voc = {wd: i for i, wd in enumerate(voc)}
+    pos = {p: i for i, p in enumerate(pos)}
+    print('build vocab done')
+
+    voc_dict = {
+        'voc': voc,
+        'max_length': max_length,
+    }
+    pos_dict = {
+        'voc': pos,
+        'max_length': max_length,
+    }
+    with open(voc_path, 'w') as f:
+        json.dump(voc_dict, f)
+
+    with open(pos_path, 'w') as f:
+        json.dump(pos_dict, f)
+
+    return [voc, pos, max_length]
+
+
+def build_data_cv(file_path, voc_path, pos_path, cv=5):
     """ 从文件载入数据， 每个样本是一个HMultLabelSample对象
     @file_path: data file path
     @cv: k folds set
@@ -67,10 +112,40 @@ def build_data_cv(file_path, cv=5):
     """
     pd_data = pd.read_pickle(file_path)
     rev = []
-    vocab = defaultdict(int)
+    if os.path.isfile(voc_path) and os.path.isfile(pos_path):
+        with open(voc_path, 'r') as fv, open(pos_path, 'r') as fp:
+            voc_dict = json.load(fv)
+            voc = voc_dict['voc']
+            max_length = voc_dict['max_length']
+
+            pos_dict = json.load(fp)
+            pos = pos_dict['voc']
+    else:
+        voc, pos, max_length = build_vocab(
+            file_path, voc_path, pos_path)
+
     for i in range(pd_data.shape[0]):
+        if i % 1000 == 0:
+            print('load data:...', i)
+
         content = pd_data['Cut'][i]
+
+        wds = [word for word, _ in content]
+        poss = [pos for _, pos in content]
+
+        # padding wds and pos
+        pad_wds, pad_pos = wds[:max_length], poss[:max_length]
+        pad_wds = [voc[x] if x in voc else 0 for x in pad_wds]
+        pad_wds.extend([0] * (max_length - len(pad_wds)))
+        pad_pos = [pos[x] if x in pos else 0 for x in pad_pos]
+        pad_pos.extend([0] * (max_length - len(pad_pos)))
+
+        # 句子长度，包括标点
         sentence_len = pd_data['Len'][i]
+
+        # 词个数
+        wds_cnt = len(wds)
+
         top_label = [
             pd_data['Event'][i], pd_data['Agent'][i], pd_data['Object'][i]
         ]
@@ -81,14 +156,10 @@ def build_data_cv(file_path, cv=5):
         ]
 
         cv_n = np.random.randint(0, cv)
-        datum = MultiLabelSample(content, sentence_len, top_label,
-                                 bottom_label, cv_n)
+        datum = MultiLabelSample(content=content, wds=pad_wds, pos=pad_pos, wds_cnt=wds_cnt, sentence_len=sentence_len, top_label=top_label, bottom_label=bottom_label, cv_n=cv_n)
         rev.append(datum)
 
-        words = set([word for word, _ in content])
-        for word in words:
-            vocab[word] += 1
-    return rev, vocab
+    return rev, voc, pos
 
 
 def train_word2vec(sentence_matrix,
@@ -162,123 +233,6 @@ def clean_str(string):
     string = re.sub(r"[^A-Za-z(),!?！？，。；’‘“”’\'\`]", " ", string)
 
     return string.strip().lower()
-
-
-def pad_sentences(sentences, padding_word="<PAD/>", mode='max'):
-    """
-    Pads all sentences to the same length. The length is defined by the longest sentence.
-    Returns padded sentences.
-    """
-    if mode == 'max':
-        sequence_length = max(len(x) for x in sentences)
-    else:
-        sequence_length = sum(len(x) for x in sentences) / len(sentences)
-    padded_sentences = []
-    for i in range(len(sentences)):
-        sentence = sentences[i]
-        if len(sentence) < sequence_length:
-            num_padding = sequence_length - len(sentence)
-            new_sentence = sentence + [padding_word] * num_padding
-        else:
-            new_sentence = sentence[:sequence_length]
-        padded_sentences.append(new_sentence)
-    return padded_sentences
-
-
-def build_vocab(sentences):
-    """
-    Builds a vocabulary mapping from word to index based on the sentences.
-    Returns vocabulary mapping and inverse vocabulary mapping.
-    """
-    # Build vocabulary
-    word_counts = Counter(itertools.chain(*sentences))
-    # Mapping from index to word
-    vocabulary_inv = [x[0] for x in word_counts.most_common()]
-    # Mapping from word to index
-    vocabulary = {x: i for i, x in enumerate(vocabulary_inv)}
-    return [vocabulary, vocabulary_inv]
-
-
-def build_input_data(sentences, labels, vocabulary, padding_word="<PAD/>"):
-    """
-    Maps sentencs and labels to vectors based on a vocabulary.
-    """
-    x = np.array([[
-        vocabulary[word] if word in vocabulary else vocabulary[padding_word]
-        for word in sentence
-    ] for sentence in sentences])
-    y = np.array(labels)
-    return [x, y]
-
-
-def process_line(texts,
-                 labels,
-                 vocabulary,
-                 category,
-                 cate_split_n,
-                 use_G1=True,
-                 sequence_length=256,
-                 padding_word='<PAD/>'):
-    """Process line data to train format."""
-
-    # padding
-    if len(texts) < sequence_length:
-        texts = texts + [padding_word] * (sequence_length - len(texts))
-    else:
-        texts = texts[:sequence_length]
-    # build_input_data
-    texts = [
-        vocabulary[word] if word in vocabulary else vocabulary[padding_word]
-        for word in texts
-    ]
-
-    # labels to vecs
-    if use_G1:
-        labels = list(
-            set(['%s_G1' % re.split('-|_', lbl)[0]
-                 for lbl in labels] + labels))
-    else:
-        labels = list(
-            set([re.split('-|_', lbl)[0] for lbl in labels] + labels))
-    labels_vec = np.zeros(len(category))
-    labels_vec[[category.index(lbl) for lbl in labels]] = 1
-
-    return texts, labels_vec[:cate_split_n], labels_vec[cate_split_n:]
-
-
-def ml_confuse(y_true, y_pre):
-    '''
-    calculate multi-label confuse matrix
-    '''
-    # init dict
-    lbl_set = set(sum(y_true, []) + sum(y_pre, []))
-    confuse = {}
-    for lbl in lbl_set:
-        confuse[lbl] = defaultdict(int)
-    N = len(y_true)
-    for i in range(N):
-        gt = set(y_true[i])
-        pre = set(y_pre[i])
-        if not pre:
-            continue
-        # predicted right labels
-        pre_T = gt & pre
-        # prediced wrong labels
-        wrg = pre - pre_T
-        for t_lbl in pre_T:
-            confuse[t_lbl][t_lbl] += 1  # right cnt
-            for w_lbl in wrg:
-                confuse[t_lbl]['+%s' % w_lbl] += 1
-        # label with no predict result
-        pre_w = gt - pre_T
-        for t_lbl in pre_w:
-            for w_lbl in wrg:
-                confuse[t_lbl]['-%s' % w_lbl] += 1
-        if i % int(0.1 * N) == 0:
-            print('%s / %s' % (i, N))
-
-    return confuse
-
 
 if __name__ == "__main__":
     pass
