@@ -9,18 +9,19 @@
 @file: adios_train.py
 @time: 17/05/03 17:39
 """
-import time
-import os
-import yaml
 import json
+import os
+import time
 from math import ceil
+
 import numpy as np
 import tensorflow as tf
+import yaml
 from keras import backend as K
-from utils.hiso import HISO
 from utils.data_helper import build_data_cv
-from utils.metrics import (Average_precision, Coverage,
-                           Hamming_loss, One_error, Ranking_loss)
+from utils.hiso import HISO
+from utils.metrics import (Average_precision, Coverage, Hamming_loss,
+                           One_error, Ranking_loss)
 
 
 def do_eval(sess, model, eval_data, batch_size):
@@ -34,7 +35,7 @@ def do_eval(sess, model, eval_data, batch_size):
     '''
     K.set_learning_phase(0)
     number_of_data = len(eval_data)
-    number_of_batch = ceil(number_of_data/batch_size)
+    number_of_batch = ceil(number_of_data / batch_size)
     Y0_labels, Y1_labels, Y0_probs, Y1_probs = [], [], [], []
     eval_loss, eval_cnt = 0., 0.
     for batch in range(number_of_batch):
@@ -97,7 +98,11 @@ def do_eval(sess, model, eval_data, batch_size):
 
 
 def train(params):
-    datas, voc, pos, max_length = build_data_cv(file_path='../docs/data/HML_JD_ALL.new.dat', voc_path='../docs/data/voc.json', pos_path='../docs/data/pos.json', cv=5)
+    datas, voc, pos, max_length = build_data_cv(
+        file_path='../docs/data/HML_JD_ALL.new.dat',
+        voc_path='../docs/data/voc.json',
+        pos_path='../docs/data/pos.json',
+        cv=5)
     # fill params
     datas = datas[:1000]
     params['voc_size'] = len(voc)
@@ -132,7 +137,8 @@ def train(params):
     batch_size = params['batch_size']
     number_of_batch = ceil(number_of_training_data / batch_size)
     # 保存最优模型
-    model_dir = params['model_dir'] + time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
+    model_dir = params['model_dir'] + time.strftime("%Y-%m-%d-%H:%M:%S",
+                                                    time.localtime())
     os.mkdir(model_dir)
     model_name = model_dir + '/' + params['model_name']
 
@@ -147,7 +153,7 @@ def train(params):
         sess.run(init_op)
 
         step = -1
-        min_hamming_loss = 0.
+        min_hamming_loss = 1000
         best_sess = sess
         for epoch in range(params['epoch']):
             # shuffle in each epoch
@@ -175,7 +181,11 @@ def train(params):
                 # log train loss
                 if step % params['log_train_every'] == 0:
                     train_writer.add_summary(
-                        tf.Summary(value=[tf.Summary.Value(tag="loss", simple_value=trn_loss)]), step)
+                        tf.Summary(value=[
+                            tf.Summary.Value(
+                                tag="loss", simple_value=trn_loss)
+                        ]),
+                        step)
 
                 # log eval data
                 if step % params['log_eval_every'] == 0:
@@ -187,10 +197,19 @@ def train(params):
                         timestamp, epoch, loss_dict['eval_loss'])
                     print(str_loss)
 
-                    value = [tf.Summary.Value(tag="loss", simple_value=loss_dict['eval_loss'])]
+                    value = [
+                        tf.Summary.Value(
+                            tag="loss", simple_value=loss_dict['eval_loss'])
+                    ]
                     for key in loss_key:
-                        value.append(tf.Summary.Value(tag="Y0_%s" % key, simple_value=loss_dict['Y0'][key]))
-                        value.append(tf.Summary.Value(tag="Y1_%s" % key, simple_value=loss_dict['Y1'][key]))
+                        value.append(
+                            tf.Summary.Value(
+                                tag="Y0_%s" % key,
+                                simple_value=loss_dict['Y0'][key]))
+                        value.append(
+                            tf.Summary.Value(
+                                tag="Y1_%s" % key,
+                                simple_value=loss_dict['Y1'][key]))
                         if key == 'Hamming_loss':
                             print('Y0_{}:\t{}\tY1_{}:\t{}'.format(
                                 key, loss_dict['Y0'][key], key, loss_dict['Y1']
@@ -210,7 +229,12 @@ def train(params):
                         # predict and save train data
         test_writer.close()
         train_writer.close()
-        predict(best_sess, hiso, datas, batch_size, save_name='data-%s.txt' % timestamp)
+        # predict(
+        #     best_sess,
+        #     hiso,
+        #     datas,
+        #     batch_size,
+        #     save_name='data-%s.txt' % timestamp)
 
 
 def predict(sess, model, dataset, batch_size, save_name='eval.csv'):
@@ -234,19 +258,24 @@ def predict(sess, model, dataset, batch_size, save_name='eval.csv'):
             cur_Y1 = [hml.bottom_label for hml in dataset[start:end]]
 
             curr_Y0_probs, curr_Y1_probs = sess.run(
-                model.Y0_probs, model.Y1_probs,
+                [model.Y0_probs, model.Y1_probs],
                 feed_dict={
                     model.wds: cur_wds,
-                    model.pos: cur_pos,
+                    model.pos: cur_pos
                     # K.learning_phase(): 1
                 })
 
             # transform [1] -> 'POSITIVE'
             for i in range(start, end):
-                dataset[i].top_probs = ' '.join(curr_Y0_probs[i])
-                dataset[i].bottom_probs = ' '.join(curr_Y1_probs[i])
-                line = '{}\t{}\t{}\t{}\t{}\n'.format(' '.join(cur_Y1[i]), dataset[i].bottom_probs,
-                    ' '.join(cur_Y0[i]), dataset[i].top_probs, ' '.join(dataset[i].wds))
+                dataset[i].top_probs = ' '.join(
+                    [str(s) for s in curr_Y0_probs[i]])
+                dataset[i].bottom_probs = ' '.join(
+                    [str(s) for s in curr_Y1_probs[i]])
+                line = '{}\t{}\t{}\t{}\t{}\n'.format(' '.join(
+                    [str(x)
+                     for x in cur_Y1[i]]), dataset[i].bottom_probs, ' '.join(
+                         [str(x) for x in cur_Y0[i]]), dataset[i].top_probs,
+                                                     dataset[i].raw_sentence)
                 f.write(line)
 
     K.set_learning_phase(1)
@@ -267,7 +296,8 @@ def load_predict(model_meta_path,
 
     with tf.Session(config=config) as sess:
         saver = tf.train.import_meta_graph(model_meta_path)
-        saver.restore(sess, tf.train.latest_checkpoint(os.path.dirname(model_meta_path)))
+        saver.restore(
+            sess, tf.train.latest_checkpoint(os.path.dirname(model_meta_path)))
 
         # load graph
         graph = tf.get_default_graph()
@@ -283,8 +313,11 @@ def load_predict(model_meta_path,
         model = TFModel(tf_wds, tf_pos, tf_Y0_probs, tf_Y1_probs)
 
         # predict and save eval data
-        datas, vocab, pos, max_length = build_data_cv(file_path=predict_path, voc_path='../docs/voc.json', pos_path='../docs/pos.json',
-                      cv=5)
+        datas, vocab, pos, max_length = build_data_cv(
+            file_path=predict_path,
+            voc_path='../docs/voc.json',
+            pos_path='../docs/pos.json',
+            cv=5)
         predict(sess, model, datas, batch_size, save_name=save_name)
 
 

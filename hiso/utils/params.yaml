@@ -7,8 +7,8 @@ embed_size: 100
 batch_size:    128
 epoch:         1
 learning_rate:    0.01
-log_train_every:  1
-log_eval_every: 2
+log_train_every:  5
+log_eval_every: 10
 model_dir:     '../docs/model/'
 model_name:   'best'
 gpu_fraction: 0.25

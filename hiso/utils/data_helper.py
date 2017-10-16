@@ -32,13 +32,14 @@ class MultiLabelSample(object):
         'Admiration', 'Reproach', 'Like', 'Dislike']
     """
 
-    def __init__(self, content, wds, pos, wds_cnt, sentence_len, top_label, bottom_label, cv_n):
+    def __init__(self, content, raw_sentence, wds, pos, wds_cnt, sentence_len, top_label, bottom_label, cv_n):
         self.top_label_map = ['Event', 'Agent', 'Object']
         self.bottom_label_map = [
             'Satisfaction', 'Disappointment', 'Admiration', 'Reproach', 'Like',
             'Dislike'
         ]
         self.content = content
+        self.raw_sentence = raw_sentence
         self.wds = wds
         self.pos = pos
         self.wds_cnt = wds_cnt
@@ -163,7 +164,7 @@ def build_data_cv(file_path, voc_path, pos_path, cv=5):
         ]
 
         cv_n = np.random.randint(0, cv)
-        datum = MultiLabelSample(content=content, wds=pad_wds, pos=pad_pos, wds_cnt=wds_cnt, sentence_len=sentence_len, top_label=top_label, bottom_label=bottom_label, cv_n=cv_n)
+        datum = MultiLabelSample(content=content, raw_sentence=''.join(wds), wds=pad_wds, pos=pad_pos, wds_cnt=wds_cnt, sentence_len=sentence_len, top_label=top_label, bottom_label=bottom_label, cv_n=cv_n)
         rev.append(datum)
 
     return rev, voc, pos, max_length
