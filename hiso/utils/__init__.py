@@ -1,4 +1,4 @@
-from . import assemble
+from . import hiso
 from . import callbacks
 from . import data_helper
 from . import metrics

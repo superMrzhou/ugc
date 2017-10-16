@@ -13,11 +13,9 @@
 import os
 import json
 import re
-from os.path import exists, join, split
 
 import numpy as np
 import pandas as pd
-from gensim.models import word2vec
 
 
 class MultiLabelSample(object):
@@ -61,12 +59,13 @@ class MultiLabelSample(object):
 
 
 def build_vocab(file_path, voc_path, pos_path):
-    """
+    '''
     建立词典
-    :param file_path: 建立词典文件地址
-    :param voc_path: 词典保存地址
+    :param file_path: 原始文件地址
+    :param voc_path: 词典路径
+    :param pos_path: 词性路径
     :return:
-    """
+    '''
     print('build vocab...')
     voc = ['<s>']
     pos = ['<s>']
@@ -83,8 +82,8 @@ def build_vocab(file_path, voc_path, pos_path):
         voc.extend(list(set(wds)))
         pos.extend(list(set(poss)))
 
-    voc = {wd: i for i, wd in enumerate(voc)}
-    pos = {p: i for i, p in enumerate(pos)}
+    voc = {wd: v for v, wd in enumerate(voc)}
+    pos = {p: j for j, p in enumerate(pos)}
     print('build vocab done')
 
     voc_dict = {
@@ -105,11 +104,14 @@ def build_vocab(file_path, voc_path, pos_path):
 
 
 def build_data_cv(file_path, voc_path, pos_path, cv=5):
-    """ 从文件载入数据， 每个样本是一个HMultLabelSample对象
-    @file_path: data file path
-    @cv: k folds set
-    @rtype: list(HMultLabelSample)
-    """
+    '''
+    从文件载入数据， 每个样本是一个HMultLabelSample对象
+    :param file_path:  原始路径
+    :param voc_path:   词典路径
+    :param pos_path:   词性路径
+    :param cv:         几折交叉验证
+    :return:
+    '''
     pd_data = pd.read_pickle(file_path)
     rev = []
     if os.path.isfile(voc_path) and os.path.isfile(pos_path):
@@ -162,69 +164,6 @@ def build_data_cv(file_path, voc_path, pos_path, cv=5):
     return rev, voc, pos
 
 
-def train_word2vec(sentence_matrix,
-                   vocabulary_inv,
-                   num_features=100,
-                   min_word_count=1,
-                   context=10):
-    """
-    Trains, saves, loads Word2Vec model
-    Returns initial weights for embedding layer.
-
-    inputs:
-    sentence_matrix # int matrix: num_sentences x max_sentence_len
-    vocabulary_inv  # list
-    num_features    # Word vector dimensionality
-    min_word_count  # Minimum word count
-    context         # Context window size
-    """
-    model_dir = os.path.abspath('../docs') + '/model/w2v_matrix'
-    model_name = "{:d}features_{:d}minwords_{:d}context".format(
-        num_features, min_word_count, context)
-    model_name = join(model_dir, model_name)
-    if exists(model_name):
-        embedding_model = word2vec.Word2Vec.load(model_name)
-        print('Load existing Word2Vec model \'%s\'' % split(model_name)[-1])
-    else:
-        # Set values for various parameters
-        num_workers = 2  # Number of threads to run in parallel
-        downsampling = 1e-3  # Downsample setting for frequent words
-
-        # Initialize and train the model
-        print('Training Word2Vec model...')
-        sentences = [[
-            vocabulary_inv[w] for w in filter(lambda w_id: w_id > 0, s)
-        ] for s in sentence_matrix]
-        embedding_model = word2vec.Word2Vec(
-            sentences,
-            workers=num_workers,
-            size=num_features,
-            min_count=min_word_count,
-            window=context,
-            sample=downsampling)
-
-        # If we don't plan to train the model any further, calling
-        # init_sims will make the model much more memory-efficient.
-        embedding_model.init_sims(replace=True)
-
-        # Saving the model for later use. You can load it later using
-        # Word2Vec.load()
-        if not exists(model_dir):
-            os.mkdir(model_dir)
-        print('Saving Word2Vec model \'%s\'' % split(model_name)[-1])
-        embedding_model.save(model_name)
-
-    # add unknown words
-    embedding_weights = [
-        np.array([
-            embedding_model[w] if w in embedding_model else np.random.uniform(
-                -0.25, 0.25, embedding_model.vector_size)
-            for w in vocabulary_inv
-        ])
-    ]
-    return embedding_weights
-
-
 def clean_str(string):
     """
     Tokenization/string cleaning for all datasets except for SST.
@@ -235,4 +174,5 @@ def clean_str(string):
     return string.strip().lower()
 
 if __name__ == "__main__":
-    pass
+    build_data_cv(file_path='../../docs/data/HML_JD_ALL.new.dat', voc_path='../../docs/data/voc.json', pos_path='../../docs/data/pos.json')
+
