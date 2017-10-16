@@ -17,7 +17,7 @@ from math import ceil
 import numpy as np
 import tensorflow as tf
 from keras import backend as K
-from utils.assemble import HISO
+from utils.hiso import HISO
 from utils.data_helper import build_data_cv
 from utils.metrics import (Average_precision, Coverage,
                            Hamming_loss, One_error, Ranking_loss)
@@ -45,7 +45,7 @@ def do_eval(sess, model, eval_data, batch_size):
         eval_Y1_labels = [hml.bottom_label for hml in eval_data[start:end]]
 
         curr_loss, eval_Y0_probs, eval_Y1_probs = sess.run(
-            [model.loss, model.Y0_preds, model.Y1_preds],
+            [model.loss, model.Y0_probs, model.Y1_probs],
             feed_dict={
                 model.wds: [hml.wds for hml in eval_data[start:end]],
                 model.pos: [hml.pos for hml in eval_data[start:end]],
@@ -67,10 +67,10 @@ def do_eval(sess, model, eval_data, batch_size):
     Y0_probs = np.array(Y0_probs)
     Y1_probs = np.array(Y1_probs)
     print('\n')
-    print('Y0 label:', Y0_labels[:3])
-    print('Y0 probs:', Y0_probs[:3])
-    print('Y1 probs:', Y1_probs[:3])
-    print('Y1 label:', Y1_labels[:3])
+    print('Y0 label:', Y0_labels[3])
+    print('Y0 probs:', Y0_probs[3])
+    print('Y1 probs:', Y1_probs[3])
+    print('Y1 label:', Y1_labels[3])
     print('\n')
     # probs to predict label over thresholds
     # TODO: fit_threshold automatally
@@ -97,8 +97,9 @@ def do_eval(sess, model, eval_data, batch_size):
 
 
 def train(params):
-    datas, voc, pos, max_length = build_data_cv(file_path='../docs/HML_JD_ALL.new.dat', voc_path='../docs/voc.json', pos_path='../docs/pos.json', cv=5)
+    datas, voc, pos, max_length = build_data_cv(file_path='../docs/data/HML_JD_ALL.new.dat', voc_path='../docs/data/voc.json', pos_path='../docs/data/pos.json', cv=5)
     # fill params
+    datas = datas[:1000]
     params['voc_size'] = len(voc)
     params['pos_size'] = len(pos)
     params['words']['dim'] = max_length
@@ -180,7 +181,7 @@ def train(params):
                 if step % params['log_eval_every'] == 0:
                     loss_dict = do_eval(sess, hiso, test_datas, batch_size)
 
-                    timestamp = time.strftime("%Y-%m-%d %H:%M:%S",
+                    timestamp = time.strftime("%Y-%m-%d-%H:%M:%S",
                                               time.localtime())
                     str_loss = '{}:  epoch: {} eval_loss: {}'.format(
                         timestamp, epoch, loss_dict['eval_loss'])
@@ -198,8 +199,8 @@ def train(params):
                     summary = tf.Summary(value=value)
                     test_writer.add_summary(summary, step)
                     # judge whether test_acc is greater than before
-                    if loss_dict['Y1']['hamming_loss'] < min_hamming_loss:
-                        min_hamming_loss = loss_dict['Y1']['hamming_loss']
+                    if loss_dict['Y1']['Hamming_loss'] < min_hamming_loss:
+                        min_hamming_loss = loss_dict['Y1']['Hamming_loss']
                         best_sess = sess
                         saver.save(
                             best_sess,

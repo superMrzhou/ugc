@@ -14,7 +14,7 @@ from keras.regularizers import l2
 class HISO(object):
     def __init__(self, params, mask_zero=True):
         # input words
-        self.words = tf.placeholder(
+        self.wds = tf.placeholder(
             tf.float32, [None, params['words']['dim']], name='words')
         # input pos
         self.pos = tf.placeholder(tf.float32, [None, params['pos']['dim']], name='pos')
@@ -29,7 +29,7 @@ class HISO(object):
             input_dim=params['voc_size'],
             input_length=params['words']['dim'],
             mask_zero=mask_zero,
-            name='wd_embedding')(self.words)
+            name='wd_embedding')(self.wds)
         wd_embedding = BatchNormalization(momentum=0.9, name='wd_embedding_BN')(wd_embedding)
 
         pos_embeding = Embedding(
@@ -42,13 +42,13 @@ class HISO(object):
 
         # 2. semantic layers: Bidirectional GRU
         wd_Bi_GRU = Bidirectional(
-            GRU(params['words']['RNN']['cell'], dropout=params['words']['RNN']['dropout'], recurrent_dropout=params['words']['RNN']['rnn_dropout']), merge_mode='concat', name='word_Bi_GRU')(wd_embedding)
+            GRU(params['words']['RNN']['cell'], dropout=params['words']['RNN']['drop_out'], recurrent_dropout=params['words']['RNN']['rnn_drop_out']), merge_mode='ave', name='word_Bi_GRU')(wd_embedding)
         if 'batch_norm' in params['words']['RNN']:
             wd_Bi_GRU = BatchNormalization(momentum=params['words']['RNN']['batch_norm'], name='word_Bi_GRU_BN')(wd_Bi_GRU)
 
         pos_Bi_GRU = Bidirectional(
-            GRU(params['pos']['RNN']['cell'], dropout=params['pos']['RNN']['dropout'], recurrent_dropout=params['pos']['RNN']['rnn_dropout']),
-            merge_mode='concat', name='pos_Bi_GRU')(pos_embedding)
+            GRU(params['pos']['RNN']['cell'], dropout=params['pos']['RNN']['drop_out'], recurrent_dropout=params['pos']['RNN']['rnn_drop_out']),
+            merge_mode='ave', name='pos_Bi_GRU')(pos_embedding)
         if 'batch_norm' in params['pos']['RNN']:
             pos_Bi_GRU = BatchNormalization(momentum=params['pos']['RNN']['batch_norm'], name='pos_Bi_GRU_BN')(
                 pos_Bi_GRU)
@@ -70,10 +70,10 @@ class HISO(object):
             **kwargs)(wd_Bi_GRU)
         # batch_norm
         if 'batch_norm' in params['Y0']:
-            self.Y0_probs = BatchNormalization(**params['label']['batch_norm'])(self.Y0_probs)
+            self.Y0_probs = BatchNormalization(**params['Y0']['batch_norm'])(self.Y0_probs)
         self.Y0_probs = Activation(params['Y0']['activate_func'])(self.Y0_probs)
 
-        if 'activity_reg' in params['label']:
+        if 'activity_reg' in params['Y0']:
             self.Y0_probs = ActivityRegularization(
                 name='Y0_activity_reg', **params['Y0']['activity_reg'])(self.Y0_probs)
 
@@ -103,10 +103,10 @@ class HISO(object):
             **kwargs)(hidden_layer)
         # batch_norm
         if 'batch_norm' in params['Y1']:
-            self.Y1_probs = BatchNormalization(**params['label']['batch_norm'])(self.Y1_probs)
+            self.Y1_probs = BatchNormalization(**params['Y1']['batch_norm'])(self.Y1_probs)
         self.Y1_probs = Activation(params['Y1']['activate_func'])(self.Y1_probs)
 
-        if 'activity_reg' in params['label']:
+        if 'activity_reg' in params['Y1']:
             self.Y1_probs = ActivityRegularization(
                 name='Y1_activity_reg', **params['Y1']['activity_reg'])(self.Y1_probs)
 
