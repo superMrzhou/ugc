@@ -135,6 +135,8 @@ def build_data_cv(file_path, voc_path, pos_path, cv=5):
 
     print('length of voc: ', len(voc))
     print('length of pos: ', len(pos))
+
+    bad_sampl_n = 0
     for i in range(pd_data.shape[0]):
         if i % 1000 == 0:
             print('load data:...', i)
@@ -160,16 +162,19 @@ def build_data_cv(file_path, voc_path, pos_path, cv=5):
         top_label = [
             pd_data['Event'][i], pd_data['Agent'][i], pd_data['Object'][i]
         ]
+
         bottom_label = [
             pd_data['Satisfaction'][i], pd_data['Disappointment'][i],
             pd_data['Admiration'][i], pd_data['Reproach'][i],
             pd_data['Like'][i], pd_data['Dislike'][i]
         ]
-
+        if sum(bottom_label) == 0 or sum(top_label) == 0:
+            bad_sampl_n += 1
+            continue
         cv_n = np.random.randint(0, cv)
         datum = MultiLabelSample(content=content, raw_sentence=''.join(wds), wds=pad_wds, pos=pad_pos, wds_cnt=wds_cnt, sentence_len=sentence_len, top_label=top_label, bottom_label=bottom_label, cv_n=cv_n)
         rev.append(datum)
-
+    print('bad sample number； {}'.format(bad_sampl_n))
     return rev, voc, pos, max_length
 
 
