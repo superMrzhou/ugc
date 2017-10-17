@@ -130,6 +130,8 @@ def train(params):
     log_train_dir = '../docs/train/%s' % timestamp
     os.mkdir(log_test_dir)
     os.mkdir(log_train_dir)
+    log_baseline_dir = '../docs/baseline/'
+    os.mkdir(log_baseline_dir)
 
     loss_key = [
         'Hamming_loss', 'One_error', 'Ranking_loss', 'Coverage',
@@ -152,6 +154,7 @@ def train(params):
         hiso = HISO(params)
 
         saver = tf.train.Saver(max_to_keep=4)
+        baseline_writer = tf.summary.FileWriter(log_baseline_dir)
         test_writer = tf.summary.FileWriter(log_test_dir)
         train_writer = tf.summary.FileWriter(log_train_dir, sess.graph)
 
@@ -199,6 +202,15 @@ def train(params):
                                 tag="loss", simple_value=trn_loss)
                         ]),
                         step)
+                    base_value = [tf.Summary.Value(tag='Y1_Hamming_loss', simple_value=0.0809),
+                                  tf.Summary.Value(tag='Y1_Average_precision', simple_value=0.4692),
+                                  tf.Summary.Value(tag='Y1_Coverage', simple_value=1.8400),
+                                  tf.Summary.Value(tag='Y1_One_error', simple_value=0.4852),
+                                  tf.Summary.Value(tag='Y1_Hamming_loss', simple_value=0.0809),
+                                  tf.Summary.Value(tag='Y1_Ranking_loss', simple_value=0.2865),
+                                  ]
+                    base_summary = tf.Summary(value=base_value)
+                    baseline_writer.add_summary(base_summary, step)
 
                 # log eval data
                 if step % params['log_eval_every'] == 0:
