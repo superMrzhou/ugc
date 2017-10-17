@@ -198,8 +198,8 @@ def train(params):
 
                     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S",
                                               time.localtime())
-                    str_loss = '{}:  epoch: {} eval_loss: {}'.format(
-                        timestamp, epoch, loss_dict['eval_loss'])
+                    str_loss = '{}:  epoch: {}, step: {},  eval_loss: {}'.format(
+                        timestamp, epoch, step, loss_dict['eval_loss'])
                     print(str_loss)
 
                     value = [
