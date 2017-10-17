@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def hamming_loss(pred, test):
+def _hamming_loss(pred, test):
     """ 单样本评估标记结果的Hamming-error指标
 
     pred, test 为多标记向量，对应位置取值1表示存在该标记，否则不存在
@@ -13,7 +13,7 @@ def hamming_loss(pred, test):
     return np.dot(n_pred, n_test) / len(n_pred)
 
 
-def one_error(pred, test):
+def _one_error(pred, test):
     """ 单样本评估标记结果的One-error指标
 
     pred 为预测标签的概率向量， test为测试标签1/0向量
@@ -28,7 +28,7 @@ def one_error(pred, test):
     return int(n_test[argmax])
 
 
-def coverage(pred, test):
+def _coverage(pred, test):
     """ 单样本评估标记结果的Coverage指标
 
     pred 为预测标签的概率向量, test为测试标签1/0向量
@@ -45,7 +45,7 @@ def coverage(pred, test):
     return rank_dep
 
 
-def ranking_loss(pred, test):
+def _ranking_loss(pred, test):
     """ 单样本评估标记结果的Ranking loss指标
 
     pred 为预测标签的概率向量, test为测试标签1/0向量
@@ -67,7 +67,7 @@ def ranking_loss(pred, test):
         return (rank_dep - len(n_rank)) / delivery
 
 
-def average_precision(pred, test):
+def _average_precision(pred, test):
     """ 单样本评估标记结果的Average precision指标
 
     pred 为预测标签的概率向量, test为测试标签1/0向量

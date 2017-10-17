@@ -2,8 +2,8 @@
 Metrics for multi-label classification.
 """
 import numpy as np
-from sklearn.metrics import f1_score, label_ranking_loss
-from .base_metrics import hamming_loss, one_error, average_precision, coverage, ranking_loss
+from sklearn.metrics import f1_score, hamming_loss, label_ranking_loss, average_precision_score, coverage_error
+from .base_metrics import _hamming_loss, _one_error, _average_precision, _coverage, _ranking_loss
 
 
 def F1_measure(labels, preds, average='binary', mode=1):
@@ -22,9 +22,9 @@ def Hamming_loss(labels, preds, mode=1):
     @preds:  predict labels of samples
     '''
     if mode:
-        hl = float((labels != preds).mean())
+        hl = hamming_loss(labels, preds)
     else:
-        hl = np.mean(list(map(hamming_loss, preds, labels)))
+        hl = np.mean(list(map(_hamming_loss, preds, labels)))
     return hl
 
 
@@ -39,7 +39,7 @@ def One_error(labels, probs, mode=1):
         targets_top_1 = [labels[i, idx[i][0]] for i in range(len(idx))]
         error = 1. - np.mean(targets_top_1)
     else:
-        error = 1 - np.mean(list(map(one_error, probs, labels)))
+        error = 1 - np.mean(list(map(_one_error, probs, labels)))
 
     return error
 
@@ -53,7 +53,7 @@ def Ranking_loss(labels, probs, mode=1):
     if mode:
         rl = label_ranking_loss(labels, probs)
     else:
-        rl = np.mean(list(map(ranking_loss, probs, labels)))
+        rl = np.mean(list(map(_ranking_loss, probs, labels)))
 
     return rl
 
@@ -65,24 +65,9 @@ def Average_precision(labels, probs, mode=1):
     @probs:  label's probility  of samples
     '''
     if mode:
-        # 倒序
-        prob_sort = np.argsort(-probs, axis=1)
-        # generate rank matrix
-        for i in range(probs.shape[0]):
-            probs[i, prob_sort[i]] = np.arange(1, probs.shape[1] + 1)
-
-        # calcu precision for each sample
-        precision_value = 0.
-        for i in range(probs.shape[0]):
-            n_rank = probs[i][labels[i] == 1]
-            n_rank.sort()
-            if len(n_rank) == 0: continue
-            for idx, rank in enumerate(n_rank):
-                precision_value += (idx + 1) / (rank * len(n_rank))
-
-        ap = precision_value / probs.shape[0]
+        ap = average_precision_score(labels, probs, average="samples")
     else:
-        ap = np.mean(list(map(average_precision, probs, labels)))
+        ap = np.mean(list(map(_average_precision, probs, labels)))
 
     return ap
 
@@ -94,14 +79,9 @@ def Coverage(labels, probs, mode=1):
     @probs:  label's probility  of samples
     '''
     if mode:
-        # find min prob of true label
-        lbl_probs = labels * probs
-        # deal label==0
-        lbl_probs[lbl_probs == 0.] = 100
-        lbl_probs_min = np.reshape(np.min(lbl_probs, axis=1), (len(probs), -1))
-        steps = (probs >= lbl_probs_min).sum(-1).mean()
+        steps = coverage_error(labels, probs)
     else:
-        steps = np.mean(list(map(coverage, probs, labels)))
+        steps = np.mean(list(map(_coverage, probs, labels)))
 
     return steps
 
