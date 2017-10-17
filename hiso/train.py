@@ -192,6 +192,11 @@ def train(params):
                                 tag="loss", simple_value=trn_loss)
                         ]),
                         step)
+                timestamp = time.strftime("%Y-%m-%d-%H:%M:%S",
+                                          time.localtime())
+                str_loss = '{}:  epoch: {}, step: {},  train_loss: {}'.format(
+                    timestamp, epoch, step, trn_loss)
+                print(str_loss)
 
                 # log eval data
                 if step % params['log_eval_every'] == 0:
