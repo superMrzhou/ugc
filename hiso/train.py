@@ -158,7 +158,7 @@ def train(params):
         init_op = tf.global_variables_initializer()
         sess.run(init_op)
 
-        step = -1
+        step = 0
         min_hamming_loss = 1000
         best_sess = sess
         for epoch in range(params['epoch']):

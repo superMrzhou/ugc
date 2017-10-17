@@ -38,14 +38,14 @@ Y0:
     loss_weight:    0.4
     activate_func:  'sigmoid'
     loss_func:  'binary_crossentropy'
-#    W_regularizer: 0.1
-#    activity_reg: {l1: 0.1}
+    W_regularizer: 0.1
+    activity_reg: {l1: 0.1}
     batch_norm: {momentum: 0.9}
 Y1:
     dim:  6
     loss_weight:    0.6
     activate_func:  'sigmoid'
     loss_func:  'binary_crossentropy'
-#    W_regularizer: 0.1
-#    activity_reg: {l1: 0.1}
+    W_regularizer: 0.1
+    activity_reg: {l1: 0.1}
     batch_norm: {momentum: 0.9}
