@@ -86,7 +86,7 @@ def do_eval(sess, model, eval_data, batch_size):
         'Average_precision'
     ]
     # 0: 伟哥的评判标准， 1：正确的评判标准
-    mode = 0
+    mode = 1
     for func in func_eval:
         if func == 'Hamming_loss':
             loss_dict['Y0'][func] = eval(func)(Y0_labels, Y0_preds, mode=mode)
