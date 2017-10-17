@@ -90,6 +90,9 @@ def build_vocab(file_path, voc_path, pos_path):
     pos = {p: j for j, p in enumerate(['<s>'] + list(pos))}
     print('build vocab done')
 
+    if max_length > 100:
+        max_length = 100
+
     voc_dict = {
         'voc': voc,
         'max_length': max_length,
@@ -103,9 +106,6 @@ def build_vocab(file_path, voc_path, pos_path):
 
     with open(pos_path, 'w') as f:
         json.dump(pos_dict, f)
-
-    if max_length > 100:
-        max_length = 100
 
     return [voc, pos, max_length]
 
