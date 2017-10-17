@@ -22,6 +22,7 @@ from utils.data_helper import build_data_cv
 from utils.hiso import HISO
 from utils.metrics import (Average_precision, Coverage, Hamming_loss,
                            One_error, Ranking_loss)
+K.set_learning_phase(1)
 
 
 def do_eval(sess, model, eval_data, batch_size):
@@ -98,6 +99,11 @@ def do_eval(sess, model, eval_data, batch_size):
 
 
 def train(params):
+    '''
+    训练模型入口
+    :param params: 模型参数 dict
+    :return:
+    '''
     datas, voc, pos, max_length = build_data_cv(
         file_path='../docs/data/HML_JD_ALL.new.dat',
         voc_path='../docs/data/voc.json',
@@ -134,7 +140,7 @@ def train(params):
 
     number_of_training_data = len(train_datas)
     batch_size = params['batch_size']
-    number_of_batch = ceil(number_of_training_data / batch_size)
+    number_of_batch = int(ceil(number_of_training_data / batch_size))
     # 保存最优模型
     model_dir = params['model_dir'] + time.strftime("%Y-%m-%d-%H:%M:%S",
                                                     time.localtime())
@@ -144,7 +150,7 @@ def train(params):
     with tf.Session(config=config) as sess, tf.device('/gpu:1'):
         hiso = HISO(params)
 
-        saver = tf.train.Saver(max_to_keep=2)
+        saver = tf.train.Saver(max_to_keep=4)
         test_writer = tf.summary.FileWriter(log_test_dir)
         train_writer = tf.summary.FileWriter(log_train_dir, sess.graph)
 

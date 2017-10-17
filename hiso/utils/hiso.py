@@ -4,7 +4,7 @@ multilabel loss functions see：
 http://d0evi1.com/sklearn/model_evaluation/ and http://www.jos.org.cn/html/2014/9/4634.htm
 """
 import tensorflow as tf
-from keras.layers import GRU, Dense, Embedding, concatenate, merge, Activation
+from keras.layers import GRU, Dense, Embedding, concatenate, multiply, Activation
 from keras.layers import Dropout, BatchNormalization, ActivityRegularization
 from keras.layers.wrappers import Bidirectional
 from keras.objectives import binary_crossentropy
@@ -55,7 +55,7 @@ class HISO(object):
 
         # use pos as attention
         attention_probs = Dense(params['pos']['RNN']['cell'], activation='softmax', name='attention_vec')(pos_Bi_GRU)
-        attention_mul = merge([wd_Bi_GRU, attention_probs], output_shape=params['pos']['RNN']['cell'], name='attention_mul', mode='mul')
+        attention_mul = multiply([wd_Bi_GRU, attention_probs], name='attention_mul', mode='mul')
         # ATTENTION PART FINISHES HERE
 
         # 3. middle layer for predict Y0
