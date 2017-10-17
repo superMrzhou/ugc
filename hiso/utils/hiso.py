@@ -30,15 +30,15 @@ class HISO(object):
             input_length=params['words']['dim'],
             mask_zero=mask_zero,
             name='wd_embedding')(self.wds)
-        wd_embedding = BatchNormalization(momentum=0.9, name='wd_embedding_BN')(wd_embedding)
+        # wd_embedding = BatchNormalization(momentum=0.9, name='wd_embedding_BN')(wd_embedding)
 
-        pos_embeding = Embedding(
+        pos_embedding = Embedding(
             output_dim=params['embed_size'],
             input_dim=params['pos_size'],
             input_length=params['pos']['dim'],
             mask_zero=mask_zero,
             name='pos_embedding')(self.pos)
-        pos_embedding = BatchNormalization(momentum=0.9, name='pos_embedding_BN')(pos_embeding)
+        # pos_embedding = BatchNormalization(momentum=0.9, name='pos_embedding_BN')(pos_embeding)
 
         # 2. semantic layers: Bidirectional GRU
         wd_Bi_GRU = Bidirectional(
@@ -46,16 +46,14 @@ class HISO(object):
         if 'batch_norm' in params['words']['RNN']:
             wd_Bi_GRU = BatchNormalization(momentum=params['words']['RNN']['batch_norm'], name='word_Bi_GRU_BN')(wd_Bi_GRU)
 
-        pos_Bi_GRU = Bidirectional(
-            GRU(params['pos']['RNN']['cell'], dropout=params['pos']['RNN']['drop_out'], recurrent_dropout=params['pos']['RNN']['rnn_drop_out']),
-            merge_mode='ave', name='pos_Bi_GRU')(pos_embedding)
+        pos_Bi_GRU = Bidirectional(GRU(params['pos']['RNN']['cell'], dropout=params['pos']['RNN']['drop_out'], recurrent_dropout=params['pos']['RNN']['rnn_drop_out']), merge_mode='ave', name='word_Bi_GRU')(pos_embedding)
         if 'batch_norm' in params['pos']['RNN']:
             pos_Bi_GRU = BatchNormalization(momentum=params['pos']['RNN']['batch_norm'], name='pos_Bi_GRU_BN')(
                 pos_Bi_GRU)
 
         # use pos as attention
         attention_probs = Dense(params['pos']['RNN']['cell'], activation='softmax', name='attention_vec')(pos_Bi_GRU)
-        attention_mul = multiply([wd_Bi_GRU, attention_probs], name='attention_mul', mode='mul')
+        attention_mul = multiply([wd_Bi_GRU, attention_probs], name='attention_mul')
         # ATTENTION PART FINISHES HERE
 
         # 3. middle layer for predict Y0

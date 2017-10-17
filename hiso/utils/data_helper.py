@@ -104,6 +104,9 @@ def build_vocab(file_path, voc_path, pos_path):
     with open(pos_path, 'w') as f:
         json.dump(pos_dict, f)
 
+    if max_length > 100:
+        max_length = 100
+
     return [voc, pos, max_length]
 
 

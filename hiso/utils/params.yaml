@@ -2,16 +2,16 @@
 
 voc_size: 0 # just placeholder
 pos_size: 0 # just placeholder
-embed_size: 100
+embed_size: 50
 
 batch_size:    64
-epoch:         20
+epoch:         10
 learning_rate:    0.01
 log_train_every:  10
 log_eval_every: 30
 model_dir:     '../docs/model/'
 model_name:   'best'
-gpu_fraction: 0.2
+gpu_fraction: 0.3
 
 words:
     dim: 0  # just placeholder
@@ -19,7 +19,7 @@ words:
       cell: 48
       drop_out: 0.2
       rnn_drop_out: 0.1
-      batch_norm: 0.9
+#      batch_norm: 0.9
 
 pos:
     dim: 0  # just placeholder
@@ -27,7 +27,7 @@ pos:
       cell: 48
       drop_out: 0.2
       rnn_drop_out: 0.1
-      batch_norm: 0.9
+#      batch_norm: 0.9
 
 H:
     dim:           96
@@ -38,14 +38,14 @@ Y0:
     loss_weight:    0.4
     activate_func:  'sigmoid'
     loss_func:  'binary_crossentropy'
-    W_regularizer: 0.1
-    activity_reg: {l1: 0.1}
+#    W_regularizer: 0.1
+#    activity_reg: {l1: 0.1}
     batch_norm: {momentum: 0.9}
 Y1:
     dim:  6
     loss_weight:    0.6
     activate_func:  'sigmoid'
     loss_func:  'binary_crossentropy'
-    W_regularizer: 0.1
-    activity_reg: {l1: 0.1}
+#    W_regularizer: 0.1
+#    activity_reg: {l1: 0.1}
     batch_norm: {momentum: 0.9}

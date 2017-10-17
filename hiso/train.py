@@ -122,6 +122,7 @@ def train(params):
 
     print('train dataset: {}'.format(len(train_datas)))
     print('test dataset: {}'.format(len(test_datas)))
+    print('max length: {}'.format(max_length))
 
     # build model
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
