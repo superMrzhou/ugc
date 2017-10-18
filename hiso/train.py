@@ -21,7 +21,7 @@ from keras import backend as K
 from utils.data_helper import build_data_cv
 from utils.hiso import HISO
 from utils.metrics import (Average_precision, Coverage, Hamming_loss,
-                           One_error, Ranking_loss)
+                           One_error, Ranking_loss, Construct_thresholds)
 K.set_learning_phase(1)
 
 
@@ -75,9 +75,15 @@ def do_eval(sess, model, eval_data, batch_size):
     print('Y1 label:', Y1_labels[3])
     print('\n')
     # probs to predict label over thresholds
-    # TODO: fit_threshold automatally
-    Y0_preds = Y0_probs >= 0.75
-    Y1_preds = Y1_probs >= 0.3
+    # fit_threshold automatally
+    T0 = Construct_thresholds(Y0_labels, Y0_probs)
+    Y0_preds = Y0_probs >= T0
+
+    T1 = Construct_thresholds(Y1_labels, Y1_probs)
+    Y1_preds = Y1_probs >= T1
+    with open('../docs/data/t0.text', 'a') as f0, open('../docs/data/t1.txt', 'a') as f1:
+        f0.writelines(' '.join([str(x[0]) for x in T0 + '\n']))
+        f1.writelines(' '.join([str(x[0]) for x in T1 + '\n']))
 
     loss_dict = {'eval_loss': eval_loss / eval_cnt, 'Y0': {}, 'Y1': {}}
     # use eval

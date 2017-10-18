@@ -3,7 +3,7 @@ Metrics for multi-label classification.
 """
 import numpy as np
 from sklearn.metrics import f1_score, hamming_loss, label_ranking_loss, average_precision_score, coverage_error
-from .base_metrics import _hamming_loss, _one_error, _average_precision, _coverage, _ranking_loss
+from base_metrics import _hamming_loss, _one_error, _average_precision, _coverage, _ranking_loss
 
 
 def F1_measure(labels, preds, average='binary', mode=1):
@@ -86,6 +86,47 @@ def Coverage(labels, probs, mode=1):
     return steps
 
 
+def Construct_thresholds(targets, probs, top_k=None):
+    '''
+    构建最优阈值
+    :param targets:
+    :param probs:
+    :param top_k:
+    :return:
+    '''
+    assert probs.shape == targets.shape, \
+        "The shape of predictions should match the shape of targets."
+    nb_samples, nb_labels = targets.shape
+    top_k = top_k or nb_labels
+
+    # Sort predicted probabilities in descending order
+    idx = np.argsort(probs, axis=1)[:, :-(top_k + 1):-1]
+    p_sorted = np.vstack([probs[i, idx[i]] for i in range(len(idx))])
+    t_sorted = np.vstack([targets[i, idx[i]] for i in range(len(idx))])
+
+    # Compute F-1 measures for every possible threshold position
+    F1 = []
+    TP = np.zeros(nb_samples)
+    FN = t_sorted.sum(axis=1)
+    FP = np.zeros(nb_samples)
+    for i in range(top_k):
+        TP += t_sorted[:, i]
+        FN -= t_sorted[:, i]
+        FP += 1 - t_sorted[:, i]
+        F1.append(2 * TP / (2 * TP + FN + FP))
+    F1 = np.vstack(F1).T
+    # Find the thresholds
+    row = np.arange(nb_samples)
+    col = F1.argmax(axis=1)
+    p_sorted = np.hstack([p_sorted, np.zeros(nb_samples)[:, None]])
+    # T = p_sorted[row, col][:,None]
+    ratio = 0.42
+    T = (ratio * p_sorted[row, col] +
+         (1 - ratio) * p_sorted[row, col + 1])[:, None]
+
+    return T
+
+
 if __name__ == '__main__':
 
     y_true = np.array([[1, 0, 1], [0, 0, 1], [0, 1, 0]])
@@ -99,3 +140,6 @@ if __name__ == '__main__':
     print('one_error: {}, {}'.format(One_error(y_true, y_score, mode=1), One_error(y_true, y_score, mode=0)))
     print('coverage: {}, {}'.format(Coverage(y_true, y_score, mode=1), Coverage(y_true, y_score, mode=0)))
     print('average_precision: {}, {}'.format(Average_precision(y_true, y_score, mode=1), Average_precision(y_true, y_score, mode=0)))
+    T = Construct_thresholds(y_true, y_score)
+    print('best threshold : {}'.format(T))
+    print('labels over threshold: {}'.format(y_score>T))
