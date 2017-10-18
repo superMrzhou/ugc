@@ -18,6 +18,7 @@ import numpy as np
 import tensorflow as tf
 import yaml
 from keras import backend as K
+from sklearn import linear_model as lm
 from utils.data_helper import build_data_cv
 from utils.hiso import HISO
 from utils.metrics import (Average_precision, Coverage, Hamming_loss,
@@ -25,7 +26,7 @@ from utils.metrics import (Average_precision, Coverage, Hamming_loss,
 K.set_learning_phase(1)
 
 
-def do_eval(sess, model, eval_data, batch_size):
+def do_eval(sess, model, thres_model, eval_data, batch_size):
     '''
     eval test data for moedel.
     :param sess:
@@ -76,14 +77,10 @@ def do_eval(sess, model, eval_data, batch_size):
     print('\n')
     # probs to predict label over thresholds
     # fit_threshold automatally
-    T0 = Construct_thresholds(Y0_labels, Y0_probs)
-    Y0_preds = Y0_probs >= T0
+    Y0_preds = Y0_probs >= 0.7
 
-    T1 = Construct_thresholds(Y1_labels, Y1_probs)
+    T1 = thres_model.predict(Y1_probs)
     Y1_preds = Y1_probs >= T1
-    with open('../docs/data/t0.text', 'a') as f0, open('../docs/data/t1.txt', 'a') as f1:
-        f0.writelines(' '.join([str(x[0]) for x in T0 + '\n']))
-        f1.writelines(' '.join([str(x[0]) for x in T1 + '\n']))
 
     loss_dict = {'eval_loss': eval_loss / eval_cnt, 'Y0': {}, 'Y1': {}}
     # use eval
@@ -168,8 +165,9 @@ def train(params):
         sess.run(init_op)
 
         step = 0
-        min_hamming_loss = 1000
+        min_hamming_loss = 10
         best_sess = sess
+        rig_labels, rig_probs = [], []
         for epoch in range(params['epoch']):
             # shuffle in each epoch
             train_datas = np.random.permutation(train_datas)
@@ -184,8 +182,8 @@ def train(params):
                 Y0 = [hml.top_label for hml in train_datas[start:end]]
                 Y1 = [hml.bottom_label for hml in train_datas[start:end]]
 
-                trn_loss, _ = sess.run(
-                    [hiso.loss, hiso.train_op],
+                trn_loss, trn_Y1_probs, _ = sess.run(
+                    [hiso.loss, hiso.Y1_probs, hiso.train_op],
                     feed_dict={
                         hiso.wds: wds,
                         hiso.pos: pos,
@@ -193,7 +191,8 @@ def train(params):
                         hiso.Y1: Y1
                         # K.learning_phase(): 1
                     })
-
+                rig_labels.extend(Y1)
+                rig_probs.extend(trn_Y1_probs)
                 timestamp = time.strftime("%Y-%m-%d-%H:%M:%S",
                                           time.localtime())
                 str_loss = '{}:  epoch: {}, step: {},  train_loss: {}'.format(
@@ -220,7 +219,13 @@ def train(params):
 
                 # log eval data
                 if step % params['log_eval_every'] == 0:
-                    loss_dict = do_eval(sess, hiso, test_datas, batch_size)
+                    # fit Y1 thresholds
+                    print('fit thresholds...')
+                    T1 = Construct_thresholds(rig_labels, rig_probs)
+                    thres_lr = lm.Ridge(rig_probs, T1)
+                    print('fit done!')
+                    loss_dict = do_eval(sess, hiso, thres_lr, test_datas, batch_size)
+                    rig_labels, rig_probs = [], []
 
                     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S",
                                               time.localtime())
