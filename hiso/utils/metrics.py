@@ -94,6 +94,8 @@ def Construct_thresholds(targets, probs, top_k=None):
     :param top_k:
     :return:
     '''
+    targets = np.array(targets)
+    probs = np.array(probs)
     assert probs.shape == targets.shape, \
         "The shape of predictions should match the shape of targets."
     nb_samples, nb_labels = targets.shape

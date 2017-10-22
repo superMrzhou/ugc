@@ -49,7 +49,7 @@ class HISO(object):
             GRU(params['words']['RNN']['cell'],
                 dropout=params['words']['RNN']['drop_out'],
                 recurrent_dropout=params['words']['RNN']['rnn_drop_out']),
-            merge_mode='ave',
+            merge_mode='concat',
             name='word_Bi_GRU')(wd_embedding)
         if 'batch_norm' in params['words']['RNN']:
             wd_Bi_GRU = BatchNormalization(
@@ -60,7 +60,7 @@ class HISO(object):
             GRU(params['pos']['RNN']['cell'],
                 dropout=params['pos']['RNN']['drop_out'],
                 recurrent_dropout=params['pos']['RNN']['rnn_drop_out']),
-            merge_mode='ave',
+            merge_mode='concat',
             name='word_Bi_GRU')(pos_embedding)
         if 'batch_norm' in params['pos']['RNN']:
             pos_Bi_GRU = BatchNormalization(
@@ -69,7 +69,7 @@ class HISO(object):
 
         # use pos as attention
         attention_probs = Dense(
-            params['pos']['RNN']['cell'],
+            2*params['pos']['RNN']['cell'],
             activation='softmax',
             name='attention_vec')(pos_Bi_GRU)
         attention_mul = multiply(

@@ -79,8 +79,8 @@ def do_eval(sess, model, thres_model, eval_data, batch_size):
     # fit_threshold automatally
     Y0_preds = Y0_probs >= 0.7
 
-    T1 = thres_model.predict(Y1_probs)
-    Y1_preds = Y1_probs >= T1
+    # T1 = thres_model.predict(Y1_probs)
+    Y1_preds = Y1_probs >= 0.3
 
     loss_dict = {'eval_loss': eval_loss / eval_cnt, 'Y0': {}, 'Y1': {}}
     # use eval
@@ -222,7 +222,8 @@ def train(params):
                     # fit Y1 thresholds
                     print('fit thresholds...')
                     T1 = Construct_thresholds(rig_labels, rig_probs)
-                    thres_lr = lm.Ridge(rig_probs, T1)
+                    thres_lr = lm.Ridge()
+                    thres_lr.fit(rig_probs, T1)
                     print('fit done!')
                     loss_dict = do_eval(sess, hiso, thres_lr, test_datas, batch_size)
                     rig_labels, rig_probs = [], []
