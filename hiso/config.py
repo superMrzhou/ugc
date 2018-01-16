@@ -13,7 +13,6 @@ parser.add_argument('--auxiliary-labels', type=int, default=3, help='dim of auxi
 parser.add_argument('--label-dim', type=int, default=6, help='dim of final labels')
 parser.add_argument('--auxi-weight', type=float, default=0.2, help='loss weight of auxiliary_labels')
 parser.add_argument('--final-weight', type=float, default=1, help='loss weight final_labels')
-parser.add_argument('--final-weight', type=float, default=1, help='loss weight final_labels')
 parser.add_argument('--max-margin', type=float, default=0.9, help='max probs of margin')
 parser.add_argument('--min-margin', type=float, default=0.1, help='min probs of margin')
 

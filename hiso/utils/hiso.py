@@ -93,7 +93,10 @@ class HisoLoss(nn.Module):
         self.auxi_loss = self.marginLoss(auxi_probs, auxi_labels)
 
         # calcu final_labels margin loss
-        self.auxi_loss = self.marginLoss(final_probs, final_labels) 
+        self.final_loss = self.marginLoss(final_probs, final_labels)
+        
+        self.loss = self.auxi_loss + self.final_loss
+        return self.loss
 
     def marginLoss(self, probs, labels):
         
@@ -113,12 +116,24 @@ class opt(object):
     glayer = 2
     auxiliary_labels = 3
     label_dim = 6
+    max_margin = 0.9
+    min_margin = 0.1
 
 if __name__ == '__main__':
     import visdom
-    
+    from visualize import Visualizer   
+    vis = Visualizer('main_test')
+
     wd = Variable(torch.LongTensor([[2,45,75,34], [5,54,76,23]]))
     pos = Variable(torch.LongTensor([[73,45,87,2], [13,56,7,43]]))
+    labels = Variable(torch.FloatTensor([[1,0,0,1,0,0],[0,0,1,0,1,0]]))
+    auxi = Variable(torch.FloatTensor([[1,0,0],[0,1,0]]))
+
     model = HISO(opt)
-    outputs = model(wd,pos)
-    print(outputs)
+    Loss = HisoLoss(opt)
+    for i in range(100):
+        final_probs,auxi_probs = model(wd, pos)
+        loss = Loss(auxi_probs, auxi, final_probs, labels)
+        vis.plot('loss', loss.data[0])
+        vis.log({'epoch':i,'loss':loss.data[0]})
+    # print(outputs)
