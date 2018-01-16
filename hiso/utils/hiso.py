@@ -123,7 +123,7 @@ if __name__ == '__main__':
     import visdom
     from visualize import Visualizer   
     vis = Visualizer('main_test')
-
+    import time
     wd = Variable(torch.LongTensor([[2,45,75,34], [5,54,76,23]]))
     pos = Variable(torch.LongTensor([[73,45,87,2], [13,56,7,43]]))
     labels = Variable(torch.FloatTensor([[1,0,0,1,0,0],[0,0,1,0,1,0]]))
@@ -135,5 +135,6 @@ if __name__ == '__main__':
         final_probs,auxi_probs = model(wd, pos)
         loss = Loss(auxi_probs, auxi, final_probs, labels)
         vis.plot('loss', loss.data[0])
+        time.sleep(1)
         vis.log({'epoch':i,'loss':loss.data[0]})
     # print(outputs)

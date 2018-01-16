@@ -19,7 +19,7 @@ from sklearn import linear_model as lm
 from utils.metrics import (Average_precision, Coverage, Hamming_loss,
                            One_error, Ranking_loss, Construct_thresholds)
 
-
+ 
 import torch
 from tqdm import tqdm
 import torch.nn.functional as F
@@ -30,6 +30,9 @@ from torch.utils.data import DataLoader
 from config import params
 from utils import hiso
 from utils.data_helper import *
+from utils.visualize import Visualizer
+
+vis = Visualizer(env='default')
 
 
 def train(dataloader):
@@ -50,6 +53,7 @@ def train(dataloader):
     # model_name = model_dir + '/' + params.model_name
     # build model
     model = hiso.HISO(params)
+    margin_loss = hiso.HisoLoss(params)
     # learning rate
     lr = params.lr
     optimizer = optim.RMSprop(model.parameters(), lr=lr)
@@ -67,7 +71,7 @@ def train(dataloader):
             final_probs, auxi_probs = model(v_word, v_pos)
             # autograd optim
             optimizer.zero_grad()
-            loss = criterion(final_probs, v_final_label) + criterion(auxi_probs, v_auix_label)
+            loss = margin_loss(auxi_probs, v_auix_label, final_probs, v_final_label)
             loss.backward()
             optimizer.step()
 
@@ -75,8 +79,11 @@ def train(dataloader):
 
 
             if batch_idx % params.log_interval == 0:
-                print(epoch, batch_idx, loss.data[0])
-            
+                vis.plot('margin loss',loss.data[0])
+                vis.plot('Ranking Loss',Ranking_loss(
+                    v_final_label.data.cpu().numpy(),final_probs.data.cpu().numpy()
+                    ))
+
             
 
 if __name__ == '__main__':
@@ -84,8 +91,8 @@ if __name__ == '__main__':
     trainset = UGCDataset(file_path='../docs/data/HML_JD_ALL.new.dat', voc_path='../docs/data/voc.json', pos_path='../docs/data/pos.json')
     
     train_loader = DataLoader(trainset,
-            batch_size=48,
+            batch_size=64,
             shuffle=True,
-            num_workers=1)
+            num_workers=4)
     
     train(train_loader)
