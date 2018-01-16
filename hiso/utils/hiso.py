@@ -9,6 +9,7 @@ import torch
 import torch.nn as nn
 
 from torch.autograd import Variable
+import torch.nn.functional as F
 
 class HISO(nn.Module):
     def __init__(self, opt):
@@ -80,6 +81,28 @@ class HISO(nn.Module):
     def init_hidden(self, batch_size):
         h0 = torch.zeros(self.opt.glayer, batch_size, self.opt.ghid_size)
         return Variable(h0)
+
+class HisoLoss(nn.Module):
+    def __init__(self, opt):
+        super(HisoLoss, self).__init__()
+        self.opt = opt
+        # self.reconstruction_loss = 0 // todo
+
+    def forward(self,auxi_probs, auxi_labels, final_probs, final_labels):
+        # calcu auxi_labels margin loss
+        self.auxi_loss = self.marginLoss(auxi_probs, auxi_labels)
+
+        # calcu final_labels margin loss
+        self.auxi_loss = self.marginLoss(final_probs, final_labels) 
+
+    def marginLoss(self, probs, labels):
+        
+        left = F.relu(self.opt.max_margin - probs, inplace=True)**2
+        right = F.relu(self.opt.min_margin - probs, inplace=True)**2
+
+        margin_loss = labels * left + 0.5 * (1. - labels) * right
+        return margin_loss.sum()
+
 
 class opt(object):
     voc_size = 100
