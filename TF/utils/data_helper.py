@@ -16,80 +16,6 @@ import re
 
 import numpy as np
 import pandas as pd
-import torch
-from torch.utils.data import Dataset, DataLoader
-from . import transforms
-
-
-class UGCDataset(Dataset):
-    def __init__(self, file_path, voc_path, pos_path, cv=5):
-
-        self.cv = cv
-        self.df = pd.read_pickle(file_path)
-        # [(word, pos)]
-        self.contents = self.df['Cut']
-        self.sentence_lens = self.df['Len']
-        # auxiliary labels
-        self.auxiliary_labels = [
-                self.df['Event'], self.df['Agent'], self.df['Object']
-                ]
-        # final labels
-        self.top_labels = [
-                self.df['Satisfaction'], 
-                self.df['Disappointment'],
-                self.df['Admiration'],
-                self.df['Reproach'],
-                self.df['Like'],
-                self.df['Dislike']
-                ]
-
-        # load directly if voc file exists.
-        if os.path.isfile(voc_path) and os.path.isfile(pos_path):
-            with open(voc_path, 'r') as fv, open(pos_path, 'r') as fp:
-                voc_dict = json.load(fv)
-                voc = voc_dict['voc']
-                max_length = voc_dict['max_length']
-
-                pos_dict = json.load(fp)
-                pos = pos_dict['voc']
-        else:
-            voc, pos, max_length = build_vocab(file_path, voc_path, pos_path)
-        
-        # index -> pad -> toTensor
-        self.word_transform = transforms.Compose([
-            transforms.ToIndex(voc),
-            transforms.Pad(max_length),
-            torch.LongTensor
-            ])
-
-        self.pos_transform = transforms.Compose([
-            transforms.ToIndex(pos),
-            transforms.Pad(max_length),
-            torch.LongTensor
-            ])
-
-
-    def __len__(self):
-
-        return len(self.df)
-
-    def __getitem__(self, idx):
-
-        sample = MultiLabelSample(
-                content = self.contents[idx],
-                wds = [word for word, _ in self.contents[idx]],
-                pos = [pos for _, pos in self.contents[idx]],
-                sentence_len = self.sentence_lens[idx],
-                top_label = torch.FloatTensor([int(cate[idx]) for cate in self.top_labels]),
-                bottom_label = torch.FloatTensor([int(cate[idx]) for cate in self.auxiliary_labels]),
-                cv_n = np.random.randint(0, self.cv)
-                )
-        # transforms to pytorch tensor
-        sample.word_vec = self.word_transform(sample.wds)
-        sample.pos_vec = self.pos_transform(sample.pos)
-
-        return sample.__dict__
-        
 
 
 class MultiLabelSample(object):
@@ -106,33 +32,23 @@ class MultiLabelSample(object):
         'Admiration', 'Reproach', 'Like', 'Dislike']
     """
 
-    def __init__(self, 
-            content, 
-            wds, 
-            pos, 
-            sentence_len, 
-            top_label, 
-            bottom_label, 
-            cv_n):
-
+    def __init__(self, content, raw_sentence, wds, pos, wds_cnt, sentence_len, top_label, bottom_label, cv_n):
         self.top_label_map = ['Event', 'Agent', 'Object']
         self.bottom_label_map = [
-            'Satisfaction', 'Disappointment', 'Admiration', 'Reproach', 'Like', 'Dislike'
+            'Satisfaction', 'Disappointment', 'Admiration', 'Reproach', 'Like',
+            'Dislike'
         ]
-        
         self.content = content
+        self.raw_sentence = raw_sentence
         self.wds = wds
         self.pos = pos
+        self.wds_cnt = wds_cnt
         self.sentence_len = sentence_len
         self.top_label = top_label
         self.bottom_label = bottom_label
         self.cv_n = cv_n
         self.top_probs = ''
         self.bottom_probs = ''
-
-        # placeholder for vec
-        self.word_vec = None
-        self.pos_vec = None
 
     def __str__(self):
         return 'top_label_map:\t{}\ntop_label:\t{}\nbottom_label_map:\t{}\nbottom_label:\t\t{}\nsentence_len:\t{}\ncv_n:\t{}\ncontent:\t{}\nwds:\t{}\n'.format(
@@ -272,8 +188,5 @@ def clean_str(string):
     return string.strip().lower()
 
 if __name__ == "__main__":
-    ugc = UGCDataset(file_path='../../docs/data/HML_JD_ALL.new.dat', voc_path='../../docs/data/voc.json', pos_path='../../docs/data/pos.json')
-    dataLoader = DataLoader(ugc, batch_size=4, shuffle=True)
-    for batch in dataLoader:
-        print(batch)
-        exit()
+    build_data_cv(file_path='../../docs/data/HML_JD_ALL.new.dat', voc_path='../../docs/data/voc.json', pos_path='../../docs/data/pos.json')
+
