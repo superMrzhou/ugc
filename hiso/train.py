@@ -32,7 +32,8 @@ from utils import hiso
 from utils.data_helper import *
 from utils.visualize import Visualizer
 
-vis = Visualizer(env='default')
+vis = Visualizer(env='default',port=8099)
+use_cuda = torch.cuda.is_available()
 
 
 def train(dataloader):
@@ -54,6 +55,9 @@ def train(dataloader):
     # build model
     model = hiso.HISO(params)
     margin_loss = hiso.HisoLoss(params)
+    if use_cuda: 
+        model.cuda()
+        margin_loss.cuda()
     # learning rate
     lr = params.lr
     optimizer = optim.RMSprop(model.parameters(), lr=lr)
@@ -62,11 +66,11 @@ def train(dataloader):
 
     for epoch in range(params.epochs):
         for batch_idx, samples in enumerate(dataloader, 0):
-            v_word = Variable(samples['word_vec'])
-            v_pos = Variable(samples['pos_vec'])
+            v_word = Variable(samples['word_vec'].cuda() if use_cuda else samples['word_vec'])
+            v_pos = Variable(samples['pos_vec'].cuda() if use_cuda else samples['pos_vec'])
 
-            v_auix_label = Variable(samples['bottom_label'])
-            v_final_label = Variable(samples['top_label'])
+            v_auix_label = Variable(samples['bottom_label'].cuda() if use_cuda else samples['bottom_label'])
+            v_final_label = Variable(samples['top_label'].cuda() if use_cuda else samples['top_label'])
 
             final_probs, auxi_probs = model(v_word, v_pos)
             # autograd optim
