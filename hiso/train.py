@@ -17,7 +17,8 @@ from math import ceil
 import numpy as np
 from sklearn import linear_model as lm
 from utils.metrics import (Average_precision, Coverage, Hamming_loss,
-                           One_error, Ranking_loss, Construct_thresholds)
+                           One_error, Ranking_loss, Construct_thresholds,
+                           F1_measure)
 
  
 import torch
@@ -31,21 +32,20 @@ from config import params
 from utils import hiso
 from utils.data_helper import *
 from utils.visualize import Visualizer
+# 设置仅使用第二块gpu
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 vis = Visualizer(env='default',port=8099)
 use_cuda = torch.cuda.is_available()
 
 
-def train(dataloader):
+def train(dataloader,testloader):
     '''
     训练模型入口
     '''
     # build model
     timestamp = time.strftime("%Y-%m-%d-%H:%M:%S", time.localtime())
-    loss_key = [
-        'Hamming_loss', 'One_error', 'Ranking_loss', 'Coverage',
-        'Average_precision'
-    ]
 
     # 保存最优模型
     # model_dir = params.model_dir + time.strftime("%Y-%m-%d-%H:%M:%S",
@@ -64,6 +64,8 @@ def train(dataloader):
     criterion = torch.nn.BCELoss()
     model.train()
 
+    a_probs,f_probs,a_labels,f_labels= None, None,None,None
+    total_loss = []
     for epoch in range(params.epochs):
         for batch_idx, samples in enumerate(dataloader, 0):
             v_word = Variable(samples['word_vec'].cuda() if use_cuda else samples['word_vec'])
@@ -78,25 +80,106 @@ def train(dataloader):
             loss = margin_loss(auxi_probs, v_auix_label, final_probs, v_final_label)
             loss.backward()
             optimizer.step()
+            
+            total_loss.append(loss.data[0])
+            
+            # log 平滑记录
+            if a_probs is None:
+                a_probs,a_labels = auxi_probs.data.cpu().numpy(),v_auix_label.data.cpu().numpy()
+                f_probs,f_labels = final_probs.data.cpu().numpy(),v_final_label.data.cpu().numpy()
+            else:
+                a_probs,a_labels = np.vstack([a_probs,auxi_probs.data.cpu().numpy()]),\
+                        np.vstack([a_labels,v_auix_label.data.cpu().numpy()])
+                f_probs,f_labels = np.vstack([f_probs,final_probs.data.cpu().numpy()]),\
+                        np.vstack([f_labels,v_final_label.data.cpu().numpy()])
 
             # evaluate train model
+            if batch_idx % params.log_interval == 1:
+                vis.plot('margin loss',np.mean(total_loss))
+                vis.log('margin loss: %s'%np.mean(total_loss), win='marginLoss_text')
+                vis_log(f_probs, f_labels, name='train final',numpy_data=True)
+                vis_log(a_probs, a_labels, name='train auxiliary',numpy_data=True)
+                # reinit
+                total_loss = []
+                a_probs,f_probs,a_labels,f_labels= None, None,None,None
 
 
-            if batch_idx % params.log_interval == 0:
-                vis.plot('margin loss',loss.data[0])
-                vis.plot('Ranking Loss',Ranking_loss(
-                    v_final_label.data.cpu().numpy(),final_probs.data.cpu().numpy()
-                    ))
+            if batch_idx % (params.log_interval * 5) == 1:
+                evaluate(model,testloader,margin_loss)
+                # chanage model
+                model.train()
+                
+
+def evaluate(model, dataloader, margin_loss):
+
+    model.eval()
+    a_probs,f_probs,a_labels,f_labels= None, None,None,None
+    loss = 0.
+    for batch_idx, samples in enumerate(dataloader, 0):
+        v_word = Variable(samples['word_vec'].cuda() if use_cuda else samples['word_vec'])
+        v_pos = Variable(samples['pos_vec'].cuda() if use_cuda else samples['pos_vec'])
+
+        v_auix_label = Variable(samples['bottom_label'].cuda() if use_cuda else samples['bottom_label'])
+        v_final_label = Variable(samples['top_label'].cuda() if use_cuda else samples['top_label'])
+
+        final_probs, auxi_probs = model(v_word, v_pos)
+        loss += margin_loss(auxi_probs,v_auix_label,final_probs,v_final_label).data[0]
+
+        if batch_idx == 0:
+            a_probs,a_labels = auxi_probs.data.cpu().numpy(),v_auix_label.data.cpu().numpy()
+            f_probs,f_labels = final_probs.data.cpu().numpy(),v_final_label.data.cpu().numpy()
+        else:
+            a_probs,a_labels = np.vstack([a_probs,auxi_probs.data.cpu().numpy()]),\
+                    np.vstack([a_labels,v_auix_label.data.cpu().numpy()])
+            f_probs,f_labels = np.vstack([f_probs,final_probs.data.cpu().numpy()]),\
+                    np.vstack([f_labels,v_final_label.data.cpu().numpy()])
+    # log
+    vis.plot('test margin loss',loss/batch_idx)
+    vis_log(f_probs, f_labels, name='test final',numpy_data=True)
+    vis_log(a_probs, a_labels, name='test auxiliary',numpy_data=True)
+
+    
+
+def vis_log(probs, labels, name='', numpy_data=False):
+    '''
+    记录多标签评价指标信息
+    '''
+    if not numpy_data:
+        labels = labels.data.cpu().numpy()
+        probs = probs.data.cpu().numpy()
+
+    preds = (probs>0.5).astype(np.float32)
+    # print(labels[0],'\n',probs[0],'\n',preds[0])
+
+    vis.plot('%s Ranking Loss'%name,Ranking_loss(labels, probs))
+    vis.plot('%s One Error'%name,One_error(labels, probs))
+    vis.plot('%s Hamming Loss'%name,Hamming_loss(labels,preds))
+    vis.plot('%s F1@micro'%name, F1_measure(labels,preds,average='micro'))
+    vis.plot('%s F1@macro'%name, F1_measure(labels,preds,average='macro'))
+    vis.plot('%s Coverage'%name, Coverage(labels,probs))
+    vis.plot('%s Average Precision'%name, Average_precision(labels,probs))
 
             
 
 if __name__ == '__main__':
     # load params
-    trainset = UGCDataset(file_path='../docs/data/HML_JD_ALL.new.dat', voc_path='../docs/data/voc.json', pos_path='../docs/data/pos.json')
+    trainset = UGCDataset(file_path='../docs/data/HML_data_clean.dat',
+            voc_path='../docs/data/voc.json',
+            pos_path='../docs/data/pos.json',
+            cv=list(range(8)))
     
     train_loader = DataLoader(trainset,
-            batch_size=64,
+            batch_size=params.batch_size,
             shuffle=True,
-            num_workers=4)
+            num_workers=params.num_workers)
     
-    train(train_loader)
+    testset = UGCDataset(file_path='../docs/data/HML_data_clean.dat',
+            voc_path='../docs/data/voc.json',
+            pos_path='../docs/data/pos.json',
+            cv=[8,9])
+    
+    test_loader = DataLoader(testset,
+            batch_size=params.batch_size,
+            shuffle=True,
+            num_workers=params.num_workers)
+    train(train_loader, test_loader)

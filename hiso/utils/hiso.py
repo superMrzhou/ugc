@@ -41,7 +41,7 @@ class HISO(nn.Module):
                 bidirectional = True
                 )
         # output from pos hidden layer to predict middle labels
-        pos_hidden_size = opt.ghid_size * 2
+        pos_hidden_size = opt.ghid_size * opt.glayer
         self.pos_fc = nn.Sequential(
                 nn.BatchNorm1d(pos_hidden_size),
                 nn.ReLU(inplace=True),
@@ -49,7 +49,7 @@ class HISO(nn.Module):
                 nn.Softmax(dim=-1)
                 )
         # predict final labels
-        combine_size = opt.ghid_size * 2 + opt.auxiliary_labels
+        combine_size = opt.ghid_size * opt.glayer + opt.auxiliary_labels
         self.fc = nn.Sequential(
                 nn.Linear(combine_size, 128),
                 nn.BatchNorm1d(128),
@@ -95,7 +95,7 @@ class HisoLoss(nn.Module):
         # calcu final_labels margin loss
         self.final_loss = self.marginLoss(final_probs, final_labels)
         
-        self.loss = self.auxi_loss + self.final_loss
+        self.loss = self.opt.loss_alpha * self.auxi_loss + self.final_loss
         return self.loss
 
     def marginLoss(self, probs, labels):
@@ -104,7 +104,7 @@ class HisoLoss(nn.Module):
         right = F.relu(self.opt.min_margin - probs, inplace=True)**2
 
         margin_loss = labels * left + 0.5 * (1. - labels) * right
-        return margin_loss.sum()
+        return margin_loss.sum() / labels.size(0)
 
 
 class opt(object):

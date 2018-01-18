@@ -22,10 +22,19 @@ from . import transforms
 
 
 class UGCDataset(Dataset):
-    def __init__(self, file_path, voc_path, pos_path, cv=5):
-
-        self.cv = cv
+    def __init__(self, file_path, voc_path, pos_path, cv=None):
+        
+        # 筛选数据
+        filter_if = False
         self.df = pd.read_pickle(file_path)
+
+        if cv and isinstance(cv,int):
+            filter_if = self.df['cv']==cv
+        elif isinstance(cv, list):
+            for num in cv:
+                filter_if |= (self.df['cv']==num)
+        self.df = self.df[filter_if].reset_index(drop=True)
+
         # [(word, pos)]
         self.contents = self.df['Cut']
         self.sentence_lens = self.df['Len']
@@ -82,7 +91,7 @@ class UGCDataset(Dataset):
                 sentence_len = self.sentence_lens[idx],
                 top_label = torch.FloatTensor([int(cate[idx]) for cate in self.top_labels]),
                 bottom_label = torch.FloatTensor([int(cate[idx]) for cate in self.auxiliary_labels]),
-                cv_n = np.random.randint(0, self.cv)
+                cv_n = self.df['cv'][idx]
                 )
         # transforms to pytorch tensor
         sample.word_vec = self.word_transform(sample.wds)
@@ -272,8 +281,8 @@ def clean_str(string):
     return string.strip().lower()
 
 if __name__ == "__main__":
-    ugc = UGCDataset(file_path='../../docs/data/HML_JD_ALL.new.dat', voc_path='../../docs/data/voc.json', pos_path='../../docs/data/pos.json')
+    ugc = UGCDataset(file_path='../../docs/data/HML_data_clean.dat', voc_path='../../docs/data/voc.json', pos_path='../../docs/data/pos.json')
     dataLoader = DataLoader(ugc, batch_size=4, shuffle=True)
     for batch in dataLoader:
-        print(batch)
-        exit()
+        print(1)
+        # exit()

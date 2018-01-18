@@ -58,14 +58,14 @@ def Ranking_loss(labels, probs, mode=1):
     return rl
 
 
-def Average_precision(labels, probs, mode=1):
+def Average_precision(labels, probs, mode=1,average="samples"):
     '''
     用来考察排在隶属于该样本标记之前标记仍属于样本的相关标记集合的情况
     @labels: true labels of samples
     @probs:  label's probility  of samples
     '''
     if mode:
-        ap = average_precision_score(labels, probs, average="samples")
+        ap = average_precision_score(labels, probs, average=average)
     else:
         ap = np.mean(list(map(_average_precision, probs, labels)))
 

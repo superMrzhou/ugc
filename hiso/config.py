@@ -15,21 +15,22 @@ parser.add_argument('--auxi-weight', type=float, default=0.2, help='loss weight 
 parser.add_argument('--final-weight', type=float, default=1, help='loss weight final_labels')
 parser.add_argument('--max-margin', type=float, default=0.9, help='max probs of margin')
 parser.add_argument('--min-margin', type=float, default=0.1, help='min probs of margin')
+parser.add_argument('--loss-alpha', type=float, default=1e-2, help='discount of auxi_margin_loss')
 
 
 #########################
 #  based parameters for training
 #########################
-parser.add_argument('--n-fold', type=int, default=5, help='number of fold to split data for validate')
-parser.add_argument('--batch-size', '-b', type=int, default=48, help='batch size')
+parser.add_argument('--n-fold', type=int, default=10, help='number of fold to split data for validate')
+parser.add_argument('--batch-size', '-b', type=int, default=64, help='batch size')
 parser.add_argument('--embed-dim', type=int, default=100, help='embedding dimension')
 parser.add_argument('--lr', type=float, default=5e-3, help='initial learning rate')
 parser.add_argument('--clip', type=float, default=0, help='clip learning rate')
-parser.add_argument('--epochs', type=int, default=2, help='iter number of epochs for training')
+parser.add_argument('--epochs', type=int, default=20, help='iter number of epochs for training')
 parser.add_argument('--global-step', type=int, default=0, help='global step for batch training')
 parser.add_argument('--static', type=bool, default=False)
 parser.add_argument('--num-workers', type=int, default=4, help='number of workers to load data for training')
-parser.add_argument('--log-interval', type=int, default=5, help='report interval')
+parser.add_argument('--log-interval', type=int, default=10, help='report interval')
 
 #########################
 # file path based
