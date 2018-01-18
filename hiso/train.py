@@ -27,17 +27,19 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 from torch.utils.data import DataLoader
-
+from torch.optim.lr_scheduler import MultiStepLR
 from config import params
 from utils import hiso
 from utils.data_helper import *
 from utils.visualize import Visualizer
+
 # 设置仅使用第二块gpu
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
-vis = Visualizer(env='default',port=8099)
+vis = Visualizer(env='default',port=8099,log_dir="runs/%s"%time.strftime("%m-%d-%H:%M:%S", time.localtime()))
 use_cuda = torch.cuda.is_available()
+
 
 
 def train(dataloader,testloader):
@@ -60,13 +62,16 @@ def train(dataloader,testloader):
         margin_loss.cuda()
     # learning rate
     lr = params.lr
-    optimizer = optim.RMSprop(model.parameters(), lr=lr)
+    optimizer = optim.RMSprop(model.parameters(), lr=lr)#,momentum=0.9,weight_decay=0.01)
+    scheduler = MultiStepLR(optimizer,milestones=[int(0.3*params.epochs),int(0.7*params.epochs)],gamma=0.1)
     criterion = torch.nn.BCELoss()
     model.train()
 
     a_probs,f_probs,a_labels,f_labels= None, None,None,None
     total_loss = []
     for epoch in range(params.epochs):
+        # set lr dynamicly
+        scheduler.step()
         for batch_idx, samples in enumerate(dataloader, 0):
             v_word = Variable(samples['word_vec'].cuda() if use_cuda else samples['word_vec'])
             v_pos = Variable(samples['pos_vec'].cuda() if use_cuda else samples['pos_vec'])
@@ -79,6 +84,7 @@ def train(dataloader,testloader):
             optimizer.zero_grad()
             loss = margin_loss(auxi_probs, v_auix_label, final_probs, v_final_label)
             loss.backward()
+            # torch.nn.utils.clip_grad_norm(model.parameters(),0.9)
             optimizer.step()
             
             total_loss.append(loss.data[0])
@@ -151,14 +157,21 @@ def vis_log(probs, labels, name='', numpy_data=False):
     preds = (probs>0.5).astype(np.float32)
     # print(labels[0],'\n',probs[0],'\n',preds[0])
 
-    vis.plot('%s Ranking Loss'%name,Ranking_loss(labels, probs))
-    vis.plot('%s One Error'%name,One_error(labels, probs))
-    vis.plot('%s Hamming Loss'%name,Hamming_loss(labels,preds))
-    vis.plot('%s F1@micro'%name, F1_measure(labels,preds,average='micro'))
-    vis.plot('%s F1@macro'%name, F1_measure(labels,preds,average='macro'))
-    vis.plot('%s Coverage'%name, Coverage(labels,probs))
-    vis.plot('%s Average Precision'%name, Average_precision(labels,probs))
-
+    rk_loss = Ranking_loss(labels, probs)
+    one_error = One_error(labels, probs)
+    hm_loss = Hamming_loss(labels,preds)
+    f1_micro = F1_measure(labels,preds,average='micro')
+    f1_macro = F1_measure(labels,preds,average='macro')
+    cover = Coverage(labels,probs)
+    ap = Average_precision(labels,probs)
+    # visdom 
+    vis.plot('%s Ranking Loss'%name, rk_loss)
+    vis.plot('%s One Error'%name, one_error)
+    vis.plot('%s Hamming Loss'%name, hm_loss)
+    vis.plot('%s F1@micro'%name, f1_micro)
+    vis.plot('%s F1@macro'%name, f1_macro)
+    vis.plot('%s Coverage'%name, cover)
+    vis.plot('%s Average Precision'%name, ap)
             
 
 if __name__ == '__main__':
