@@ -5,11 +5,14 @@
 # @File    : hiso
 # @Author  : Liujie Zhang
 # @Email   : liujiezhangbupt@gmail.com
+import json
+import pickle
 import torch
 import torch.nn as nn
-
+import numpy as np
 from torch.autograd import Variable
-import torch.nn.functional as F
+import torch.nn.functional as FV
+from gensim.models import Word2Vec
 
 class HISO(nn.Module):
     def __init__(self, opt):
@@ -20,6 +23,7 @@ class HISO(nn.Module):
         # Embedding Layer
         self.wd_embed = nn.Embedding(opt.voc_size, opt.embed_dim)
         self.pos_embed = nn.Embedding(opt.pos_size, opt.embed_dim)
+        self.initEmbedWeight()
 
         # Bi-GRU Layer
         self.wd_bi_gru = nn.GRU(input_size = opt.embed_dim,
@@ -57,7 +61,35 @@ class HISO(nn.Module):
                 nn.Linear(128, opt.label_dim),
                 nn.Softmax(dim=-1)
                 )
-        
+
+    def initEmbedWeight(self):
+        '''
+        init embedding layer from random|word2vec|sswe
+        '''
+        if 'w2v' in self.opt.init_embed:
+            weights = Word2Vec.load('../../docs/data/w2v_word_100d_5win_5min'))
+            voc = json.load(open('../../docs/data/voc.json','r'))['voc']
+            print(weights[voc.keys()[3]])
+
+            word_weight = np.zeros((len(voc),self.opt.embed_dim))
+            for wd,idx in voc.iteritems():
+                vec = weights[wd] if wd in weights else np.random.randn(self.opt.embed_dim)
+                word_weight[idx] = vec
+            self.wd_embed.weight.data.copy_(torch.from_numpy(word_weight))
+
+            weights = Word2Vec.load('../../docs/data/w2v_pos_100d_5win_5min'))
+            pos = json.load(open('../../docs/data/pos.json','r'))['voc']
+            pos_weight = np.zeros((len(pos),self.opt.embed_dim))
+            for ps,idx in pos.iteritems():
+                vec = weights[ps] if ps in weights else np.random.randn(self.opt.embed_dim)
+                pos_weigt[idx] = vec
+            self.pos_embed.weight.data.copy_(torch.from_numpy(pos_weight))
+
+        elif 'sswe' in self.opt.init_embed:
+            word_weight = pickle.load('../../docs/model/%s'% self.opt.embed_path)
+            self.wd_embed.data.copy_(torch.from_numpy(word_weight))
+        # random default
+
 
     def forward(self, wd, pos):
         # encoder

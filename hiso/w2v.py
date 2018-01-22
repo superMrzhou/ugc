@@ -27,16 +27,19 @@ def train_w2v(file_path, mode, save_dir):
     print('start training....')
     model = gensim.models.Word2Vec(data,
                     min_count=5,
-                    size=50,
+                    size=100,
                     window=5,
                     workers=4
                 )
     print('complete! cost %d s'%(time.time()-start_t))
 
-    model.save('%sw2v_%s_50d_5win_5min'%(save_dir,mode))
+    model.save('%sw2v_%s_100d_5win_5min'%(save_dir,mode))
 
 
 if __name__ == '__main__':
+    data = gensim.models.Word2Vec.load('../docs/data/w2v_word_50d_5win_5min')
+    print(data[u'喜欢'])
+    exit()
     train_w2v(file_path='../docs/data/HML_data_clean.dat',
             mode='pos',
             save_dir='../docs/data/')

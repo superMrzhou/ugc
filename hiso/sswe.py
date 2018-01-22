@@ -1,5 +1,6 @@
 #coding:utf-8
 
+import pickle
 import torch
 import torch.nn as nn
 import pandas as pd
@@ -193,7 +194,7 @@ def trainSSWE():
         sswe.cuda()
         s_loss.cuda()
 
-    optimizer = optim.SGD(sswe.parameters(),lr=0.05,momentum=0.9)
+    optimizer = optim.SGD(sswe.parameters(),lr=0.05,momentum=0.)
     scheduler = MultiStepLR(optimizer,milestones=[int(0.3*params.epochs),int(0.7*params.epochs)],gamma=0.1)
 
     total_loss = []
@@ -213,8 +214,11 @@ def trainSSWE():
 
             if batch_idx % 20 == 1:
                 vis.plot('Hinge loss',np.mean(total_loss))
-
-
+    # save model
+    timestamp = time.strftime('%m-%d-%H:%M',time.localtime())
+    torch.save(sswe.state_dict(),'../docs/model/sswe_%s'%timestamp)
+    pickle.dump(sswe.lookup.weight.data.numpy(),'../docs/model/lookup_%s'%timestamp)
+    
 if __name__ == '__main__':
     trainSSWE()
     exit()
