@@ -11,7 +11,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 from torch.autograd import Variable
-import torch.nn.functional as FV
+import torch.nn.functional as F
 from gensim.models import Word2Vec
 
 class HISO(nn.Module):
@@ -67,27 +67,28 @@ class HISO(nn.Module):
         init embedding layer from random|word2vec|sswe
         '''
         if 'w2v' in self.opt.init_embed:
-            weights = Word2Vec.load('../../docs/data/w2v_word_100d_5win_5min'))
-            voc = json.load(open('../../docs/data/voc.json','r'))['voc']
-            print(weights[voc.keys()[3]])
+            weights = Word2Vec.load('../docs/data/w2v_word_100d_5win_5min')
+            voc = json.load(open('../docs/data/voc.json','r'))['voc']
+            print(weights[list(voc.keys())[3]])
 
             word_weight = np.zeros((len(voc),self.opt.embed_dim))
-            for wd,idx in voc.iteritems():
+            for wd,idx in voc.items():
                 vec = weights[wd] if wd in weights else np.random.randn(self.opt.embed_dim)
                 word_weight[idx] = vec
+            print(word_weight[3])
             self.wd_embed.weight.data.copy_(torch.from_numpy(word_weight))
 
-            weights = Word2Vec.load('../../docs/data/w2v_pos_100d_5win_5min'))
-            pos = json.load(open('../../docs/data/pos.json','r'))['voc']
+            weights = Word2Vec.load('../docs/data/w2v_pos_100d_5win_5min')
+            pos = json.load(open('../docs/data/pos.json','r'))['voc']
             pos_weight = np.zeros((len(pos),self.opt.embed_dim))
-            for ps,idx in pos.iteritems():
+            for ps,idx in pos.items():
                 vec = weights[ps] if ps in weights else np.random.randn(self.opt.embed_dim)
-                pos_weigt[idx] = vec
+                pos_weight[idx] = vec
             self.pos_embed.weight.data.copy_(torch.from_numpy(pos_weight))
 
         elif 'sswe' in self.opt.init_embed:
-            word_weight = pickle.load('../../docs/model/%s'% self.opt.embed_path)
-            self.wd_embed.data.copy_(torch.from_numpy(word_weight))
+            word_weight = pickle.load(open('../docs/model/%s'% self.opt.embed_path,'rb'))
+            self.wd_embed.weight.data.copy_(torch.from_numpy(word_weight))
         # random default
 
 
@@ -140,24 +141,27 @@ class HisoLoss(nn.Module):
 
 
 class opt(object):
-    voc_size = 100
-    pos_size = 100
-    embed_dim = 50
+    voc_size = 23757
+    pos_size = 57
+    embed_dim = 100
     ghid_size = 18
     seq_len = 4
-    glayer = 2
+    glayer = 1
     auxiliary_labels = 3
     label_dim = 6
     max_margin = 0.9
     min_margin = 0.1
+    embed_path='lookup_01-22-19:10'
+    init_embed='randn'
+    loss_alpha=1e-2
 
 if __name__ == '__main__':
     import visdom
     from visualize import Visualizer   
-    vis = Visualizer('main_test')
+    vis = Visualizer('main_test',port=8099)
     import time
     wd = Variable(torch.LongTensor([[2,45,75,34], [5,54,76,23]]))
-    pos = Variable(torch.LongTensor([[73,45,87,2], [13,56,7,43]]))
+    pos = Variable(torch.LongTensor([[3,45,8,2], [13,56,7,43]]))
     labels = Variable(torch.FloatTensor([[1,0,0,1,0,0],[0,0,1,0,1,0]]))
     auxi = Variable(torch.FloatTensor([[1,0,0],[0,1,0]]))
 
@@ -167,6 +171,6 @@ if __name__ == '__main__':
         final_probs,auxi_probs = model(wd, pos)
         loss = Loss(auxi_probs, auxi, final_probs, labels)
         vis.plot('loss', loss.data[0])
-        time.sleep(1)
+        #time.sleep(1)
         vis.log({'epoch':i,'loss':loss.data[0]})
     # print(outputs)

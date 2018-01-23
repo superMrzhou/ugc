@@ -28,7 +28,7 @@ parser.add_argument('--lr', type=float, default=5e-3, help='initial learning rat
 parser.add_argument('--clip', type=float, default=0, help='clip learning rate')
 parser.add_argument('--epochs', type=int, default=20, help='iter number of epochs for training')
 parser.add_argument('--global-step', type=int, default=0, help='global step for batch training')
-parser.add_argument('--init-embed', type=str, default='rand', help='rand|w2v|sswe')
+parser.add_argument('--init-embed', type=str, default='w2v', help='rand|w2v|sswe')
 parser.add_argument('--num-workers', type=int, default=4, help='number of workers to load data for training')
 parser.add_argument('--log-interval', type=int, default=10, help='report interval')
 
@@ -39,7 +39,7 @@ parser.add_argument('--log-interval', type=int, default=10, help='report interva
 parser.add_argument('--data', type=str, default='../docs/data/', help='dataset dirname')
 parser.add_argument('--train-file', type=str, default='HML_JD_ALL.new.dat', help='file name of train dataset')
 parser.add_argument('--eval-file', type=str, default='test_2000.tsv', help='file name of eval dataset')
-parser.add_argument('--embed-path', type=str, default='',help='embedding file from w2v|sswe')
+parser.add_argument('--embed-path', type=str, default='lookup_01-22-19:10',help='embedding file from w2v|sswe')
 parser.add_argument('--voc-size', type=int, default=23757, help='word vocab size')
 parser.add_argument('--pos-size', type=int, default=57, help='pos vocab size')
 parser.add_argument('--save_name', type=str, default=time.strftime('%m-%d_%H:%M.pth'), help='name of saved model ')
@@ -48,12 +48,9 @@ parser.add_argument('--max-length', type=int, default=494,help='max length of se
 #########################
 # gpu parameters
 #########################
-parser.add_argument('--gpu', type=str, default="0",
-                    help='use which gpu to run training, optional 0, 1')
-parser.add_argument('--seed', type=int, default=10,
-                    help='random seed (default: 10)')
-parser.add_argument('--cuda', action='store_true',
-                    help='use CUDA')
+parser.add_argument('--gpu', type=str, default="1", help='use which gpu to run training, optional 0, 1')
+parser.add_argument('--seed', type=int, default=10, help='random seed (default: 10)')
+parser.add_argument('--cuda', action='store_true',help='use CUDA')
 
 # parser args
 params = parser.parse_args()
