@@ -127,7 +127,7 @@ class HISO(nn.Module):
         '''
         attention layer
         '''
-        _squish = batch_matmul(weight_input, self.word_squish_w, active_func='tanh')
+        _squish = batch_matmul(weight_input, self.word_squish_w, active_func='sigmoid')
         att_weight = batch_matmul(_squish, self.word_atten_proj)
         att_weight_norm = self.softmax(att_weight)
         _out = attention_matmul(seq, att_weight_norm)
