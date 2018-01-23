@@ -34,6 +34,8 @@ class HISO(nn.Module):
                 dropout = 0.5,
                 bidirectional = True
                 )
+        self.word_squish_w = nn.Parameter(torch.Tensor(2*opt.ghid_size, 2*opt.ghid_size))
+        self.word_atten_proj = nn.Parameter(torch.Tensor(2*opt.ghid_size, 1))
 
         # Bi-GRU Layer
         self.pos_bi_gru = nn.GRU(input_size = opt.embed_dim,
@@ -44,6 +46,9 @@ class HISO(nn.Module):
                 dropout = 0.5,
                 bidirectional = True
                 )
+        self.pos_squish_w = nn.Parameter(torch.Tensor(2*opt.ghid_size, 2*opt.ghid_size))
+        self.pos_atten_proj = nn.Parameter(torch.Tensor(2*opt.ghid_size, 1))
+
         # output from pos hidden layer to predict middle labels
         pos_hidden_size = opt.ghid_size * opt.glayer
         self.pos_fc = nn.Sequential(
@@ -61,6 +66,7 @@ class HISO(nn.Module):
                 nn.Linear(128, opt.label_dim),
                 nn.Softmax(dim=-1)
                 )
+        self.softmax = nn.Softmax(dim=1)
 
     def initEmbedWeight(self):
         '''
@@ -75,7 +81,7 @@ class HISO(nn.Module):
             for wd,idx in voc.items():
                 vec = weights[wd] if wd in weights else np.random.randn(self.opt.embed_dim)
                 word_weight[idx] = vec
-            print(word_weight[3])
+            # print(word_weight[3])
             self.wd_embed.weight.data.copy_(torch.from_numpy(word_weight))
 
             weights = Word2Vec.load('../docs/data/w2v_pos_100d_5win_5min')
@@ -99,21 +105,67 @@ class HISO(nn.Module):
         # Bi-GRU
         h0 = self.init_hidden(wd.size()[0])
         wd_out, wd_hidden = self.wd_bi_gru(wd)
-
         pos_out, pos_hidden = self.pos_bi_gru(pos)
+        # attention
+        if 'word' in self.opt.attention:
+            wd_atten = self.attention(wd_out,weight_input=wd_out)
+        elif 'pos' in self.opt.attention:
+            wd_atten = self.attention(wd_out,weight_input=pos_out)
+        else:
+            wd_atten = wd_out[:,-1,:]
         
         # pos_out to predict auxiliary label
         auxi_probs = self.pos_fc(pos_out[:, -1, :])
 
         # combine wd_out with auxi_probs as feature
-        combine_feature = torch.cat((wd_out[:, -1, :], auxi_probs), dim=1)
+        combine_feature = torch.cat((wd_atten, auxi_probs), dim=1)
         logits = self.fc(combine_feature)
 
         return logits, auxi_probs
 
+    def attention(self,seq,weight_input):
+        '''
+        attention layer
+        '''
+        _squish = batch_matmul(weight_input, self.word_squish_w, active_func='tanh')
+        att_weight = batch_matmul(_squish, self.word_atten_proj)
+        att_weight_norm = self.softmax(att_weight)
+        _out = attention_matmul(seq, att_weight_norm)
+
+        return _out
+
+
     def init_hidden(self, batch_size):
         h0 = torch.zeros(self.opt.glayer, batch_size, self.opt.ghid_size)
         return Variable(h0)
+
+
+def batch_matmul(seq,weight,active_func=''):
+    '''
+    seq matmul weight with keeping dims
+    '''
+    out = None
+    for i in range(seq.size(0)):
+        _s = torch.mm(seq[i], weight)
+        if active_func == 'tanh':
+            _s = torch.tanh(_s)
+        _s = _s.unsqueeze(0)
+
+        out = _s if out is None else torch.cat((out, _s), 0)
+    return out
+
+def attention_matmul(seq, att_weight):
+    '''
+    apply att_weight on seq
+    '''
+    att_out = None
+    for i in range(seq.size(0)):
+        s_i = seq[i] * att_weight[i]
+        s_i = s_i.unsqueeze(0)
+        
+        att_out = s_i if att_out is None else torch.cat((att_out,s_i),0)
+    return torch.sum(att_out,dim=1)
+
 
 class HisoLoss(nn.Module):
     def __init__(self, opt):
@@ -144,9 +196,9 @@ class opt(object):
     voc_size = 23757
     pos_size = 57
     embed_dim = 100
-    ghid_size = 18
+    ghid_size = 3
     seq_len = 4
-    glayer = 1
+    glayer = 2
     auxiliary_labels = 3
     label_dim = 6
     max_margin = 0.9
@@ -154,11 +206,12 @@ class opt(object):
     embed_path='lookup_01-22-19:10'
     init_embed='randn'
     loss_alpha=1e-2
+    attention='word'
 
 if __name__ == '__main__':
     import visdom
     from visualize import Visualizer   
-    vis = Visualizer('main_test',port=8099)
+    # vis = Visualizer('main_test',port=8099)
     import time
     wd = Variable(torch.LongTensor([[2,45,75,34], [5,54,76,23]]))
     pos = Variable(torch.LongTensor([[3,45,8,2], [13,56,7,43]]))
@@ -170,7 +223,8 @@ if __name__ == '__main__':
     for i in range(100):
         final_probs,auxi_probs = model(wd, pos)
         loss = Loss(auxi_probs, auxi, final_probs, labels)
-        vis.plot('loss', loss.data[0])
+        print(loss.data[0])
+        #vis.plot('loss', loss.data[0])
         #time.sleep(1)
-        vis.log({'epoch':i,'loss':loss.data[0]})
+        #vis.log({'epoch':i,'loss':loss.data[0]})
     # print(outputs)
