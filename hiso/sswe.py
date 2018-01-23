@@ -218,7 +218,7 @@ def trainSSWE():
     # save model
     timestamp = time.strftime('%m-%d-%H:%M',time.localtime())
     torch.save(sswe.state_dict(),'../docs/model/sswe_%s'%timestamp)
-    lookup = sswe.lookup.weight.data.cput().numpy() 
+    lookup = sswe.lookup.weight.data.cpu().numpy() 
     pickle.dump(lookup, open('../docs/model/lookup_%s'%timestamp,'wb'))
     
 if __name__ == '__main__':
