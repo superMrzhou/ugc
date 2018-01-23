@@ -39,7 +39,7 @@ parser.add_argument('--log-interval', type=int, default=10, help='report interva
 parser.add_argument('--data', type=str, default='../docs/data/', help='dataset dirname')
 parser.add_argument('--train-file', type=str, default='HML_JD_ALL.new.dat', help='file name of train dataset')
 parser.add_argument('--eval-file', type=str, default='test_2000.tsv', help='file name of eval dataset')
-parser.add_argument('--embed-path', type=str, default='lookup_01-22-19:10',help='embedding file from w2v|sswe')
+parser.add_argument('--embed-path', type=str, default='lookup_01-22-10:03',help='embedding file from w2v|sswe')
 parser.add_argument('--voc-size', type=int, default=23757, help='word vocab size')
 parser.add_argument('--pos-size', type=int, default=57, help='pos vocab size')
 parser.add_argument('--save_name', type=str, default=time.strftime('%m-%d_%H:%M.pth'), help='name of saved model ')
