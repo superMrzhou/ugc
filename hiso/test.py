@@ -10,7 +10,7 @@ if __name__ == '__main__':
     
     model = SSWE(params)
     model.load_state_dict(torch.load('../docs/model/sswe_01-22-10:03'))
-    lookup = sswe.lookup.weight.data.cpu().numpy()
+    lookup = model.lookup.weight.data.cpu().numpy()
     pickle.dump(lookup,open('../docs/model/lookup_01-22-10:03','wb'))
     exit()
 
