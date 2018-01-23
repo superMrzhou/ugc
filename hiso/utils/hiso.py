@@ -127,7 +127,7 @@ class HISO(nn.Module):
         '''
         attention layer
         '''
-        _squish = batch_matmul(weight_input, self.word_squish_w, active_func='')
+        _squish = batch_matmul(weight_input, self.word_squish_w, active_func='tanh')
         att_weight = batch_matmul(_squish, self.word_atten_proj)
         att_weight_norm = self.softmax(att_weight)
         _out = attention_matmul(seq, att_weight_norm)
@@ -224,6 +224,8 @@ if __name__ == '__main__':
         final_probs,auxi_probs = model(wd, pos)
         loss = Loss(auxi_probs, auxi, final_probs, labels)
         print(loss.data[0])
+        print(final_probs.data,auxi_probs.data)
+        
         #vis.plot('loss', loss.data[0])
         #time.sleep(1)
         #vis.log({'epoch':i,'loss':loss.data[0]})
