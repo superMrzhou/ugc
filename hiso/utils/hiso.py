@@ -34,8 +34,8 @@ class HISO(nn.Module):
                 dropout = 0.5,
                 bidirectional = True
                 )
-        self.word_squish_w = nn.Parameter(torch.Tensor(2*opt.ghid_size, 2*opt.ghid_size))
-        self.word_atten_proj = nn.Parameter(torch.Tensor(2*opt.ghid_size, 1))
+        self.word_squish_w = nn.Parameter(torch.randn(2*opt.ghid_size, 2*opt.ghid_size))
+        self.word_atten_proj = nn.Parameter(torch.randn(2*opt.ghid_size, 1))
 
         # Bi-GRU Layer
         self.pos_bi_gru = nn.GRU(input_size = opt.embed_dim,
@@ -46,8 +46,8 @@ class HISO(nn.Module):
                 dropout = 0.5,
                 bidirectional = True
                 )
-        self.pos_squish_w = nn.Parameter(torch.Tensor(2*opt.ghid_size, 2*opt.ghid_size))
-        self.pos_atten_proj = nn.Parameter(torch.Tensor(2*opt.ghid_size, 1))
+        self.pos_squish_w = nn.Parameter(torch.randn(2*opt.ghid_size, 2*opt.ghid_size))
+        self.pos_atten_proj = nn.Parameter(torch.randn(2*opt.ghid_size, 1))
 
         # output from pos hidden layer to predict middle labels
         pos_hidden_size = opt.ghid_size * opt.glayer
@@ -213,6 +213,7 @@ if __name__ == '__main__':
     from visualize import Visualizer   
     # vis = Visualizer('main_test',port=8099)
     import time
+    import torch.optim as optim
     wd = Variable(torch.LongTensor([[2,45,75,34], [5,54,76,23]]))
     pos = Variable(torch.LongTensor([[3,45,8,2], [13,56,7,43]]))
     labels = Variable(torch.FloatTensor([[1,0,0,1,0,0],[0,0,1,0,1,0]]))
@@ -220,12 +221,23 @@ if __name__ == '__main__':
 
     model = HISO(opt)
     Loss = HisoLoss(opt)
+    op = optim.SGD(model.parameters(),lr=0.1)
+    model.train()
+    a,b= model.word_squish_w.data,model.word_atten_proj.data
+    print(a,b)
     for i in range(100):
         final_probs,auxi_probs = model(wd, pos)
         loss = Loss(auxi_probs, auxi, final_probs, labels)
+        op.zero_grad()
+        loss.backward()
+        op.step()
         print(loss.data[0])
-        print(final_probs.data,auxi_probs.data)
-        
+    #    print(final_probs.data,auxi_probs.data)
+    model.eval()
+    fp,ap = model(wd,pos)
+    print(fp.data,ap.data)
+    print(model.word_atten_proj.data)
+    print(model.word_squish_w.data)
         #vis.plot('loss', loss.data[0])
         #time.sleep(1)
         #vis.log({'epoch':i,'loss':loss.data[0]})
