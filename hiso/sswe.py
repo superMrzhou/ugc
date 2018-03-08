@@ -190,7 +190,7 @@ def trainSSWE():
     loader = DataLoader(sem_data,shuffle=True,batch_size=64)
 
     sswe = SSWE(params)
-    s_loss = SSWELoss(alpha=synt_alpha)
+    s_loss = SSWELoss(alpha=syn_alpha)
     if use_cuda:
         sswe.cuda()
         s_loss.cuda()
