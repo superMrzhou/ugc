@@ -182,6 +182,7 @@ class SemDataSet(Dataset):
 def trainSSWE():
     from config import params
     use_cuda = torch.cuda.is_available()
+    syn_alpha = 0.4
 
     sem_data = SemDataSet('../docs/data/HML_data_clean.dat',
             voc_path='../docs/data/voc.json',
@@ -189,7 +190,7 @@ def trainSSWE():
     loader = DataLoader(sem_data,shuffle=True,batch_size=64)
 
     sswe = SSWE(params)
-    s_loss = SSWELoss()
+    s_loss = SSWELoss(alpha=synt_alpha)
     if use_cuda:
         sswe.cuda()
         s_loss.cuda()
@@ -214,12 +215,12 @@ def trainSSWE():
 
             if batch_idx % 20 == 1:
                 vis.plot('Hinge loss',np.mean(total_loss))
-                print(np.mean(total_loss))
+                print
     # save model
     timestamp = time.strftime('%m-%d-%H:%M',time.localtime())
     torch.save(sswe.state_dict(),'../docs/model/sswe_%s'%timestamp)
     lookup = sswe.lookup.weight.data.cpu().numpy() 
-    pickle.dump(lookup, open('../docs/model/lookup_%s'%timestamp,'wb'))
+    pickle.dump(lookup, open('../docs/model/lookup_alpha%s_%s'%(syn_alpha, timestamp),'wb'))
     
 if __name__ == '__main__':
     trainSSWE()
