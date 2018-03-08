@@ -115,7 +115,7 @@ class SSWELoss(nn.Module):
 
         for corpt_i in range(1, len(scores)):
             syn_loss = self.hingeLoss(true_score[0], scores[corpt_i][0])
-            cur_loss = syn_loss * self.alpha + sem_loss * self.alpha
+            cur_loss = syn_loss * self.alpha + sem_loss * (1 - self.alpha )
 
             loss.append(cur_loss)
 
