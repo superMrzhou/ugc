@@ -41,11 +41,11 @@ parser.add_argument('--log-interval', type=int, default=10, help='report interva
 parser.add_argument('--data', type=str, default='../docs/data/', help='dataset dirname')
 parser.add_argument('--train-file', type=str, default='HML_JD_ALL.new.dat', help='file name of train dataset')
 parser.add_argument('--eval-file', type=str, default='test_2000.tsv', help='file name of eval dataset')
-parser.add_argument('--embed-path', type=str, default='lookup_alpha0.6_03-08-02:08',help='embedding file from w2v|sswe')
+parser.add_argument('--embed-path', type=str, default='lookup_alpha0.7_03-08-04:22',help='embedding file from w2v|sswe')
 parser.add_argument('--voc-size', type=int, default=23757, help='word vocab size')
 parser.add_argument('--pos-size', type=int, default=57, help='pos vocab size')
 parser.add_argument('--save_name', type=str, default=time.strftime('%m-%d_%H:%M.pth'), help='name of saved model ')
-parser.add_argument('--max-length', type=int, default=494,help='max length of sentences by word')
+parser.add_argument('--max-length', type=int, default=494,help='max length of senlltences by word')
 
 #########################
 # gpu parameters
