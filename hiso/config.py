@@ -27,7 +27,7 @@ parser.add_argument('--batch-size', '-b', type=int, default=64, help='batch size
 parser.add_argument('--embed-dim', type=int, default=100, help='embedding dimension')
 parser.add_argument('--lr', type=float, default=5e-3, help='initial learning rate')
 parser.add_argument('--clip', type=float, default=0, help='clip learning rate')
-parser.add_argument('--epochs', type=int, default=20, help='iter number of epochs for training')
+parser.add_argument('--epochs', type=int, default=10, help='iter number of epochs for training')
 parser.add_argument('--global-step', type=int, default=0, help='global step for batch training')
 parser.add_argument('--init-embed', type=str, default='sswe', help='rand|w2v|sswe')
 parser.add_argument('--attention', type=str, default='null', help='word|pos|null')
