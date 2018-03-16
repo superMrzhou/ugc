@@ -30,7 +30,7 @@ parser.add_argument('--clip', type=float, default=0, help='clip learning rate')
 parser.add_argument('--epochs', type=int, default=10, help='iter number of epochs for training')
 parser.add_argument('--global-step', type=int, default=0, help='global step for batch training')
 parser.add_argument('--init-embed', type=str, default='sswe', help='rand|w2v|sswe')
-parser.add_argument('--attention', type=str, default='null', help='word|pos|null')
+parser.add_argument('--attention', type=str, default='word', help='word|pos|null')
 parser.add_argument('--num-workers', type=int, default=4, help='number of workers to load data for training')
 parser.add_argument('--log-interval', type=int, default=10, help='report interval')
 
