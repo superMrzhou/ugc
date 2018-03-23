@@ -197,7 +197,7 @@ class SemDataSet(Dataset):
 def trainSSWE():
     from config import params
     use_cuda = torch.cuda.is_available()
-    syn_alpha = 0.7
+    # syn_alpha = 0.7
 
     sem_data = SemDataSet('../docs/data/HML_data_clean.dat',
             voc_path='../docs/data/voc.json',
@@ -205,7 +205,7 @@ def trainSSWE():
     loader = DataLoader(sem_data,shuffle=True,batch_size=64)
 
     sswe = SSWE(params)
-    s_loss = SSWELoss(alpha=syn_alpha)
+    s_loss = SSWELoss(alpha=params.sswe_alpha)
     if use_cuda:
         sswe.cuda()
         s_loss.cuda()

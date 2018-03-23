@@ -285,4 +285,4 @@ if __name__ == "__main__":
     dataLoader = DataLoader(ugc, batch_size=4, shuffle=True)
     for batch in dataLoader:
         print(1)
-        # exit()
+        exit()
