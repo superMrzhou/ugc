@@ -24,7 +24,9 @@ class HISO(nn.Module):
         self.wd_embed = nn.Embedding(opt.voc_size, opt.embed_dim)
         self.pos_embed = nn.Embedding(opt.pos_size, opt.embed_dim)
         self.initEmbedWeight()
-
+        # conv layer
+        self.word_conv = self.flatConv
+        self.pos_conv = self.flatConv
         # Bi-GRU Layer
         self.wd_bi_gru = nn.GRU(input_size = opt.embed_dim,
                 hidden_size = opt.ghid_size,
@@ -68,6 +70,44 @@ class HISO(nn.Module):
                 )
         self.softmax = nn.Softmax(dim=1)
 
+    def deepConv(self, x):
+        '''
+        stackig conv layer 
+        '''
+        x = torch.transpose(x, 1, 2)
+        kernel_size = [1, 2, 2]
+        filter_num = [self.opt.embed_dim, 128, 128, 100]
+        for i, k_s in enumerate(kernel_size):
+            x = nn.Conv1d(in_channels = filter_num[i],
+                    out_channels = filter_num[i+1],
+                    kernel_size = kernel_size[i],
+                    stride = 1)(x)
+        return torch.transpose(x, 1, 2)
+
+    def flatConv(self, x):
+        '''
+        Flatting feature after conv parallel
+        '''
+        # embed_dim[N, L, C] --> [N, C, L]
+        x = torch.transpose(x, 1, 2)
+        kernel_size = [1, 2]
+        filter_num = [50, 50, 48]
+        output, min_len = [], x.size()[-1]
+        for i, k_s in enumerate(kernel_size):
+            cur_res = nn.Conv1d(in_channels = x.size()[1],
+                    out_channels = filter_num[i],
+                    kernel_size = kernel_size[i],
+                    stride = 1,
+                    padding=int(kernel_size[i]/2))(x)
+
+            min_len = min(min_len, cur_res.size()[-1])
+            output.append(cur_res)
+        result = torch.cat([y[:,:,:min_len] for y in output], 1)
+
+        return torch.transpose(result, 1, 2)
+
+        
+
     def initEmbedWeight(self):
         '''
         init embedding layer from random|word2vec|sswe
@@ -102,6 +142,12 @@ class HISO(nn.Module):
         # encoder
         wd = self.wd_embed(wd)
         pos = self.pos_embed(pos)
+        #print(pos.size())
+        # conv layer
+        wd  = self.word_conv(wd)
+        pos = self.pos_conv(pos)
+        #print(wd.size())
+
         # Bi-GRU
         h0 = self.init_hidden(wd.size()[0])
         wd_out, wd_hidden = self.wd_bi_gru(wd)
