@@ -55,7 +55,8 @@ class SSWE(nn.Module):
         
         self.opt = opt
         self.lookup = nn.Embedding(opt.voc_size,opt.embed_dim)
-
+        # support init embeding weight using Word2Vec
+        self.initEmbedWeight()
         self.score = Score(opt)
 
     def forward(self,x):
@@ -72,6 +73,20 @@ class SSWE(nn.Module):
             scores.append(self.score(corrupt_gram))
         return scores
 
+    def initEmbedWeight(self):
+        '''
+        init embeding weight using Word2Vec|rand
+        '''
+        if 'w2v' in self.opt.init_sswe_embed:
+            weights = Word2Vec.load('../docs/data/w2v_word_100d_5win_5min')
+            voc = json.load(open('../docs/data/voc.json','r'))['voc']
+
+            word_weight = np.zeros((self.opt.voc_size, self.opt.embed_dim))
+            for wd,idx in voc.items():
+                vec = weights[wd] if wd in weights else np.random.randn(self.opt.embed_dim)
+                word_weight[idx] = vec
+            # print(word_weight[3])
+            self.lookup.weight.data.copy_(torch.from_numpy(word_weight))
 
 class HingeMarginLoss(nn.Module):
     '''
