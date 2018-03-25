@@ -1,4 +1,4 @@
-# HNIO: A Hierarchical multi-input and output Bi-GRU Model
+# HMIO: A Hierarchical multi-input and output Bi-GRU Model
 
 we propose a hierarchical multi-input and output model based bi-directional recurrent neural network, which both considers the semantic and lexical information of emotional expression. Our model applies two independent Bi-GRU layer to generate part of speech and sentence representation. Then the lexical information is considered via attention over output of softmax activation on part of speech representation.
 
@@ -20,10 +20,10 @@ we propose a hierarchical multi-input and output model based bi-directional recu
 $ pip install virtualenv
 
 # cd project
-$ cd /your/path/to/project/adios
+$ cd /your/path/to/project/HMIO
 
-# make env using python 2.7(system version)
-$ virtualenv env --python=python
+# make env using python 3.5
+$ virtualenv env --python=python3
 
 # attention: if you want to use gpu,env's name must be 'tensorflow',maybe like this:
 $ virtualenv tensorflow --python=python
