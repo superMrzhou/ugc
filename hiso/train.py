@@ -34,8 +34,8 @@ from utils.data_helper import *
 from utils.visualize import Visualizer
 
 # 设置仅使用第二块gpu
-os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="1"
+# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+# os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 vis = Visualizer(env='default',port=8099,log_dir="runs/%s"%time.strftime("%m-%d-%H:%M:%S", time.localtime()))
 use_cuda = torch.cuda.is_available()
@@ -102,7 +102,7 @@ def train(dataloader,testloader):
             # evaluate train model
             if batch_idx % params.log_interval == 1:
                 vis.plot('margin loss',np.mean(total_loss))
-                vis.log('margin loss: %s'%np.mean(total_loss), win='marginLoss_text')
+#                 vis.log('margin loss: %s'%np.mean(total_loss), win='marginLoss_text')
                 vis_log(f_probs, f_labels, name='train final',numpy_data=True)
                 vis_log(a_probs, a_labels, name='train auxiliary',numpy_data=True)
                 # reinit
