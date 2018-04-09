@@ -72,7 +72,7 @@ def train(dataloader,testloader):
     for epoch in tqdm(range(params.epochs)):
         # set lr dynamicly
         scheduler.step()
-        for batch_idx, samples in enumerate(dataloader, 0):
+        for batch_idx, samples in tqdm(enumerate(dataloader, 0)):
             v_word = Variable(samples['word_vec'].cuda() if use_cuda else samples['word_vec'])
             v_pos = Variable(samples['pos_vec'].cuda() if use_cuda else samples['pos_vec'])
 
