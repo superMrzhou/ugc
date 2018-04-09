@@ -34,8 +34,8 @@ from utils.data_helper import *
 from utils.visualize import Visualizer
 
 # 设置仅使用第二块gpu
-# os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-# os.environ["CUDA_VISIBLE_DEVICES"]="1"
+ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+ os.environ["CUDA_VISIBLE_DEVICES"]="1"
 
 vis = Visualizer(env='default',port=8099,log_dir="runs/%s"%time.strftime("%m-%d-%H:%M:%S", time.localtime()))
 use_cuda = torch.cuda.is_available()
