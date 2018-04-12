@@ -39,6 +39,8 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 vis = Visualizer(env='default',port=8099,log_dir="runs/%s"%time.strftime("%m-%d-%H:%M:%S", time.localtime()))
 use_cuda = torch.cuda.is_available()
+print(use_cuda)
+use_cuda = True
 
 
 
