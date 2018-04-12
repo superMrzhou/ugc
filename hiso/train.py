@@ -58,9 +58,11 @@ def train(dataloader,testloader):
     # build model
     model = hiso.HISO(params)
     margin_loss = hiso.HisoLoss(params)
-    if use_cuda: 
+    if use_cuda:
+        print(use_cuda)
         model.cuda()
         margin_loss.cuda()
+        print(use_cuda)
     # learning rate
     lr = params.lr
     optimizer = optim.RMSprop(model.parameters(), lr=lr)#,momentum=0.9,weight_decay=0.01)
