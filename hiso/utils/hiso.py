@@ -43,7 +43,7 @@ class HISO(nn.Module):
         self.word_atten_proj = nn.Parameter(torch.randn(2*opt.ghid_size, 1))
 
         # Bi-GRU Layer
-        self.pos_bi_gru = nn.GRU(input_size = 144,
+        self.pos_bi_gru = nn.GRU(input_size = opt.dim,
                 hidden_size = opt.ghid_size,
                 num_layers = opt.glayer,
                 bias = True, 
@@ -141,10 +141,10 @@ class HISO(nn.Module):
         # encoder
         wd = self.wd_embed(wd)
         pos = self.pos_embed(pos)
-        #print(pos.size())
+        print(wd.size())
         # conv layer
         wd  = self.word_conv(wd)
-        pos = self.pos_conv(pos)
+#         pos = self.pos_conv(pos)
         #print(wd.size())
 
         # Bi-GRU
