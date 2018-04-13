@@ -25,9 +25,9 @@ class HISO(nn.Module):
         self.pos_embed = nn.Embedding(opt.pos_size, opt.embed_dim)
         self.initEmbedWeight()
         # conv layer
-        self.fconvid = [nn.Convid(in_channels=opt.embed_dim,out_channnels=48,kernel_size=2,padding=1).cuda(),
-                        nn.Convid(in_channels=opt.embed_dim,out_channnels=48,kernel_size=3,padding=1).cuda(),
-                        nn.Convid(in_channels=opt.embed_dim,out_channnels=48,kernel_size=4,padding=2).cuda()]
+        self.fconvid = [nn.Conv1d(in_channels=opt.embed_dim,out_channnels=48,kernel_size=2,padding=1).cuda(),
+                        nn.Conv1d(in_channels=opt.embed_dim,out_channnels=48,kernel_size=3,padding=1).cuda(),
+                        nn.Conv1d(in_channels=opt.embed_dim,out_channnels=48,kernel_size=4,padding=2).cuda()]
         self.word_conv = self.flatConv
         self.pos_conv = self.flatConv
         # Bi-GRU Layer
@@ -97,7 +97,7 @@ class HISO(nn.Module):
         filter_num = [50, 50, 48]
         output, min_len = [], x.size()[-1]
         for i, k_s in enumerate(kernel_size):
-            cur_res = self.fconvid[i](x)
+            cur_res = self.fconv1d[i](x)
 
             min_len = min(min_len, cur_res.size()[-1])
             output.append(cur_res)
