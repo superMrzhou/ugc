@@ -145,7 +145,7 @@ class HISO(nn.Module):
         wd  = self.word_conv(wd)
 #         pos = self.pos_conv(pos)
         #print(wd.size())
-        print(wd.size())
+#         print(wd.size())
         # Bi-GRU
         h0 = self.init_hidden(wd.size()[0])
         wd_out, wd_hidden = self.wd_bi_gru(wd)
