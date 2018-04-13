@@ -31,7 +31,7 @@ class HISO(nn.Module):
         self.word_conv = self.flatConv
         self.pos_conv = self.flatConv
         # Bi-GRU Layer
-        self.wd_bi_gru = nn.GRU(input_size = opt.embed_dim,
+        self.wd_bi_gru = nn.GRU(input_size = 148,
                 hidden_size = opt.ghid_size,
                 num_layers = opt.glayer,
                 bias = True,
