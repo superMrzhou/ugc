@@ -26,12 +26,12 @@ class HISO(nn.Module):
         self.initEmbedWeight()
         # conv layer
         self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=2,padding=1).cuda(),
-                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=50,kernel_size=3,padding=1).cuda(),
-                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=50,kernel_size=4,padding=2).cuda()]
+                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=3,padding=1).cuda(),
+                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=4,padding=2).cuda()]
         self.word_conv = self.flatConv
         self.pos_conv = self.flatConv
         # Bi-GRU Layer
-        self.wd_bi_gru = nn.GRU(input_size = 148,
+        self.wd_bi_gru = nn.GRU(input_size = 144,
                 hidden_size = opt.ghid_size,
                 num_layers = opt.glayer,
                 bias = True,
@@ -43,7 +43,7 @@ class HISO(nn.Module):
         self.word_atten_proj = nn.Parameter(torch.randn(2*opt.ghid_size, 1))
 
         # Bi-GRU Layer
-        self.pos_bi_gru = nn.GRU(input_size = 148,
+        self.pos_bi_gru = nn.GRU(input_size = 144,
                 hidden_size = opt.ghid_size,
                 num_layers = opt.glayer,
                 bias = True, 
@@ -94,7 +94,7 @@ class HISO(nn.Module):
         # embed_dim[N, L, C] --> [N, C, L]
         x = torch.transpose(x, 1, 2)
         kernel_size = [1, 2]
-        filter_num = [50, 50, 48]
+        filter_num = [48, 48, 48]
         output, min_len = [], x.size()[-1]
         for i, k_s in enumerate(kernel_size):
             cur_res = self.fconv1d[i](x)
