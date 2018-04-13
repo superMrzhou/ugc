@@ -25,7 +25,7 @@ class HISO(nn.Module):
         self.pos_embed = nn.Embedding(opt.pos_size, opt.embed_dim)
         self.initEmbedWeight()
         # conv layer
-        self.fconvid = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=2,padding=1).cuda(),
+        self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=2,padding=1).cuda(),
                         nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=3,padding=1).cuda(),
                         nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=4,padding=2).cuda()]
         self.word_conv = self.flatConv
