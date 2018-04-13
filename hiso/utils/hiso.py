@@ -93,10 +93,9 @@ class HISO(nn.Module):
         '''
         # embed_dim[N, L, C] --> [N, C, L]
         x = torch.transpose(x, 1, 2)
-        kernel_size = [1, 2]
-        filter_num = [48, 48, 48]
         output, min_len = [], x.size()[-1]
-        for i, k_s in enumerate(kernel_size):
+        conv_layer_num = len(self.fconv1d)
+        for i in range(conv_layer_num):
             cur_res = self.fconv1d[i](x)
 
             min_len = min(min_len, cur_res.size()[-1])
