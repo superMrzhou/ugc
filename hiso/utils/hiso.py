@@ -25,8 +25,8 @@ class HISO(nn.Module):
         self.pos_embed = nn.Embedding(opt.pos_size, opt.embed_dim)
         self.initEmbedWeight()
         # conv layer
-        self.word_conv.cuda() = self.flatConv
-        self.pos_conv.cuda() = self.flatConv
+        self.word_conv = self.flatConv
+        self.pos_conv = self.flatConv
         # Bi-GRU Layer
         self.wd_bi_gru = nn.GRU(input_size = opt.embed_dim,
                 hidden_size = opt.ghid_size,
