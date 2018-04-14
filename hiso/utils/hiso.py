@@ -28,10 +28,10 @@ class HISO(nn.Module):
         self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=2,padding=1).cuda(),
                         nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=3,padding=1).cuda(),
                         nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=4,padding=2).cuda()]
-        self.word_conv = self.flatConv
-        self.pos_conv = self.flatConv
+        self.word_conv = self.deepConv
+        self.pos_conv = self.deepConv
         # Bi-GRU Layer
-        self.wd_bi_gru = nn.GRU(input_size = 144,
+        self.wd_bi_gru = nn.GRU(input_size = 100,
                 hidden_size = opt.ghid_size,
                 num_layers = opt.glayer,
                 bias = True,
