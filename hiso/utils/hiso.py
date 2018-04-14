@@ -162,7 +162,8 @@ class HISO(nn.Module):
         if 'word' in self.opt.attention:
             wd_atten = self.attention(wd_out,weight_input=wd_out)
         elif 'pos' in self.opt.attention:
-            wd_atten = self.attention(wd_out,weight_input=pos_out[:,:wd_out.size()[1],:])
+            _steps = min(wd_out.size()[1], pos_out.size()[1])
+            wd_atten = self.attention(wd_out[:,:_steps,:],weight_input=pos_out[:,:_steps,:])
         else:
             wd_atten = wd_out[:,-1,:]
         
