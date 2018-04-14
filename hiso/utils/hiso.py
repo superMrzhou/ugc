@@ -25,13 +25,13 @@ class HISO(nn.Module):
         self.pos_embed = nn.Embedding(opt.pos_size, opt.embed_dim)
         self.initEmbedWeight()
         # conv layer
-        self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=128,kernel_size=1,stride=1).cuda(),
-                        nn.Conv1d(in_channels=128,out_channels=128,kernel_size=2,stride=1).cuda(),
-                        nn.Conv1d(in_channels=128,out_channels=100,kernel_size=2,stride=1).cuda()]
-        self.word_conv = self.deepConv
-        self.pos_conv = self.deepConv
+        self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=3,padding=1).cuda(),
+                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=4,padding=1).cuda(),
+                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=5,padding=2).cuda()]
+        self.word_conv = self.flatConv
+        self.pos_conv = self.flatConv
         # Bi-GRU Layer
-        self.wd_bi_gru = nn.GRU(input_size = opt.embed_dim,
+        self.wd_bi_gru = nn.GRU(input_size = 144,
                 hidden_size = opt.ghid_size,
                 num_layers = opt.glayer,
                 bias = True,
