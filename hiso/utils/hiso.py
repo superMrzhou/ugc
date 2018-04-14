@@ -157,7 +157,7 @@ class HISO(nn.Module):
         if 'word' in self.opt.attention:
             wd_atten = self.attention(wd_out,weight_input=wd_out)
         elif 'pos' in self.opt.attention:
-            wd_atten = self.attention(wd_out,weight_input=pos_out)
+            wd_atten = self.attention(wd_out,weight_input=pos_out[:,word.size[1],:])
         else:
             wd_atten = wd_out[:,-1,:]
         
