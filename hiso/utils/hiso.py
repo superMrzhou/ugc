@@ -25,9 +25,9 @@ class HISO(nn.Module):
         self.pos_embed = nn.Embedding(opt.pos_size, opt.embed_dim)
         self.initEmbedWeight()
         # conv layer
-        self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=2,padding=1).cuda(),
-                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=3,padding=1).cuda(),
-                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=4,padding=2).cuda()]
+        self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=128,kernel_size=1,stride=1).cuda(),
+                        nn.Conv1d(in_channels=128,out_channels=128,kernel_size=2,stride=1).cuda(),
+                        nn.Conv1d(in_channels=128,out_channels=100,kernel_size=2,stride=1).cuda()]
         self.word_conv = self.deepConv
         self.pos_conv = self.deepConv
         # Bi-GRU Layer
@@ -78,13 +78,16 @@ class HISO(nn.Module):
         stackig conv layer 
         '''
         x = torch.transpose(x, 1, 2)
-        kernel_size = [1, 2, 2]
-        filter_num = [self.opt.embed_dim, 128, 128, 100]
-        for i, k_s in enumerate(kernel_size):
-            x = self.Conv1d(in_channels = filter_num[i],
-                    out_channels = filter_num[i+1],
-                    kernel_size = kernel_size[i],
-                    stride = 1)(x)
+        # kernel_size = [1, 2, 2]
+        # filter_num = [self.opt.embed_dim, 128, 128, 100]
+        conv_layer_num = len(self.fconv1d)
+        #for i, k_s in enumerate(kernel_size):
+        for i in range(conv_layer_num):
+            x = self.fconv1d[i](x)
+            #x = self.Conv1d(in_channels = filter_num[i],
+                    #out_channels = filter_num[i+1],
+                    #kernel_size = kernel_size[i],
+                    #stride = 1)(x)
         return torch.transpose(x, 1, 2)
 
     def flatConv(self, x):
