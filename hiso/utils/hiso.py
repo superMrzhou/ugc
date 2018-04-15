@@ -25,9 +25,9 @@ class HISO(nn.Module):
         self.pos_embed = nn.Embedding(opt.pos_size, opt.embed_dim)
         self.initEmbedWeight()
         # conv layer
-        self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=3,padding=1).cuda(),
-                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=4,padding=1).cuda(),
-                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=5,padding=2).cuda()]
+        self.fconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=2,padding=1).cuda(),
+                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=3,padding=1).cuda(),
+                        nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=4,padding=2).cuda()]
         # deep conv
         deep_dims = [96, 96, 128]
         self.dconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=deep_dims[0],kernel_size=3,padding=1).cuda(),
