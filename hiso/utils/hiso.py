@@ -30,9 +30,9 @@ class HISO(nn.Module):
                         nn.Conv1d(in_channels=opt.embed_dim,out_channels=48,kernel_size=4,padding=2).cuda()]
         # deep conv
         deep_dims = [96, 96, 128]
-        self.dconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=deep_dims[0],kernel_size=2,padding=1).cuda(),
-                        nn.Conv1d(in_channels=deep_dims[0],out_channels=deep_dims[1],kernel_size=3,padding=2).cuda(),
-                        nn.Conv1d(in_channels=deep_dims[1],out_channels=deep_dims[2],kernel_size=4,padding=2).cuda()]
+        self.dconv1d = [nn.Conv1d(in_channels=opt.embed_dim,out_channels=deep_dims[0],kernel_size=4,padding=1).cuda(),
+                        nn.Conv1d(in_channels=deep_dims[0],out_channels=deep_dims[1],kernel_size=5,padding=2).cuda(),
+                        nn.Conv1d(in_channels=deep_dims[1],out_channels=deep_dims[2],kernel_size=6,padding=2).cuda()]
         self.word_conv = self.deepConv
         self.pos_conv = self.flatConv
         # Bi-GRU Layer
